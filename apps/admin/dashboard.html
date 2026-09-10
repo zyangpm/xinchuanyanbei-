@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新传研背 · 管理后台</title>
+  <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+  <link rel="stylesheet" href="src/admin.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="public/logo.png" alt="新传研背管理后台">
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" onclick="switchPage('dashboard', this)">
+          <span class="nav-icon">📊</span>
+          <span>数据概览</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('material', this)">
+          <span class="nav-icon">📁</span>
+          <span>资料管理</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('ai', this)">
+          <span class="nav-icon">🤖</span>
+          <span>AI生成</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('review', this)">
+          <span class="nav-icon">📝</span>
+          <span>内容审核</span>
+          <span class="nav-badge">12</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('bank', this)">
+          <span class="nav-icon">📚</span>
+          <span>题库管理</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('publish', this)">
+          <span class="nav-icon">🚀</span>
+          <span>发布管理</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('stats', this)">
+          <span class="nav-icon">📈</span>
+          <span>数据统计</span>
+        </a>
+        <a class="nav-item" onclick="switchPage('feedback', this)">
+          <span class="nav-icon">💬</span>
+          <span>用户反馈</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">© 2026 新传研背</div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <div class="main-area">
+      <!-- 顶部栏 -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-breadcrumb">
+            管理后台 / <span class="current" id="current-page-name">数据概览</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-user" onclick="showHint('个人资料功能开发中')">
+            <div class="topbar-avatar">管</div>
+            <span class="topbar-username">管理员</span>
+          </div>
+          <span class="topbar-logout" onclick="handleLogout()">退出</span>
+        </div>
+      </header>
+
+      <!-- 内容区域 -->
+      <div class="content-area" id="content-area">
+        <!-- 默认显示数据概览 -->
+        <div id="page-dashboard" class="page-content">
+          <div class="page-header">
+            <div>
+              <div class="page-title">数据概览</div>
+              <div class="page-subtitle">管理后台运行数据总览</div>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-label">名词解释</div>
+              <div class="stat-value">328</div>
+              <div class="stat-trend up">↑ 本周新增 12 条</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">简答题</div>
+              <div class="stat-value">142</div>
+              <div class="stat-trend up">↑ 本周新增 3 道</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">论述题</div>
+              <div class="stat-value">96</div>
+              <div class="stat-trend">— 本周无新增</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">实务题</div>
+              <div class="stat-value">0</div>
+              <div class="stat-trend">待开发</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">待审核内容</span>
+              <span class="btn btn-ghost" onclick="switchPageByName('review')">查看全部</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>类型</th>
+                    <th>标题</th>
+                    <th>来源</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>名词解释</td>
+                    <td>议程设置功能</td>
+                    <td>AI生成</td>
+                    <td><span class="status-tag reviewing">待审核</span></td>
+                    <td><span class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="showHint('审核功能开发中')">审核</span></td>
+                  </tr>
+                  <tr>
+                    <td>简答题</td>
+                    <td>沉默的螺旋理论</td>
+                    <td>AI生成</td>
+                    <td><span class="status-tag reviewing">待审核</span></td>
+                    <td><span class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="showHint('审核功能开发中')">审核</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 资料管理 -->
+        <div id="page-material" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">资料库管理</div>
+              <div class="page-subtitle">上传和管理教材、真题等资料</div>
+            </div>
+            <button class="btn btn-primary" onclick="openUploadModal()">+ 上传资料</button>
+          </div>
+          <div class="filter-bar">
+            <select class="filter-select" id="material-source-filter" onchange="renderMaterials()">
+              <option value="all">全部来源</option>
+              <option value="教材">教材</option>
+              <option value="真题">真题</option>
+              <option value="公开资料">公开资料</option>
+              <option value="自整理">自整理</option>
+            </select>
+            <input type="text" class="filter-input" id="material-search" placeholder="搜索资料名称..." style="flex:1;max-width:300px;" oninput="renderMaterials()">
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding:0;" id="material-list"></div>
+          </div>
+        </div>
+
+        <!-- AI生成 -->
+        <div id="page-ai" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">AI内容生成</div>
+              <div class="page-subtitle">基于上传资料自动生成考研内容草稿</div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><span class="card-title">生成配置</span></div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                  <label class="form-label">选择资料</label>
+                  <select class="form-select" id="ai-material-select">
+                    <option value="">请选择资料</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">生成题型</label>
+                  <select class="form-select" id="ai-question-type">
+                    <option value="noun">名词解释</option>
+                    <option value="short">简答题</option>
+                    <option value="essay">论述题</option>
+                    <option value="practice">实务题</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">生成数量</label>
+                  <input type="number" class="form-input" id="ai-count" value="5" min="1" max="20">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">AI模型</label>
+                  <select class="form-select" id="ai-model">
+                    <option value="DeepSeek">DeepSeek</option>
+                    <option value="ChatGPT">ChatGPT</option>
+                    <option value="Claude">Claude</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">生成规则</label>
+                <div style="font-size:13px;color:var(--ink-soft);line-height:2;">
+                  ✓ 严格依据上传资料生成<br>
+                  ✓ 保留教材核心观点<br>
+                  ✓ 符合新传考研答题要求<br>
+                  ✓ 生成后支持人工修改
+                </div>
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="generateContent()">开始生成</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">已生成内容</span></div>
+            <div class="card-body" style="padding:0;" id="ai-result-list"></div>
+          </div>
+        </div>
+
+        <!-- 内容审核 -->
+        <div id="page-review" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">内容审核</div>
+              <div class="page-subtitle">审核AI生成的草稿内容，通过后可发布</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding:0;" id="review-list"></div>
+          </div>
+        </div>
+
+        <!-- 题库管理 -->
+        <div id="page-bank" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">题库管理</div>
+              <div class="page-subtitle">管理名词解释、简答题、论述题、实务题</div>
+            </div>
+            <button class="btn btn-primary" onclick="openQuestionModal()">+ 新增题目</button>
+          </div>
+          <div class="filter-bar">
+            <select class="filter-select" id="bank-type-filter" onchange="renderQuestions()">
+              <option value="all">全部题型</option>
+              <option value="noun">名词解释</option>
+              <option value="short">简答题</option>
+              <option value="essay">论述题</option>
+              <option value="practice">实务题</option>
+            </select>
+            <input type="text" class="filter-input" id="bank-search" placeholder="搜索题目..." style="flex:1;max-width:300px;" oninput="renderQuestions()">
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding:0;" id="question-list"></div>
+          </div>
+        </div>
+
+        <!-- 发布管理 -->
+        <div id="page-publish" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">发布管理</div>
+              <div class="page-subtitle">将审核通过的内容发布到学生端APP</div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><span class="card-title">待发布内容</span></div>
+            <div class="card-body" style="padding:0;" id="publish-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">发布历史</span></div>
+            <div class="card-body" style="padding:0;" id="publish-history"></div>
+          </div>
+        </div>
+
+        <!-- 用户反馈 -->
+        <div id="page-feedback" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">用户反馈</div>
+              <div class="page-subtitle">查看和管理用户提交的反馈</div>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <select class="filter-select" id="feedback-type-filter" onchange="renderFeedbacks()">
+              <option value="all">全部类型</option>
+              <option value="bug">Bug反馈</option>
+              <option value="feature">功能建议</option>
+              <option value="other">其他问题</option>
+            </select>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding:0;" id="feedback-list"></div>
+          </div>
+        </div>
+
+        <!-- 数据统计 -->
+        <div id="page-stats" class="page-content" style="display:none;">
+          <div class="page-header">
+            <div>
+              <div class="page-title">数据统计</div>
+              <div class="page-subtitle">内容使用情况和系统数据</div>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-label">已发布内容</div>
+              <div class="stat-value">566</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">草稿内容</div>
+              <div class="stat-value">24</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">待审核</div>
+              <div class="stat-value">12</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">已下架</div>
+              <div class="stat-value">8</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示弹窗 -->
+  <div id="hint-modal" class="modal-overlay" style="display:none;" onclick="closeHint()">
+    <div class="modal-content" style="width:360px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">提示</span>
+        <span class="modal-close" onclick="closeHint()">×</span>
+      </div>
+      <div class="modal-body" id="hint-message" style="text-align:center;padding:30px 20px;font-size:14px;color:var(--ink-soft);"></div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeHint()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="src/data.js"></script>
+  <script src="src/admin.js"></script>
+</body>
+</html>

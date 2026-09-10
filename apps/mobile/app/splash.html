@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新传研背</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      overflow: hidden;
+    }
+    
+    .logo-container {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 24px;
+      animation: fadeInScale 0.7s ease-out;
+      border-radius: 18px;
+      overflow: hidden;
+      background-image: url('../assets/icon.png');
+      background-size: 220%;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    
+    .app-name {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1C1917;
+      letter-spacing: 6px;
+      animation: fadeInUp 0.7s ease-out 0.3s both;
+    }
+    
+    .version {
+      position: absolute;
+      bottom: 20px;
+      font-size: 12px;
+      color: #C4BCB0;
+      animation: fadeIn 0.6s ease-out 0.8s both;
+    }
+    
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.85);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container"></div>
+  <div class="app-name">新传研背</div>
+  <div class="version">v4.1.0</div>
+  <script>
+    setTimeout(function() {
+      // 公网测试环境：自动设置默认登录状态，外部访问者无需手动登录
+      if (!localStorage.getItem('isLoggedIn')) {
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('loginType', 'password');
+        localStorage.setItem('userPhone', '13800000000');
+        if (!localStorage.getItem('userNickname')) {
+          localStorage.setItem('userNickname', '林同学');
+        }
+        if (!localStorage.getItem('studyDays')) {
+          localStorage.setItem('studyDays', '42');
+        }
+      }
+      window.location.href = 'index.html';
+    }, 1500);
+  </script>
+</body>
+</html>

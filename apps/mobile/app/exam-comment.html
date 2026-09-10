@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 新闻评论题训练</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">新闻评论题</div>
+    </div>
+    
+    <div class="question-progress">
+      <span>第 <span id="current-question">1</span> / <span id="total-questions">3</span> 题</span>
+    </div>
+    
+    <div class="interview-body">
+      <div class="question-header">
+        <div class="question-type">类型：短评写作</div>
+        <div class="question-title">请根据以下材料，撰写一篇300字左右的新闻短评。<br><br>【材料】近期，某网红奶茶品牌被曝使用过期原材料、篡改食品保质期，引发社会广泛关注。尽管企业已公开道歉并承诺整改，但消费者信心严重受损。</div>
+      </div>
+      
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchCommentTab('framework')">答题框架</div>
+        <div class="tab-item" onclick="switchCommentTab('answer')">考生作答</div>
+        <div class="tab-item" onclick="switchCommentTab('analysis')">用户分析</div>
+      </div>
+      
+      <div class="tab-content">
+        <div id="tab-framework" class="tab-panel active">
+          <div class="framework-chapter">
+            <div class="chapter-title">一、新闻评论的根本三大特征（必考简答）</div>
+            
+            <div class="table-wrapper">
+              <table class="exam-table">
+                <thead>
+                  <tr>
+                    <th>核心特征</th>
+                    <th>核心内涵（标准答题话术）</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>1. 论题具有强烈新闻性（前提）</td><td>具备极强时效性，紧扣当下热点事件、现实问题、社会思想倾向；立足现实、缘事而发，是区别于普通议论文的核心标志。严禁空谈、脱离新闻事实。</td></tr>
+                  <tr><td>2. 论理具有鲜明思想性（核心）</td><td>核心功能：辨析是非、匡正谬误、阐明立场、输出观点；为公众提供科学解读思路，承担舆论引导、价值引领作用。</td></tr>
+                  <tr><td>3. 论说具有广泛公众性（要求）</td><td>内容、形式、语言、文风全部面向大众，通俗大众化、接地气，摒弃晦涩学术表达，适配公共传播场景。</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">二、新闻评论类型（按规格划分｜考试分级考点）</div>
+            
+            <div class="table-wrapper">
+              <table class="exam-table">
+                <thead>
+                  <tr>
+                    <th>规格等级</th>
+                    <th>具体体裁</th>
+                    <th>权威定位</th>
+                    <th>考试考法</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>重型（最高级）</td><td>社论、任仲平、编辑部文章</td><td>代表党委/媒体官方立场，权威最高，侧重政策解读、重大主题定调</td><td>极少让考生写作，多作为材料评析、理论考点考察</td></tr>
+                  <tr><td>中型（主流）</td><td>评论员文章、社评</td><td>针对重大事件深度剖析，比社论灵活，兼具权威性与思辨性</td><td>600-800字大评论主流体裁，考试高频写作题型</td></tr>
+                  <tr><td>小型（高频）</td><td>短评、编者按、编后</td><td>一事一议、短小精悍、即时点评、针对性强</td><td>小题高频：150/300字短评、编者按写作</td></tr>
+                  <tr><td>特殊型</td><td>新闻述评</td><td>叙议结合、边述边评，一半叙事、一半议论</td><td>部分院校单独出题，侧重事实梳理+观点输出</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">三、新闻评论三大核心要素（重中之重｜所有评论底层逻辑）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）论点：全文灵魂（证明什么）</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 论点层级关系</div>
+                <div class="sub-content">• 总论点：全文唯一核心中心观点，一句话概括全文主旨，统领全篇。</div>
+                <div class="sub-content">• 分论点：设置2-3个，分层支撑、拆解总论点，逻辑层层递进。</div>
+                <div class="sub-content">• 关系：总论点统帅分论点，分论点佐证、解释总论点。</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 两大核心判断（写评论必用）</div>
+                <div class="table-wrapper">
+                  <table class="exam-table">
+                    <thead>
+                      <tr>
+                        <th>判断类型</th>
+                        <th>核心内涵</th>
+                        <th>答题示例（油罐车混装）</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>事实判断（实然）</td><td>客观陈述：发生了什么、现状如何、根源是什么</td><td>油罐车装运化工原料后不清洗，直接装运食用油，乱象长期存在。</td></tr>
+                      <tr><td>价值判断（应然）</td><td>主观评判：好坏对错、危害意义、应该怎么做（评价+规范呼吁）</td><td>评价：该行为严重危害食品安全、损害群众健康；规范：监管部门必须从严整治、压实各方责任。</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">3. 两类高阶论点</div>
+                <div class="sub-content">• 呼吁性论点：事实判断后，向社会、公众、相关主体发出倡议、诉求与号召。</div>
+                <div class="sub-content">• 对策性论点（策略判断）：结合问题根源，提出具体、可落地的解决措施、整改方案、监管办法，得分最高。</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">4. 论点硬性评分标准</div>
+                <div class="sub-content">正确+新颖：立场端正、三观合规、无导向问题；拒绝空话套话，角度新颖、观点深刻。</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）论据：全文血肉（用什么证明）</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 两大论据类型</div>
+                <div class="sub-content">• 事实论据（最有力）：新闻案例、权威数据、历史事件、客观现状、真实案例。示例：多地油罐车混装乱象二十年屡禁不止。</div>
+                <div class="sub-content">• 理论论据：法律法规、政策文件、权威名言、行业规范、官媒观点、公理常识。示例：《食品安全法》明确禁止食品与有毒化工品混运。</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 论据四大合格标准</div>
+                <div class="sub-content">相关性强、真实可靠、素材新鲜、专业严谨</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（三）论证：全文骨架（怎么证明）</div>
+              <div class="sub-content">连接论点与论据的逻辑桥梁，三大底层推理方式</div>
+              
+              <div class="table-wrapper">
+                <table class="exam-table">
+                  <thead>
+                    <tr>
+                      <th>推理方式</th>
+                      <th>逻辑原理</th>
+                      <th>实战示例</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>归纳推理</td><td>多个个别案例→总结普遍规律、共性问题</td><td>多地曝光油罐混装问题→行业监管存在普遍性漏洞</td></tr>
+                    <tr><td>演绎推理</td><td>大政策/大法理→推导单个事件对错</td><td>法规禁止混运→涉事油罐车运输行为违规违法</td></tr>
+                    <tr><td>类比推理</td><td>同类事物对比，同理可证</td><td>食品、药品运输均需专用设备，食用油运输同理需专用罐体</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">四、新闻评论完整写作六大程序（考场完整流程）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">1. 选题（选评论对象）</div>
+              <div class="sub-content">• 选题来源：上下结合（上层政策导向+下层群众现实诉求）</div>
+              <div class="sub-content">• 选题原则：宜难题、宜创新、宜大题、宜近题；规避陈旧、偏远、冒险、偏激话题</div>
+              <div class="sub-content">• 三类必考选题：新闻性热点（最多）、社会普遍现象、周期性节点话题（纪念日、年度总结）</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">2. 立意（定总论点、定高度）</div>
+              <div class="sub-content">• 核心要求：立意出新（新思想、新高度、新角度）</div>
+              <div class="sub-content">• 思维方法：纵联横切（纵向时间对比、横向多主体剖析）</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">三类话题万能立意思路（必背）</div>
+                <div class="table-wrapper">
+                  <table class="exam-table">
+                    <thead>
+                      <tr>
+                        <th>话题类型</th>
+                        <th>固定立意逻辑（是什么→为什么→怎么办）</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>正面话题</td><td>意义价值→成功经验→推广借鉴、拔高升华</td></tr>
+                      <tr><td>负面话题</td><td>危害性质→多层根源→多方整改对策</td></tr>
+                      <tr><td>争议话题</td><td>跳出二元对立，不单纯褒贬，聚焦理性规范、科学引导、平衡发展</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">3. 论证方法（立论+驳论）</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（1）立论（90%考场主流，正面说理）</div>
+                <div class="sub-content">• 例证法：列举真实新闻案例、事实素材佐证观点</div>
+                <div class="sub-content">• 引证法：引用法条、政策、权威观点、名人名言</div>
+                <div class="sub-content">• 比较法：纵向古今对比、横向主体对比、同类类比</div>
+                <div class="sub-content">• 喻证法：通俗比喻，简化复杂问题，增强文采</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（2）驳论（争议话题专用，反驳错误观点）</div>
+                <div class="sub-content">三大手段：驳论点、驳论据、驳论证；配套反证法、归谬法</div>
+                <div class="sub-content">示例反驳：有人认为"油罐偶尔混装无害"，实则长期累积会造成全民慢性健康损害，观点显然荒谬。</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">4. 谋篇（全文结构｜万能框架）</div>
+              <div class="sub-content">• 标题：观点鲜明、句式固定（让/把/别/莫）</div>
+              <div class="sub-content">• 引论（开头）：新闻由头+一句话亮总论点，开门见山</div>
+              <div class="sub-content">• 正论（主体）：递进式结构（考场最优），分层剖析、层层深入</div>
+              <div class="sub-content">• 结尾：总结概括/高昂展望/含蓄升华</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">5. 文采</div>
+              <div class="sub-content">基础：准确简洁、无语病、逻辑通顺；进阶：夹叙夹议、情理交融、善用排比对比比喻</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">6. 修改（四查原则）</div>
+              <div class="sub-content">查政治导向→查论据真伪→查逻辑结构→查文字语病</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">五、评论立意小结</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（1）偏正面话题的立意</div>
+              <div class="sub-content">• 是什么——分析事件的意义、产生的积极影响</div>
+              <div class="sub-content">• 为什么——总结成功的经验</div>
+              <div class="sub-content">• 怎么办——对别人提要求，学习成功经验；对自己提要求，追求更高目标</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（2）偏负面话题的立意</div>
+              <div class="sub-content">• 是什么——分析事件的性质、带来的消极影响</div>
+              <div class="sub-content">• 为什么——追问背后的原因</div>
+              <div class="sub-content">• 怎么办——社会各界（政府、企业、个人等）如何应对</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（3）争议性话题的立意</div>
+              <div class="sub-content">• 倾向支持——支持的原因（为什么）+需要注意的问题（怎么办）</div>
+              <div class="sub-content">• 倾向反对——反对的原因（为什么）</div>
+              <div class="sub-content">• 跳出争议——找出更重要的论题（是什么）+如何做得更好（怎么办）</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">六、考试万能答题模板（直接套用，满分格式）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板一：偏正面话题</div>
+              <div class="sub-content">标题："让"字开头、"把"字开头、"是"字嵌入</div>
+              <div class="sub-content">引论：借助新闻由头引出论点</div>
+              <div class="sub-content">正论：</div>
+              <div class="sub-content">• 是什么——分析事件的意义、产生的积极影响</div>
+              <div class="sub-content">• 为什么——总结成功的经验</div>
+              <div class="sub-content">• 怎么办——对别人提要求，学习成功经验；对自己提要求，追求更高目标</div>
+              <div class="sub-content">结论：高昂激越式结尾</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板二：偏负面话题</div>
+              <div class="sub-content">标题："别"字开头、"莫"字开头、"不"字开头</div>
+              <div class="sub-content">引论：借助新闻由头引出论点</div>
+              <div class="sub-content">正论：</div>
+              <div class="sub-content">• 是什么——分析事件的性质、带来的消极影响</div>
+              <div class="sub-content">• 为什么——追问背后的原因</div>
+              <div class="sub-content">• 怎么办——社会各界（政府、企业、个人等）如何应对</div>
+              <div class="sub-content">结论：精辟概括式结尾</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板三：争议性话题</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（1）倾向支持</div>
+                <div class="sub-content">标题："让"字开头、"把"字开头、"是"字嵌入</div>
+                <div class="sub-content">引论：借助新闻由头引出论点</div>
+                <div class="sub-content">正论：</div>
+                <div class="sub-content">• 为什么——支持的原因</div>
+                <div class="sub-content">• 怎么办——需要注意的问题</div>
+                <div class="sub-content">结论：高昂激越式结尾</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（2）倾向反对</div>
+                <div class="sub-content">标题："别"字开头、"莫"字开头、"不"字开头</div>
+                <div class="sub-content">引论：借助新闻由头引出论点</div>
+                <div class="sub-content">正论：</div>
+                <div class="sub-content">• 为什么——反对的原因1</div>
+                <div class="sub-content">• 为什么——反对的原因2</div>
+                <div class="sub-content">• 为什么——反对的原因3</div>
+                <div class="sub-content">结论：精辟概括式结尾</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（3）跳出争议</div>
+                <div class="sub-content">标题：不是……而是……</div>
+                <div class="sub-content">引论：借助新闻由头引出论点</div>
+                <div class="sub-content">正论：</div>
+                <div class="sub-content">• 是什么——找出更重要的论题</div>
+                <div class="sub-content">• 怎么办——如何做得更好</div>
+                <div class="sub-content">结论：精辟概括式结尾</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板四：编者按写作模板</div>
+              <div class="sub-content">标题：编者按</div>
+              <div class="sub-content">介绍新闻背景+提示报道内容+点明中心思想</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板五：短评写作模板</div>
+              <div class="sub-content">标题：（偏正面话题）"让"字开头、"把"字开头、"是"字嵌入</div>
+              <div class="sub-content">（偏负面话题）"别"字开头、"莫"字开头、"不"字开头</div>
+              <div class="sub-content">引论概述事实</div>
+              <div class="sub-content">正论直抒论点：分析性质+提出对策｜分析原因+提出对策</div>
+              <div class="sub-content">结论自然收尾：高昂激越式/精辟概括式结尾</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板六：微博短评写作模板</div>
+              <div class="sub-content">【#微博话题#即标题】+概述事实+分析性质（+揭示原因）+提出对策/呼吁号召</div>
+              <div class="sub-content">注：篇幅有限，每个点一两句话即可</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板七：新闻评析写作模板</div>
+              <div class="sub-content">标题：核心观点——评《xxx》</div>
+              <div class="sub-content">开头：概括作品内容，提出主要观点</div>
+              <div class="sub-content">正文：从舆论导向、新闻选题、采编方法、语言表达、内容呈现、传播效果、媒体责任等7个维度中选取3个突出的点。（推荐搭配：新闻选题+内容呈现+媒体责任）</div>
+              <div class="sub-content">每个段落的内部结构：理论阐述+案例分析+简要总结</div>
+              <div class="sub-content">结尾：高昂激越式/点出不足之处</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板八：新闻述评写作模板</div>
+              <div class="sub-content">标题：核心观点</div>
+              <div class="sub-content">开头：概括面上的情况，提出总论点</div>
+              <div class="sub-content">正文：点上的事例1+分论点1</div>
+              <div class="sub-content">点上的事例2+分论点2</div>
+              <div class="sub-content">点上的事例3+分论点3</div>
+              <div class="sub-content">结尾：高昂激越式/精辟概括式结尾</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板九：媒介批评写作模板</div>
+              <div class="sub-content">标题："别"字开头、"莫"字开头、"不"字开头</div>
+              <div class="sub-content">引论：借助媒介问题引出论点</div>
+              <div class="sub-content">正论：</div>
+              <div class="sub-content">• 是什么——分析事件的性质、带来的消极影响</div>
+              <div class="sub-content">• 为什么——追问背后的原因</div>
+              <div class="sub-content">• 怎么办——社会各界（政府、企业、个人等）如何应对</div>
+              <div class="sub-content">结论：精辟概括式结尾</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">七、考情：9大类必考话题（所有考研材料全部出自这里）</div>
+            <div class="sub-content">1. 时事政治（政策、纪念日、外交）；2. 经济；3. 科技AI；4. 文化文旅；5. 教育；6. 健康；7. 体育；8. 生态；9. 网络现象（最多）</div>
+          </div>
+        </div>
+        
+        <div id="tab-answer" class="tab-panel">
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">一、标题</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-title')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-title" placeholder="请输入标题（偏负面话题可用'别'字开头、'莫'字开头、'不'字开头）" oninput="saveCommentAnswer('title')"></textarea>
+            <div class="ai-hint" id="ai-title">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 偏负面话题："别"字开头、"莫"字开头、"不"字开头</div>
+              <div class="hint-content">2. 观点要鲜明，直接亮出态度</div>
+              <div class="hint-content">3. 标题句式固定，让/把/别/莫</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">二、引论（开头）</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-intro')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-intro" placeholder="请输入引论（新闻由头+一句话亮总论点，开门见山）" oninput="saveCommentAnswer('intro')"></textarea>
+            <div class="ai-hint" id="ai-intro">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 概括材料中的新闻事实作为由头</div>
+              <div class="hint-content">2. 一句话亮出总论点，开门见山</div>
+              <div class="hint-content">3. 点明事件的性质和核心问题</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">三、正论（主体）——是什么</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-what')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-what" placeholder="请分析事件的性质、带来的消极影响（偏负面话题）" oninput="saveCommentAnswer('what')"></textarea>
+            <div class="ai-hint" id="ai-what">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 事实判断：发生了什么、现状如何</div>
+              <div class="hint-content">2. 分析事件的性质和本质</div>
+              <div class="hint-content">3. 阐述带来的消极影响和危害</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">四、正论（主体）——为什么</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-why')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-why" placeholder="请追问背后的原因（偏负面话题）" oninput="saveCommentAnswer('why')"></textarea>
+            <div class="ai-hint" id="ai-why">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 企业层面：逐利驱动、管理不善</div>
+              <div class="hint-content">2. 监管层面：监管缺位、执法不严</div>
+              <div class="hint-content">3. 行业层面：行业自律缺失、恶性竞争</div>
+              <div class="hint-content">4. 消费者层面：盲目追捧、缺乏辨别</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">五、正论（主体）——怎么办</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-how')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-how" placeholder="请提出社会各界如何应对（偏负面话题）" oninput="saveCommentAnswer('how')"></textarea>
+            <div class="ai-hint" id="ai-how">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 政府监管：加强执法、完善制度、加大处罚力度</div>
+              <div class="hint-content">2. 企业自律：强化责任意识、完善内控机制</div>
+              <div class="hint-content">3. 行业协会：制定标准、加强监督</div>
+              <div class="hint-content">4. 消费者：理性消费、积极维权</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">六、结论（结尾）</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-conclusion')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-conclusion" placeholder="请输入结尾（总结概括/高昂展望/含蓄升华）" oninput="saveCommentAnswer('conclusion')"></textarea>
+            <div class="ai-hint" id="ai-conclusion">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 精辟概括式：总结全文观点，强调核心论点</div>
+              <div class="hint-content">2. 高昂展望式：提出希望和号召，展望未来</div>
+              <div class="hint-content">3. 含蓄升华式：引发思考，余味悠长</div>
+              <div class="hint-content">4. 偏负面话题推荐：精辟概括式结尾</div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-analysis" class="tab-panel">
+          <div class="analysis-section">
+            <button class="publish-analysis-btn" onclick="openPublishAnalysisModal()">📝 发布我的分析</button>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">张</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小张同学</div>
+                  <div class="analysis-time">2小时前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">解题思路</div>
+              <div class="analysis-content">这道题是典型的偏负面话题，应该采用"别"字开头的标题。核心论点应该围绕"食品安全底线不能破"展开，分析企业诚信缺失的危害，从企业、监管、消费者三个层面提出对策。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">李</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小李同学</div>
+                  <div class="analysis-time">5小时前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">记忆方法</div>
+              <div class="analysis-content">我用"标题-引论-正论-结论"四段式来记忆评论结构。正论部分再用"是什么-为什么-怎么办"三个分论点展开，这样不管什么话题都能套用，非常实用。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">王</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小王同学</div>
+                  <div class="analysis-time">1天前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">案例分析</div>
+              <div class="analysis-content">参考"某奶粉品牌质量问题"事件的评论写法，当时很多评论都采用了"企业责任+监管漏洞+社会共治"的分析框架，层层递进，逻辑清晰。这次奶茶事件也可以套用类似框架。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">赵</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小赵同学</div>
+                  <div class="analysis-time">2天前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">答题技巧</div>
+              <div class="analysis-content">写评论一定要先确定话题类型（正面/负面/争议），然后选择对应的模板。偏负面话题用"别/莫/不"开头，偏正面用"让/把/是"开头，这样标题就能先得高分。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottom-action-bar" id="bottom-bar">
+      <button class="nav-btn" onclick="prevCommentQuestion()" id="prev-btn">上一题</button>
+      <div id="action-btns">
+        <button class="action-btn" onclick="showMyCommentAnswers()">查看我的答案汇总</button>
+        <button class="action-btn" onclick="showCommentFullAnswer()">查看完整答案</button>
+      </div>
+      <button class="nav-btn" onclick="nextCommentQuestion()" id="next-btn">下一题</button>
+    </div>
+  </div>
+  
+  <div id="full-answer-modal" class="modal-overlay" style="display:none;" onclick="closeModal('full-answer-modal')">
+    <div class="modal-content" style="max-height:85vh;overflow:hidden;" onclick="event.stopPropagation()">
+      <div class="modal-title">完整参考答案</div>
+      <div class="modal-close" onclick="closeModal('full-answer-modal')">×</div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding:0 16px;">
+        <div class="answer-section">
+          <div class="section-title">一、标题</div>
+          <div class="section-content">别让"网红"光环遮住食品安全底线</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">二、引论（开头）</div>
+          <div class="section-content">近期，某网红奶茶品牌因使用过期原材料、篡改食品保质期被曝光，引发社会哗然。尽管企业已公开道歉，但这起事件暴露出的食品安全问题值得我们深思：在追求流量和利润的同时，企业不能忘记最基本的责任底线。</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">三、正论——是什么</div>
+          <div class="section-content">这起事件的性质是严重的企业诚信缺失和对消费者健康的漠视。过期原料直接危害消费者身体健康，篡改保质期更是对食品安全法规的公然违反，严重损害了行业信誉和消费者信心。</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">四、正论——为什么</div>
+          <div class="section-content">问题的根源在于多重因素叠加：一是企业逐利驱动，为降低成本不惜牺牲食品安全；二是内部管理混乱，质量把控形同虚设；三是监管存在漏洞，未能及时发现和制止违法行为；四是消费者盲目追捧网红品牌，缺乏对食品安全的理性判断。</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">五、正论——怎么办</div>
+          <div class="section-content">解决食品安全问题需要多方共治：<br><br>
+            1. 企业层面：必须强化主体责任意识，建立健全质量管控体系，杜绝侥幸心理；<br><br>
+            2. 监管层面：监管部门应加大执法力度，完善常态化抽检机制，提高违法成本；<br><br>
+            3. 行业层面：行业协会应制定统一标准，加强自律监督，营造诚信经营氛围；<br><br>
+            4. 消费者层面：理性消费，关注食品安全信息，积极维权。</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">六、结论（结尾）</div>
+          <div class="section-content">食品安全是企业生存发展的生命线，也是社会公众最基本的期待。希望这起事件能成为行业警醒，让所有企业都明白：只有守住食品安全底线，才能赢得消费者的信任，才能走得长远。</div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="closeModal('full-answer-modal')">关闭</button>
+    </div>
+  </div>
+  
+  <div id="my-answers-modal" class="modal-overlay" style="display:none;" onclick="closeModal('my-answers-modal')">
+    <div class="modal-content" style="max-height:85vh;overflow:hidden;" onclick="event.stopPropagation()">
+      <div class="modal-title">我的答案汇总</div>
+      <div class="modal-close" onclick="closeModal('my-answers-modal')">×</div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding:0 16px;" id="my-comment-answers-content"></div>
+      <button class="save-btn" onclick="closeModal('my-answers-modal')">关闭</button>
+    </div>
+  </div>
+  
+  <div id="publish-analysis-modal" class="modal-overlay" style="display:none;" onclick="closeModal('publish-analysis-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">发布我的分析</div>
+      <div class="modal-close" onclick="closeModal('publish-analysis-modal')">×</div>
+      <div style="padding:0 16px;">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:13px;color:var(--ink);margin-bottom:6px;">选择分析类型</div>
+          <div style="display:flex;gap:8px;">
+            <button class="analysis-type-btn active" onclick="selectAnalysisType('思路')">解题思路</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('记忆')">记忆方法</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('案例')">案例分析</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('技巧')">答题技巧</button>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;color:var(--ink);margin-bottom:6px;">我的分析内容</div>
+          <textarea id="analysis-content" style="width:100%;min-height:150px;padding:12px;border:1px solid var(--paper-line);border-radius:var(--radius);font-size:13px;line-height:1.6;color:var(--ink);background:var(--paper);resize:vertical;outline:none;" placeholder="请输入你的分析内容..."></textarea>
+        </div>
+      </div>
+      <button class="save-btn" onclick="submitAnalysis()">发布分析</button>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      initCommentPage();
+    });
+  </script>
+</body>
+</html>

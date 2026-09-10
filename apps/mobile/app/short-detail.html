@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 简答题详情</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../../packages/content/short-data.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <div>
+        <button class="crumb-btn" onclick="goBack()"><span id="short-category">‹ 传播学原理</span></button>
+        <div class="app-title" style="font-size:17px;"><span id="short-title">霍尔编码解码模型</span> <span id="short-tag" class="tagchip">20分·800字</span></div>
+      </div>
+      <div class="icon-btns">
+        <div class="icon-btn" onclick="toggleFavorite(event)">☆</div>
+        <div class="icon-btn" onclick="openNoteModal()">✎</div>
+      </div>
+    </div>
+    
+    <div class="app-body">
+      <div class="tabs" style="grid-template-columns:repeat(4,1fr);">
+        <div class="tab active" onclick="switchTab(this,'s-frame')">答题框架</div>
+        <div class="tab" onclick="switchTab(this,'s-variant')">真题设问变式</div>
+        <div class="tab" onclick="switchTab(this,'s-ans')">答案内容</div>
+        <div class="tab" onclick="switchTab(this,'s-mem')">辅助记忆</div>
+      </div>
+      
+      <div class="panel active" id="s-frame">
+        <div class="stepper" id="short-frame-stepper"></div>
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevShort()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextShort()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="s-variant">
+        <div class="fw-block">
+          <div class="fw-label">★ 真题设问变式</div>
+          <div id="short-variants-container"></div>
+        </div>
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevShort()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextShort()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="s-ans">
+        <div class="def-text" id="short-answer-text"></div>
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevShort()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextShort()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="s-mem">
+        <div class="def-text" id="short-memory-tip"></div>
+        
+        <div class="section-divider"></div>
+        
+        <div class="selftest-switcher">
+          <div class="selftest-btn active" onclick="switchSelfTestMode('drag')">拖拽还原</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('fill')">填空记忆</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('framework')">框架默写</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('redfilm')">红膜背书</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('flashcard')">闪卡模式</div>
+        </div>
+        
+        <div id="selftest-drag" class="selftest-panel">
+          <div class="drop-hint">拖拽还原：按"认同程度从高到低"排序</div>
+          <div class="chip-pool" id="short-chip-pool">
+            <div id="selftest-drag-content"></div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-fill" class="selftest-panel" style="display:none;">
+          <div class="drop-hint">填空记忆：点击空白处填入正确答案</div>
+          <div class="fill-blank-area">
+            <div id="selftest-fill-content"></div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-framework" class="selftest-panel" style="display:none;">
+          <div class="drop-hint">框架默写：手动复现总分结构</div>
+          <div class="framework-write-area">
+            <textarea class="framework-textarea" placeholder="请在此输入您对霍尔编码解码模型的框架默写..."></textarea>
+            <button class="framework-compare-btn" onclick="showFrameworkAnswer()">调出标准答案</button>
+            <div class="framework-answer" id="short-framework-answer">
+              <div id="selftest-framework-content"></div>
+            </div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-redfilm" class="selftest-panel" style="display:none;">
+          <div class="drop-hint">红膜背书：点击空白位置显示内容</div>
+          <div class="fill-blank-area">
+            <div id="selftest-redfilm-content"></div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-flashcard" class="selftest-panel" style="display:none;">
+          <div id="selftest-flashcard-content"></div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <div class="tts-bar">
+          <button class="tts-btn" onclick="toggleTTS('short')">▶</button>
+          <div class="tts-progress">
+            <div class="tts-progress-bar"></div>
+          </div>
+          <div class="tts-status">朗读中...</div>
+        </div>
+        
+        <div class="mem-share-area">
+          <div class="share-header">
+            <div class="share-title">考生记忆分享</div>
+            <span class="official-badge">官方推荐</span>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">官</div>
+              <div>
+                <div class="mem-author">官方记忆思路</div>
+                <div class="mem-time">置顶</div>
+              </div>
+            </div>
+            <div class="mem-content">编码解码三步法：1) 先记核心概念——编码是生产、解码是解读；2) 再记三种立场——完全认同/部分妥协/完全对抗；3) 最后联系文化领导权理论</div>
+            <div class="mem-actions">
+              <span class="mem-action">👍 128</span>
+              <span class="mem-action">💬 12</span>
+            </div>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">考</div>
+              <div>
+                <div class="mem-author">考研小李</div>
+                <div class="mem-time">3天前</div>
+              </div>
+            </div>
+            <div class="mem-content">我用谐音记："偏妥对"——偏好、妥协、对抗，三个词的首字连起来好记！</div>
+            <div class="mem-actions">
+              <span class="mem-action" onclick="toggleMemLike(this)">👍 45</span>
+              <span class="mem-action">💬 3</span>
+            </div>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">背</div>
+              <div>
+                <div class="mem-author">背诵达人</div>
+                <div class="mem-time">1周前</div>
+              </div>
+            </div>
+            <div class="mem-content">背诵时想象三个人看同一篇新闻：一个完全信了，一个半信半疑，一个看出了阴谋——这样就记住三种解读了！</div>
+            <div class="mem-actions">
+              <span class="mem-action" onclick="toggleMemLike(this)">👍 76</span>
+              <span class="mem-action">💬 8</span>
+            </div>
+          </div>
+          
+          <div class="submit-mem-btn" onclick="openSubmitMemModal()">发布我的记忆方法</div>
+        </div>
+      </div>
+      
+      <div class="status-row">
+        <div class="status-btn no" onclick="handleStatus('no')">不会</div>
+        <div class="status-btn blur" onclick="handleStatus('blur')">模糊</div>
+        <div class="status-btn yes" onclick="handleStatus('yes')">认识</div>
+      </div>
+    </div>
+    
+    <div id="note-modal" class="modal-overlay" style="display:none;" onclick="closeModal('note-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">记笔记</div>
+        <div class="modal-close" onclick="closeModal('note-modal')">×</div>
+        <textarea class="form-input" id="note-text" rows="6" placeholder="记录您的学习笔记..."></textarea>
+        <button class="save-btn" onclick="saveNote()">保存笔记</button>
+      </div>
+    </div>
+    
+    <div id="submit-mem-modal" class="modal-overlay" style="display:none;" onclick="closeModal('submit-mem-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">发布记忆方法</div>
+        <div class="modal-close" onclick="closeModal('submit-mem-modal')">×</div>
+        <textarea class="form-input" id="mem-submit-text" rows="6" placeholder="分享您的记忆口诀、知识点拆分方式、背诵避坑或答题技巧..."></textarea>
+        <button class="save-btn" onclick="submitMemoryMethod()">提交审核</button>
+      </div>
+    </div>
+    
+    <div id="complete-modal" class="modal-overlay" style="display:none;" onclick="closeModal('complete-modal')">
+      <div class="modal-content complete-modal" onclick="event.stopPropagation()">
+        <div class="complete-icon">🎉</div>
+        <div class="complete-title">自测完成</div>
+        <div class="complete-desc">请标记您的掌握程度，数据将联动到学习进度</div>
+        <div class="status-btns">
+          <div class="status-btn no" onclick="handleStatus('no');closeModal('complete-modal')">不会</div>
+          <div class="status-btn blur" onclick="handleStatus('blur');closeModal('complete-modal')">模糊</div>
+          <div class="status-btn yes" onclick="handleStatus('yes');closeModal('complete-modal')">认识</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      if (typeof loadShortDetail === 'function') {
+        loadShortDetail();
+      }
+    });
+  </script>
+</body>
+</html>

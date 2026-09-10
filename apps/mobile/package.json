@@ -1,0 +1,64 @@
+{
+  "name": "@xinchuan/mobile",
+  "version": "4.0.0",
+  "description": "新传研背 V4 - 移动端（Electron + PWA）",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "serve": "node start-server.js",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder"
+  },
+  "build": {
+    "appId": "com.xinchuan.yanbei.v4",
+    "productName": "新传研背V4",
+    "npmRebuild": false,
+    "electronDist": "../../node_modules/electron/dist",
+    "directories": {
+      "output": "../../dist/mobile"
+    },
+    "extraMetadata": {
+      "main": "apps/mobile/main.js"
+    },
+    "files": [
+      "package.json",
+      { "from": ".", "to": "apps/mobile", "filter": ["main.js", "preload.js"] },
+      { "from": "app", "to": "apps/mobile/app" },
+      { "from": "assets", "to": "apps/mobile/assets" },
+      { "from": "../../packages/content", "to": "packages/content" }
+    ],
+    "icon": "assets/icon.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "dir",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "新传研背V4"
+    }
+  },
+  "devDependencies": {
+    "electron": "28.2.8",
+    "electron-builder": "^24.9.1",
+    "png-to-ico": "^3.0.2"
+  },
+  "dependencies": {
+    "@electron/asar": "^4.2.1",
+    "electron-store": "^8.0.0"
+  }
+}

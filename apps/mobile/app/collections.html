@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 收藏</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <div class="search-box" style="display:flex;align-items:center;background:var(--paper);border-radius:18px;padding:8px 14px;gap:8px;flex:1;margin-right:12px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="搜索收藏内容..." style="border:none;background:transparent;flex:1;font-size:13px;outline:none;color:var(--ink);" oninput="filterCollectionsBySearch(this.value)">
+      </div>
+    </div>
+    
+    <div class="app-body">
+      <div class="filter-row">
+        <div class="filter-chip active" onclick="filterCollection('all', event)">全部</div>
+        <div class="filter-chip" onclick="filterCollection('noun', event)">名词解释</div>
+        <div class="filter-chip" onclick="filterCollection('short', event)">简答题</div>
+        <div class="filter-chip" onclick="filterCollection('essay', event)">论述题</div>
+      </div>
+      
+      <div data-collection-group="noun">
+        <div class="lib-group">名词解释</div>
+        <div class="lib-row" data-type="noun" onclick="navigateTo('noun-detail.html?term=沉默的螺旋')">
+          <span>沉默的螺旋</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-type="noun" onclick="navigateTo('noun-detail.html?term=编码解码模型')">
+          <span>编码解码模型</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-type="noun" onclick="navigateTo('noun-detail.html?term=议程设置')">
+          <span>议程设置</span><span class="tag">重点</span>
+        </div>
+      </div>
+      
+      <div data-collection-group="short">
+        <div class="lib-group" style="margin-top:10px;">简答题</div>
+        <div class="lib-row" data-type="short" onclick="navigateTo('short-detail.html?short=short002')">
+          <span>霍尔编码解码模型</span><span class="tag">20分</span>
+        </div>
+        <div class="lib-row" data-type="short" onclick="navigateTo('short-detail.html?short=short003')">
+          <span>知沟理论的内涵</span><span class="tag">15分</span>
+        </div>
+      </div>
+      
+      <div data-collection-group="essay">
+        <div class="lib-group" style="margin-top:10px;">论述题</div>
+        <div class="lib-row" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay001')">
+          <span>媒介素养的内涵与演变</span><span class="tag">30分</span>
+        </div>
+        <div class="lib-row" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay002')">
+          <span>网络舆论的形成机制</span><span class="tag">25分</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottomnav">
+      <div class="nav-item" onclick="navigateTo('index.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span>首页</span></div>
+      <div class="nav-item" onclick="navigateTo('knowledge.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18"/><path d="M15 9h6"/><path d="M15 12h6"/><path d="M15 15h6"/></svg></span><span>知识库</span></div>
+      <div class="nav-item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>收藏</span></div>
+      <div class="nav-item" onclick="navigateTo('exam-home.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>考试</span></div>
+      <div class="nav-item" onclick="navigateTo('profile.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>我的</span></div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>

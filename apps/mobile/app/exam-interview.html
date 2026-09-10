@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 新闻采访题训练</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">新闻采访题</div>
+    </div>
+    
+    <div class="question-progress">
+      <span>第 <span id="current-question">1</span> / <span id="total-questions">3</span> 题</span>
+    </div>
+    
+    <div class="interview-body">
+      <div class="question-header">
+        <div class="question-type">类型：采访提纲设计</div>
+        <div class="question-title">请为"某地突发公共卫生事件"设计一份完整的采访提纲</div>
+      </div>
+      
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchInterviewTab('framework')">答题框架</div>
+        <div class="tab-item" onclick="switchInterviewTab('answer')">考生作答</div>
+        <div class="tab-item" onclick="switchInterviewTab('analysis')">用户分析</div>
+      </div>
+      
+      <div class="tab-content">
+        <div id="tab-framework" class="tab-panel active">
+          <div class="framework-chapter">
+            <div class="chapter-title">一、新闻采访的方式</div>
+            
+            <div class="framework-section">
+              <div class="section-title">1. 按形式划分（10种）</div>
+              <div class="section-content">
+                <div class="table-wrapper">
+                  <table class="exam-table">
+                    <thead>
+                      <tr>
+                        <th>采访形式</th>
+                        <th>核心内涵</th>
+                        <th>适用场景快速判断</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>个别访问</td><td>一对一面对面访谈，最基础、最常用方式</td><td>普通人专访、人物深度访谈</td></tr>
+                      <tr><td>开座谈会</td><td>召集多名相关人员集中交流</td><td>多方观点收集、群体事件调研</td></tr>
+                      <tr><td>现场观察</td><td>记者亲临新闻现场，依靠观察获取素材</td><td>突发事件、场景类新闻、纪实报道</td></tr>
+                      <tr><td>参加会议</td><td>列席各类发布会、工作会议获取信息</td><td>政务新闻、行业会议报道</td></tr>
+                      <tr><td>蹲点调查</td><td>长期扎根一线持续跟踪调研</td><td>深度调查报道、挖掘事件深层脉络</td></tr>
+                      <tr><td>查阅资料</td><td>依托档案、过往报道、文献获取二手信息</td><td>背景溯源、补充佐证材料</td></tr>
+                      <tr><td>改写</td><td>利用已有通稿、素材重新整理成文</td><td>简讯、资讯整合类报道</td></tr>
+                      <tr><td>问卷</td><td>通过标准化问卷大范围收集大众意见</td><td>舆情调查、群体性数据采集</td></tr>
+                      <tr><td>电话采访</td><td>通过通话远程访谈</td><td>距离较远、时效性强的简短采访</td></tr>
+                      <tr><td>网络采访</td><td>微信、线上视频、社交平台访谈</td><td>网民采访、异地线上受访者沟通</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">2. 按性质划分（7种）</div>
+              <div class="section-content">
+                <div class="table-wrapper">
+                  <table class="exam-table">
+                    <thead>
+                      <tr>
+                        <th>采访形式</th>
+                        <th>核心内涵</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>常驻采访</td><td>记者长期驻点某地/单位，常态化采写新闻</td></tr>
+                      <tr><td>突击采访</td><td>针对突发新闻紧急开展的采访</td></tr>
+                      <tr><td>交叉采访</td><td>同一选题同时采访多方主体，交叉验证信息</td></tr>
+                      <tr><td>巡回采访</td><td>记者辗转多地，围绕同一主题走访调查</td></tr>
+                      <tr><td>隐性采访（暗访）</td><td>隐藏记者身份与采访意图，多用于舆论监督</td></tr>
+                      <tr><td>体验式采访</td><td>记者亲身进入现场、代入当事人视角体验</td></tr>
+                      <tr><td>易地采访</td><td>离开常驻属地，前往外地开展专项采访</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">二、采访周全准备（采访计划考题核心板块）</div>
+            <div class="section-content">所有采访计划、提纲类题目，必须包含平时准备+临时准备两部分，缺一不可。</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）平时准备（长期积累，基础储备）</div>
+              <div class="section-content">日常常态化积累，为采访工作筑牢基础：掌握基础理论、熟悉行业政策、积累各类新闻常识、储备海量新闻素材，常态化关注热点新闻，提升采访敏感度。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）临时准备（考场答题必写重点）</div>
+              <div class="section-content">针对单次专项采访的针对性准备，答题标准化要点：</div>
+              <div class="sub-section">
+                <div class="sub-content">1. 查阅梳理本次事件、人物相关背景资料；</div>
+                <div class="sub-content">2. 了解采访对象身份、性格、经历，适配提问风格；</div>
+                <div class="sub-content">3. 撰写完整采访提纲，规划采访流程；</div>
+                <div class="sub-content">4. 检查录音、手机、笔记本、摄像等全套采访设备。</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">三、完整采访计划构成（8大固定模块，答题满分框架）</div>
+            <div class="section-content">周密可行的采访计划，固定包含8个板块，答题按点书写，条理清晰不丢分：</div>
+            
+            <div class="framework-section">
+              <div class="section-title">1. 采访任务/目的</div>
+              <div class="section-content">明确本次采访的缘由、核心目标，以及可附带的延伸采访任务，要求具体清晰、不笼统。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">2. 人员安排</div>
+              <div class="section-content">明确记者人数、人员类型（文字记者、摄影记者、摄像记者等），分工清晰。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">3. 采访时间</div>
+              <div class="section-content">确定采访次数、每次采访的起止时间，规划整体时长。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">4. 采访地点</div>
+              <div class="section-content">明确访谈地点、新闻事发地点，提前核实精准位置。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">5. 采访对象</div>
+              <div class="section-content">确定核心采访对象、备用替代对象，留存联系方式（电话、邮箱、地址等）。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">6. 交通方式</div>
+              <div class="section-content">规划出行方式（步行、自驾、单位派车、拼车等），明确候车、集合地点。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">7. 器材配备</div>
+              <div class="section-content">罗列录音、摄像、拍照、电脑、纸笔等全套采访设备，广电类采访需细化器材清单。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">8. 采访提纲与流程</div>
+              <div class="section-content">明确核心提问要点、完整采访步骤，是采访计划的核心内容。</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（一）提纲两套版本（考场通用）</div>
+                <div class="sub-content">• 对外受访者版本：精简、温和、通俗，规避尖锐问题，适配现场沟通。</div>
+                <div class="sub-content">• 内部记者版本：详细、全面、有深度，包含追问要点、禁忌提示、流程细节。</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">（二）三类专属提纲制订逻辑（精准适配题型）</div>
+                <div class="sub-content">• 事件类提纲：核心提问维度——事件起因、发展经过、最终结果、后续影响、现存问题。</div>
+                <div class="sub-content">• 单人人物提纲：核心提问维度——个人经历、核心观点、性格特质、所思所感、行业感悟。</div>
+                <div class="sub-content">• 多重人物提纲：区分不同身份受访者，量身定制专属问题，避免提问重复、无针对性。</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">四、采访提纲核心知识点（考试高频）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）提纲两套版本（考场通用）</div>
+              <div class="section-content">
+                <div class="sub-content">• 对外受访者版本：精简、温和、通俗，规避尖锐问题，适配现场沟通。</div>
+                <div class="sub-content">• 内部记者版本：详细、全面、有深度，包含追问要点、禁忌提示、流程细节。</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）三类专属提纲制订逻辑（精准适配题型）</div>
+              <div class="section-content">
+                <div class="sub-content">• 事件类提纲：核心提问维度——事件起因、发展经过、最终结果、后续影响、现存问题。</div>
+                <div class="sub-content">• 单人人物提纲：核心提问维度——个人经历、核心观点、性格特质、所思所感、行业感悟。</div>
+                <div class="sub-content">• 多重人物提纲：区分不同身份受访者，量身定制专属问题，避免提问重复、无针对性。</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">五、提问技能核心（答题不丢分关键）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）两大基础提问类型</div>
+              <div class="section-content">
+                <div class="sub-content">• 开放式提问：询问感受、看法、观点，多用于采访开场，缓和气氛、打开话题。</div>
+                <div class="sub-content">• 封闭式提问：询问具体数字、事实、细节，多用于核实信息、确认精准内容。</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）五种提问核心形式</div>
+              <div class="section-content">正面提、侧面探、反面激、假借法、盘问法</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（三）提问硬性注意事项</div>
+              <div class="section-content">提问需做到：简洁通俗、具体精准、不诱导误导、有深度、自然克制、贴合主题</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（四）实战高分技巧</div>
+              <div class="section-content">遵循先易后难、循序渐进原则，基础问题铺垫氛围，核心关键内容必须持续追问，深挖细节。</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">六、考试万能答题模板（直接套用，满分格式）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板一：多人采访提纲模板</div>
+              <div class="section-content">
+                <div class="sub-content">关于【XXX】主题的采访提纲</div>
+                <div class="sub-content">一、采访对象一</div>
+                <div class="sub-content">• 采访时间与地点：XXX</div>
+                <div class="sub-content">• 采访方式：面对面/电话/网络采访</div>
+                <div class="sub-content">• 核心采访问题（2-5个）：XXX</div>
+                <div class="sub-content">二、采访对象二</div>
+                <div class="sub-content">• 采访时间与地点：XXX</div>
+                <div class="sub-content">• 采访方式：面对面/电话/网络采访</div>
+                <div class="sub-content">• 核心采访问题（2-5个）：XXX</div>
+                <div class="sub-content">三、采访对象三</div>
+                <div class="sub-content">• 采访时间与地点：XXX</div>
+                <div class="sub-content">• 采访方式：面对面/电话/网络采访</div>
+                <div class="sub-content">• 核心采访问题（2-5个）：XXX</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板二：单人深度采访提纲模板</div>
+              <div class="section-content">
+                <div class="sub-content">关于【XXX】主题的采访提纲</div>
+                <div class="sub-content">一、采访时间与地点：XXX</div>
+                <div class="sub-content">二、采访方式：面对面深度采访</div>
+                <div class="sub-content">三、分层采访问题</div>
+                <div class="sub-content">（一）基础背景板块</div>
+                <div class="sub-content">• 问题1：XXX</div>
+                <div class="sub-content">• 问题2：XXX</div>
+                <div class="sub-content">• 问题3：XXX</div>
+                <div class="sub-content">（二）核心主题板块</div>
+                <div class="sub-content">• 问题1：XXX</div>
+                <div class="sub-content">• 问题2：XXX</div>
+                <div class="sub-content">• 问题3：XXX</div>
+                <div class="sub-content">（三）延伸感悟板块</div>
+                <div class="sub-content">• 问题1：XXX</div>
+                <div class="sub-content">• 问题2：XXX</div>
+                <div class="sub-content">• 问题3：XXX</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">模板三：完整采访计划模板（大题专用）</div>
+              <div class="section-content">
+                <div class="sub-content">关于【XXX】主题的采访计划</div>
+                <div class="sub-content">一、采访目的/任务：明确本次采访的核心目标、报道方向与核心任务。</div>
+                <div class="sub-content">二、采访人员：2-3名全媒体记者（含文字、摄影/摄像记者），分工明确。</div>
+                <div class="sub-content">三、前期采访准备</div>
+                <div class="sub-content">1. 资料准备：查阅事件、人物相关背景资料，梳理核心信息；</div>
+                <div class="sub-content">2. 工具准备：提前备好录音设备、相机、笔记本、手机等全套器材，调试设备。</div>
+                <div class="sub-content">四、具体采访安排</div>
+                <div class="sub-content">（一）采访对象1</div>
+                <div class="sub-content">1. 采访时间与地点：XXX</div>
+                <div class="sub-content">2. 采访方式：XXX</div>
+                <div class="sub-content">3. 采访提纲（2-5个问题）：XXX</div>
+                <div class="sub-content">（二）采访对象2</div>
+                <div class="sub-content">1. 采访时间与地点：XXX</div>
+                <div class="sub-content">2. 采访方式：XXX</div>
+                <div class="sub-content">3. 采访提纲（2-5个问题）：XXX</div>
+                <div class="sub-content">五、采访预案（加分项）：预判采访中可能出现的拒绝采访、信息不实、现场突发状况等问题，对应制定应急解决办法。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-answer" class="tab-panel">
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">一、采访任务/目的</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-1')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-1" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(1)"></textarea>
+            <div class="ai-hint" id="ai-1">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 明确报道角度（事件报道/深度调查/公众科普）</div>
+              <div class="hint-content">2. 确定核心受众群体</div>
+              <div class="hint-content">3. 考虑传播平台和形式</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">二、人员安排</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-2')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-2" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(2)"></textarea>
+            <div class="ai-hint" id="ai-2">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 根据报道规模确定人数</div>
+              <div class="hint-content">2. 明确文字、摄影、摄像分工</div>
+              <div class="hint-content">3. 考虑是否需要后期编辑支持</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">三、采访时间</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-3')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-3" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(3)"></textarea>
+            <div class="ai-hint" id="ai-3">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 突发事件需快速响应</div>
+              <div class="hint-content">2. 考虑采访对象的时间安排</div>
+              <div class="hint-content">3. 预留追问和补采时间</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">四、采访地点</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-4')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-4" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(4)"></textarea>
+            <div class="ai-hint" id="ai-4">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 核心地点：事发现场、指挥中心</div>
+              <div class="hint-content">2. 辅助地点：医院、社区、相关部门</div>
+              <div class="hint-content">3. 考虑交通便利性</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">五、采访对象</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-5')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-5" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(5)"></textarea>
+            <div class="ai-hint" id="ai-5">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 权威信息源：政府部门负责人</div>
+              <div class="hint-content">2. 核心当事人：患者、医护人员</div>
+              <div class="hint-content">3. 相关专家：公共卫生领域学者</div>
+              <div class="hint-content">4. 普通民众：社区居民</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">六、交通方式</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-6')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-6" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(6)"></textarea>
+            <div class="ai-hint" id="ai-6">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 突发情况下优先选择快速交通</div>
+              <div class="hint-content">2. 考虑携带设备的便利性</div>
+              <div class="hint-content">3. 规划多条路线备选</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">七、器材配备</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-7')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-7" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(7)"></textarea>
+            <div class="ai-hint" id="ai-7">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 基础设备：录音笔、笔记本、笔</div>
+              <div class="hint-content">2. 影像设备：相机、摄像机、三脚架</div>
+              <div class="hint-content">3. 备份设备：备用电池、存储卡</div>
+              <div class="hint-content">4. 防护设备：口罩、防护服（卫生事件）</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">八、采访提纲与流程</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-8')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-8" placeholder="请按照答题框架填写你的答案..." oninput="saveAnswer(8)"></textarea>
+            <div class="ai-hint" id="ai-8">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 开放式问题开场，缓和气氛</div>
+              <div class="hint-content">2. 事件类提纲五要素：起因、经过、结果、影响、问题</div>
+              <div class="hint-content">3. 准备追问问题，深挖细节</div>
+              <div class="hint-content">4. 注意提问技巧：简洁、具体、不诱导</div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-analysis" class="tab-panel">
+          <div class="analysis-section">
+            <button class="publish-analysis-btn" onclick="openPublishAnalysisModal()">📝 发布我的分析</button>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">张</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小张同学</div>
+                  <div class="analysis-time">2小时前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">解题思路</div>
+              <div class="analysis-content">这道题的核心是考察采访计划的完整性。公共卫生事件涉及多方利益相关者，采访对象要覆盖政府、医院、专家、民众四个层面，才能保证报道的全面性和客观性。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">李</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小李同学</div>
+                  <div class="analysis-time">5小时前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">记忆方法</div>
+              <div class="analysis-content">我用"人、事、时、地、物"来记忆采访提纲的基本要素：人（采访对象）、事（目的任务）、时（时间安排）、地（地点交通）、物（器材配备）。这样五个字就能记住大部分要点。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">王</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小王同学</div>
+                  <div class="analysis-time">1天前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">案例分析</div>
+              <div class="analysis-content">参考2020年初新冠疫情初期的报道，当时很多媒体采用了"多路记者同步采访"的方式，分别深入医院一线、社区防控、政府发布会，这种组合式报道能形成强大的传播声势，值得借鉴。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">赵</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小赵同学</div>
+                  <div class="analysis-time">2天前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">答题技巧</div>
+              <div class="analysis-content">我把这道题分成三个部分来思考：首先是前期准备（资料、设备），其次是具体采访安排（对象、时间、地点），最后是核心提纲设计。这样拆解后思路更清晰，不容易遗漏要点。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottom-action-bar" id="bottom-bar">
+      <button class="nav-btn" onclick="prevQuestion()" id="prev-btn">上一题</button>
+      <div id="action-btns">
+        <button class="action-btn" onclick="showMyAnswers()">查看我的答案汇总</button>
+        <button class="action-btn" onclick="showFullAnswer()">查看完整答案</button>
+      </div>
+      <button class="nav-btn" onclick="nextQuestion()" id="next-btn">下一题</button>
+    </div>
+  </div>
+  
+  <div id="full-answer-modal" class="modal-overlay" style="display:none;" onclick="closeModal('full-answer-modal')">
+    <div class="modal-content" style="max-height:85vh;overflow:hidden;" onclick="event.stopPropagation()">
+      <div class="modal-title">完整参考答案</div>
+      <div class="modal-close" onclick="closeModal('full-answer-modal')">×</div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding:0 16px;">
+        <div class="answer-section">
+          <div class="section-title">一、采访任务/目的</div>
+          <div class="section-content">
+            1. 核心任务：报道某地突发公共卫生事件的发生、发展及应对情况，及时向公众传递权威信息，稳定社会情绪。<br><br>
+            2. 延伸任务：记录一线医护人员工作状态，反映社区防控措施落实情况，采访专家解读事件影响。<br><br>
+            3. 报道方向：客观报道事件进展、深度解读防控措施、展现人性光辉故事。
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">二、人员安排</div>
+          <div class="section-content">
+            1. 文字记者2名：负责稿件撰写、采访记录<br><br>
+            2. 摄影记者1名：负责现场图片拍摄<br><br>
+            3. 摄像记者1名：负责视频素材采集<br><br>
+            4. 新媒体编辑1名：负责即时内容发布
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">三、采访时间</div>
+          <div class="section-content">
+            第一阶段（第1-2天）：突发应急采访<br>
+            • 首日：10:00-12:00 现场勘查、初步采访<br>
+            • 首日：14:00-16:00 深度采访、素材整理<br>
+            • 次日：09:00-11:00 补充采访、专家访谈<br><br>
+            第二阶段（第3-7天）：跟踪报道<br>
+            • 每日跟进事件进展、发布最新信息
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">四、采访地点</div>
+          <div class="section-content">
+            1. 核心地点：事件发生地、定点医院隔离区、市卫健委指挥中心<br><br>
+            2. 辅助地点：社区居委会、学校、商超等重点场所<br><br>
+            3. 专家访谈地点：医院会议室、视频连线
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">五、采访对象</div>
+          <div class="section-content">
+            1. 政府层面：市卫健委主任、疾控中心负责人、应急管理部门发言人<br><br>
+            2. 医疗层面：定点医院院长、救治专家组组长、一线医护人员<br><br>
+            3. 专家层面：公共卫生领域权威专家、流行病学专家<br><br>
+            4. 群众层面：确诊患者家属、社区居民、志愿者
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">六、交通方式</div>
+          <div class="section-content">
+            1. 采访组统一乘坐单位采访车前往核心采访地点<br><br>
+            2. 分散采访时可乘坐公共交通或网约车<br><br>
+            3. 每日早上8:30在单位集合出发
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">七、器材配备</div>
+          <div class="section-content">
+            1. 基础设备：录音笔2支、笔记本4本、签字笔若干<br><br>
+            2. 影像设备：单反相机1台、摄像机1台、三脚架2个、麦克风2支<br><br>
+            3. 辅助设备：笔记本电脑2台、移动电源4个、数据线若干<br><br>
+            4. 防护设备：医用口罩、防护服、护目镜、手套
+          </div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">八、采访提纲与流程</div>
+          <div class="section-content">
+            <strong>（一）对政府部门负责人</strong><br><br>
+            1. 事件发生的具体时间、地点及初步原因是什么？<br><br>
+            2. 当前采取了哪些防控措施？效果如何？<br><br>
+            3. 下一步的防控计划是什么？<br><br>
+            4. 如何保障公众的知情权和基本生活需求？<br><br>
+            <strong>（二）对医院负责人</strong><br><br>
+            1. 目前收治情况如何？医疗资源是否充足？<br><br>
+            2. 救治方案是怎样的？治愈率如何？<br><br>
+            3. 医护人员的工作状态和防护措施如何？<br><br>
+            <strong>（三）对一线医护人员</strong><br><br>
+            1. 你在一线工作的感受是什么？<br><br>
+            2. 工作中遇到的最大困难是什么？<br><br>
+            3. 有什么想对公众说的？<br><br>
+            <strong>（四）对专家</strong><br><br>
+            1. 请分析此次事件的特点和发展趋势？<br><br>
+            2. 公众应该如何做好个人防护？<br><br>
+            3. 从专业角度看，防控工作的重点是什么？<br><br>
+            <strong>（五）对社区居民</strong><br><br>
+            1. 你了解到的事件情况是怎样的？<br><br>
+            2. 社区采取了哪些防控措施？<br><br>
+            3. 生活上有什么困难或需求？
+          </div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="closeModal('full-answer-modal')">关闭</button>
+    </div>
+  </div>
+  
+  <div id="my-answers-modal" class="modal-overlay" style="display:none;" onclick="closeModal('my-answers-modal')">
+    <div class="modal-content" style="max-height:85vh;overflow:hidden;" onclick="event.stopPropagation()">
+      <div class="modal-title">我的答案汇总</div>
+      <div class="modal-close" onclick="closeModal('my-answers-modal')">×</div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding:0 16px;" id="my-answers-content"></div>
+      <button class="save-btn" onclick="closeModal('my-answers-modal')">关闭</button>
+    </div>
+  </div>
+  
+  <div id="publish-analysis-modal" class="modal-overlay" style="display:none;" onclick="closeModal('publish-analysis-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">发布我的分析</div>
+      <div class="modal-close" onclick="closeModal('publish-analysis-modal')">×</div>
+      <div style="padding:0 16px;">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:13px;color:var(--ink);margin-bottom:6px;">选择分析类型</div>
+          <div style="display:flex;gap:8px;">
+            <button class="analysis-type-btn active" onclick="selectAnalysisType('思路')">解题思路</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('记忆')">记忆方法</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('案例')">案例分析</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('技巧')">答题技巧</button>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;color:var(--ink);margin-bottom:6px;">我的分析内容</div>
+          <textarea id="analysis-content" style="width:100%;min-height:150px;padding:12px;border:1px solid var(--paper-line);border-radius:var(--radius);font-size:13px;line-height:1.6;color:var(--ink);background:var(--paper);resize:vertical;outline:none;" placeholder="请输入你的分析内容..."></textarea>
+        </div>
+      </div>
+      <button class="save-btn" onclick="submitAnalysis()">发布分析</button>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      initInterviewPage();
+    });
+  </script>
+</body>
+</html>

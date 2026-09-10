@@ -1,0 +1,25 @@
+{
+  "name": "xinchuan-yanbei",
+  "version": "4.0.0",
+  "private": true,
+  "description": "新传研背 - 新传考研考试模拟系统（Monorepo）",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:mobile": "npm -w apps/mobile start",
+    "dev:admin": "npm -w apps/admin start",
+    "serve:mobile": "npm -w apps/mobile run serve",
+    "build:mobile": "npm -w apps/mobile run build:win",
+    "build:admin": "npm -w apps/admin run build",
+    "build": "turbo run build",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

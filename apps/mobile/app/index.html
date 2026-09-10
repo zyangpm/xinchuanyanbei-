@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#243A5E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="新传研背">
+  <title>新传研背 - 首页</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="app.json">
+  <link rel="apple-touch-icon" href="assets/app-icon-192.png">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="home-body">
+      <div class="home-user" onclick="navigateTo('profile.html')">
+        <div class="avatar">宇</div>
+        <div>
+          <div class="name" id="home-user-name">阿宇</div>
+          <div class="sub" id="home-user-days">已登录 · 连续背诵 5 天</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      
+      <div>
+        <div class="section-label">继续学习</div>
+        <div class="continue-card" onclick="navigateTo('noun-detail.html?term=新闻价值')">
+          <div class="top-line">名词解释</div>
+          <div class="term">新闻价值</div>
+          <div class="meta"><span>传播学概论</span><span>上次学习：昨天</span></div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="section-label">核心入口</div>
+        <div class="entry-row" onclick="navigateTo('knowledge.html?type=noun')">
+          <div class="entry-ic" style="background:var(--seal);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <div>
+            <div class="entry-name">名词解释</div>
+            <div class="entry-sub">328个词条 · 视频+知识框架</div>
+          </div>
+          <div class="entry-chev">›</div>
+        </div>
+        <div class="entry-row" onclick="navigateTo('short-detail.html?short=short001')">
+          <div class="entry-ic" style="background:var(--red);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <div class="entry-name">简答题</div>
+            <div class="entry-sub">142道 · 答题框架+关键词</div>
+          </div>
+          <div class="entry-chev">›</div>
+        </div>
+        <div class="entry-row" onclick="navigateTo('essay-detail.html?essay=essay001')">
+          <div class="entry-ic" style="background:var(--gold);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#5B4520" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <path d="M9 3v18"/>
+              <path d="M15 9h6"/>
+              <path d="M15 12h6"/>
+              <path d="M15 15h6"/>
+              <path d="M15 18h6"/>
+            </svg>
+          </div>
+          <div>
+            <div class="entry-name">论述题</div>
+            <div class="entry-sub">96道 · 文章结构+观点展开</div>
+          </div>
+          <div class="entry-chev">›</div>
+        </div>
+        <div class="entry-row" onclick="navigateTo('practice-list.html')">
+          <div class="entry-ic" style="background:linear-gradient(135deg,#3D6B3D,#5A8A5A);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="entry-name">实务题</div>
+            <div class="entry-sub">消息写作+评论+策划+采访</div>
+          </div>
+          <div class="entry-chev">›</div>
+        </div>
+
+      </div>
+    </div>
+    
+    <div class="bottomnav">
+      <div class="nav-item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span>首页</span></div>
+      <div class="nav-item" onclick="navigateTo('knowledge.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18"/><path d="M15 9h6"/><path d="M15 12h6"/><path d="M15 15h6"/></svg></span><span>知识库</span></div>
+      <div class="nav-item" onclick="navigateTo('collections.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>收藏</span></div>
+      <div class="nav-item" onclick="navigateTo('exam-home.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>考试</span></div>
+      <div class="nav-item" onclick="navigateTo('profile.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>我的</span></div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script>
+    (function() {
+      var info = getUserInfo();
+      var nameEl = document.getElementById('home-user-name');
+      var daysEl = document.getElementById('home-user-days');
+      if (nameEl) nameEl.textContent = info.nickname;
+      if (daysEl) daysEl.textContent = '已登录 · 连续背诵 ' + info.days + ' 天';
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('Service Worker registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

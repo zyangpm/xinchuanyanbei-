@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 实务题训练</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <div>
+        <button class="crumb-btn" onclick="navigateTo('practice-list.html')">‹ <span id="practice-type">实务题</span></button>
+        <div class="app-title" style="font-size:17px;"><span id="practice-title">实务题训练</span> <span id="practice-tag" class="tagchip">30分·800字</span></div>
+      </div>
+      <div class="icon-btns">
+        <div class="icon-btn">☆</div>
+        <div class="icon-btn">✎</div>
+      </div>
+    </div>
+    
+    <div class="app-body">
+      <div class="tabs" style="grid-template-columns:repeat(3,1fr);">
+        <div class="tab active" onclick="switchPracticeTab(this,'p-frame')">写作框架</div>
+        <div class="tab" onclick="switchPracticeTab(this,'p-ans')">答案内容</div>
+        <div class="tab" onclick="switchPracticeTab(this,'p-notes')">社群笔记</div>
+      </div>
+      
+      <div class="panel active" id="p-frame">
+        <div class="def-text" id="practice-question"></div>
+        <div id="practice-frame-content"></div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevPracticeV2()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextPracticeV2()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="p-ans">
+        <div id="practice-answer-content"></div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevPracticeV2()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextPracticeV2()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="p-notes">
+        <div id="practice-notes-content"></div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevPracticeV2()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextPracticeV2()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="status-row">
+        <div class="status-btn no" onclick="handlePracticeStatus('no')">不会</div>
+        <div class="status-btn blur" onclick="handlePracticeStatus('blur')">模糊</div>
+        <div class="status-btn yes" onclick="handlePracticeStatus('yes')">认识</div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="../../../packages/content/practice-v2-data.js"></script>
+  <script src="practice-v2.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof loadPracticeV2Detail === 'function') {
+        loadPracticeV2Detail();
+      }
+    });
+
+    function switchPracticeTab(el, tabId) {
+      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 广告小实务文案</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">广告小实务文案</div>
+    </div>
+    
+    <div class="interview-body">
+      <div class="question-header">
+        <div class="question-info">
+          <div class="question-type">第 <span id="current-question">1</span> / 3 题</div>
+          <div class="question-title" id="question-title"></div>
+        </div>
+        <div class="question-badge">创意设计</div>
+      </div>
+      
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchCopywritingTab('framework')">答题框架</div>
+        <div class="tab-item" onclick="switchCopywritingTab('answer')">考生作答</div>
+        <div class="tab-item" onclick="switchCopywritingTab('analysis')">用户分析</div>
+      </div>
+      
+      <div id="tab-framework" class="tab-panel active">
+        <div class="framework-content" id="framework-content">
+        </div>
+      </div>
+      
+      <div id="tab-answer" class="tab-panel">
+        <div class="answer-content" id="answer-content">
+        </div>
+      </div>
+      
+      <div id="tab-analysis" class="tab-panel">
+        <div class="analysis-section">
+          <button class="publish-analysis-btn" onclick="openPublishAnalysisModal()">📝 发布我的分析</button>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">张</div>
+              <div class="analysis-info">
+                <div class="analysis-name">小张同学</div>
+                <div class="analysis-time">2小时前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">解题思路</div>
+            <div class="analysis-content">广告文案写作的核心是固定四段式结构：标题、正文、Slogan、随文。标题要直击受众核心利益点，正文可以选择理性路线（产品参数、实测数据）或感性路线（生活化场景、情感共鸣），Slogan要简短易传播。</div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">李</div>
+              <div class="analysis-info">
+                <div class="analysis-name">小李学姐</div>
+                <div class="analysis-time">5小时前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">答题技巧</div>
+            <div class="analysis-content">广告小实务题一定要注意标题的吸引力（5分）、正文的逻辑性和感染力（10分）、Slogan的记忆点（5分）、随文的完整性（5分）。特别是标题部分，可以使用数字、对比、悬念等技巧来吸引眼球。</div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">王</div>
+              <div class="analysis-info">
+                <div class="analysis-name">王学长</div>
+                <div class="analysis-time">1天前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">知识点</div>
+            <div class="analysis-content">广告文案的感性诉求策略需要构建生活化场景，让受众产生情感共鸣。可以从用户的使用场景、情感需求、价值观念三个角度出发，用故事化的方式呈现产品的价值，这样更容易打动消费者。</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bottom-action-bar" id="bottom-bar">
+        <button class="nav-btn" onclick="prevCopywritingQuestion()" id="prev-btn">上一题</button>
+        <div id="action-btns">
+          <button class="action-btn" onclick="showMyCopywritingAnswers()">查看我的答案汇总</button>
+          <button class="action-btn" onclick="showFullCopywritingAnswer()">查看完整答案</button>
+        </div>
+        <button class="nav-btn" onclick="nextCopywritingQuestion()" id="next-btn">下一题</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      initCopywritingPage();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 登录</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="login-body">
+      <div class="login-logo">
+        <div class="logo-icon">新</div>
+        <div class="app-name">新传研背</div>
+        <div class="app-slogan">新传考研背诵学习工具</div>
+      </div>
+      
+      <div class="login-tabs">
+        <div class="login-tab active" onclick="switchLoginTab('password')">密码登录</div>
+        <div class="login-tab" onclick="switchLoginTab('code')">验证码登录</div>
+      </div>
+      
+      <div id="password-login" class="login-form">
+        <div class="form-group">
+          <input type="text" class="login-input" id="phone-input" placeholder="请输入手机号">
+        </div>
+        <div class="form-group">
+          <input type="password" class="login-input" id="password-input" placeholder="请输入密码">
+        </div>
+        <div class="login-options">
+          <div class="remember-me">
+            <input type="checkbox" id="remember" checked>
+            <label for="remember">记住密码</label>
+          </div>
+          <div class="forget-password" onclick="showConfirm('找回密码', '请联系客服找回密码', 'info')">忘记密码？</div>
+        </div>
+        <button class="login-btn" onclick="handleLogin()">登录</button>
+      </div>
+      
+      <div id="code-login" class="login-form" style="display:none;">
+        <div class="form-group">
+          <input type="text" class="login-input" id="code-phone-input" placeholder="请输入手机号">
+        </div>
+        <div class="form-group code-group">
+          <input type="text" class="login-input code-input" id="code-input" placeholder="请输入验证码">
+          <button class="code-btn" id="send-code-btn" onclick="sendCode()">获取验证码</button>
+        </div>
+        <button class="login-btn" onclick="handleCodeLogin()">登录</button>
+      </div>
+      
+      <div class="login-agreement">
+        <input type="checkbox" id="agreement" checked>
+        <label for="agreement">我已阅读并同意<span class="link">《用户协议》</span>和<span class="link">《隐私政策》</span></label>
+      </div>
+      
+      <div class="third-party-login">
+        <div class="third-party-title">
+          <span>其他登录方式</span>
+        </div>
+        <div class="third-party-icons">
+          <div class="third-party-icon wechat" onclick="thirdPartyLogin('wechat')">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+              <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.269-.03-.406-.03zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/>
+            </svg>
+          </div>
+          <div class="third-party-icon qq" onclick="thirdPartyLogin('qq')">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+              <path d="M12.003 2c-2.265 0-6.29 1.364-6.29 7.325v1.195S3.55 14.96 3.55 17.474c0 .665.17 1.025.281 1.025.114 0 .902-.484 1.748-2.072 0 0-.18 2.197 1.904 3.967 0 0-1.77.495-1.77 1.182 0 .686 4.078.43 6.29.43 2.211 0 6.29.256 6.29-.43 0-.687-1.77-1.182-1.77-1.182 2.085-1.77 1.904-3.967 1.904-3.967.846 1.588 1.634 2.072 1.748 2.072.111 0 .281-.36.281-1.025 0-2.514-2.163-6.954-2.163-6.954V9.325C18.293 3.364 14.268 2 12.003 2z"/>
+            </svg>
+          </div>
+          <div class="third-party-icon weibo" onclick="thirdPartyLogin('weibo')">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+              <path d="M10.098 20.323c-3.977.391-7.414-1.406-7.672-4.02-.259-2.609 2.759-5.047 6.74-5.441 3.979-.394 7.413 1.404 7.671 4.018.259 2.6-2.759 5.049-6.739 5.443zM9.05 17.219c-.384.616-1.208.884-1.829.602-.612-.279-.793-.991-.406-1.593.379-.595 1.176-.861 1.793-.601.622.263.82.972.442 1.592zm1.27-1.627c-.141.237-.449.353-.689.253-.236-.09-.313-.361-.177-.586.138-.227.436-.346.672-.24.239.09.315.36.194.573zm.176-2.719c-1.893-.493-4.033.45-4.857 2.118-.836 1.704-.026 3.591 1.886 4.21 1.983.64 4.318-.341 5.132-2.179.8-1.793-.201-3.642-2.161-4.149zm7.563-1.224c-.346-.105-.578-.18-.405-.649.381-1.017.424-1.894.003-2.517-.789-1.167-2.935-1.103-5.389-.033 0 0-.773.34-.575-.275.381-1.216.324-2.245-.27-2.82-1.348-1.3-4.942.047-8.022 3.022C1.101 11.09 0 13.33 0 15.165c0 3.494 4.488 5.644 8.956 5.644 5.756 0 9.608-3.36 9.608-6.038 0-1.613-1.356-2.533-2.489-2.851zm.888-6.303c-1.27-1.39-3.177-2.076-5.059-2.076-.338 0-.679.017-1.017.05-.19.018-.322.186-.29.379.031.195.194.336.389.318.293-.024.586-.036.879-.036 1.344 0 2.687.489 3.66 1.552.949 1.039 1.42 2.4 1.274 3.764-.022.191.109.361.297.386.017.002.033.002.049.002.167 0 .315-.11.364-.273.186-2.08-.483-3.987-1.528-5.32l.022.001zm1.274-2.862c-1.843-2.022-4.604-3.026-7.333-3.026-.512 0-1.024.03-1.531.089-.27.03-.46.27-.427.546.033.275.27.48.547.448.45-.052.903-.078 1.356-.078 2.315 0 4.528.797 6.113 2.54 1.566 1.716 2.295 3.935 2.038 6.15-.044.369.218.706.59.75.053.007.105.01.157.01.308 0 .579-.21.641-.52.333-2.49-.553-4.926-2.151-6.909z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="register-link">
+        还没有账号？<span class="link" onclick="showConfirm('注册功能说明', '当前版本暂未开放账号注册功能。\n\n您可以通过以下方式登录使用：\n• 微信登录\n• QQ登录\n• 微博登录\n\n注册功能将在后续版本中开放，敬请期待！', 'info')">立即注册</span>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>

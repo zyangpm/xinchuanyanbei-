@@ -1,0 +1,13 @@
+{
+  "name": "@xinchuan/admin",
+  "version": "1.0.0",
+  "description": "新传研背 V4 - 管理后台（Electron + 静态 HTML）",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "echo \"Admin 构建待接入 Vite（V5+）\""
+  },
+  "devDependencies": {
+    "electron": "28.2.8"
+  }
+}

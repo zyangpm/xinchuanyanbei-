@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新传研背 · 管理后台</title>
+  <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+  <link rel="stylesheet" href="src/admin.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="public/logo.png" alt="新传研背管理后台">
+      </div>
+      <div class="login-title">管理员登录</div>
+      <div class="login-subtitle">请输入管理员账号和密码</div>
+
+      <form id="login-form" onsubmit="return handleLogin(event)">
+        <div class="login-form-group">
+          <label class="login-label">管理员账号</label>
+          <input type="text" class="login-input" id="admin-username" placeholder="请输入管理员账号" autocomplete="off">
+        </div>
+        <div class="login-form-group">
+          <label class="login-label">密码</label>
+          <input type="password" class="login-input" id="admin-password" placeholder="请输入密码" autocomplete="off">
+        </div>
+        <div class="login-options">
+          <label class="login-checkbox">
+            <input type="checkbox" id="remember-admin" checked>
+            <span>记住账号</span>
+          </label>
+          <span class="login-link" onclick="showHint('请联系超级管理员重置密码')">忘记密码？</span>
+        </div>
+        <button type="submit" class="login-btn">登 录</button>
+      </form>
+
+      <div class="login-footer">
+        默认账号：admin　密码：admin123<br>
+        新传研背管理后台 v1.0.0<br>
+        仅供管理员使用 · 学生端请使用APP
+      </div>
+    </div>
+  </div>
+
+  <script src="src/data.js"></script>
+  <script src="src/admin.js"></script>
+</body>
+</html>

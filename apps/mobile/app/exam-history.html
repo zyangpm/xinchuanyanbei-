@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 历史训练</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .history-card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--paper-line);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .history-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .history-icon {
+      font-size: 24px;
+      margin-right: 12px;
+    }
+    
+    .history-info {
+      flex: 1;
+    }
+    
+    .history-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    
+    .history-progress {
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+    
+    .history-time {
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+    
+    .continue-btn {
+      background: var(--seal);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .continue-btn:hover {
+      background: var(--seal-light);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--ink-light);
+    }
+    
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .empty-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .empty-desc {
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">历史训练</div>
+    </div>
+    
+    <div class="exam-body" id="history-container">
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      renderHistoryPage();
+    });
+    
+    function renderHistoryPage() {
+      var container = document.getElementById('history-container');
+      var history = JSON.parse(localStorage.getItem('exam_history') || '{}');
+      
+      var records = [
+        { id: 'interview', name: '新闻采访题', icon: '📝', color: 'var(--seal)', page: 'exam-interview.html' },
+        { id: 'comment', name: '新闻评论题', icon: '💬', color: 'var(--gold)', page: 'exam-comment.html' },
+        { id: 'news', name: '新闻消息题', icon: '📰', color: 'var(--green)', page: 'exam-news.html' }
+      ];
+      
+      var hasHistory = false;
+      var html = '';
+      
+      records.forEach(function(record) {
+        var progress = history[record.id];
+        if (progress) {
+          hasHistory = true;
+          var date = new Date(progress.timestamp);
+          var dateStr = formatDate(date);
+          
+          html += '<div class="history-card" onclick="continueHistory(\'' + record.page + '\', ' + progress.question + ')">';
+          html += '<div class="history-header">';
+          html += '<div style="display:flex;align-items:center;">';
+          html += '<span class="history-icon">' + record.icon + '</span>';
+          html += '<div class="history-info">';
+          html += '<div class="history-name">' + record.name + '</div>';
+          html += '<div class="history-progress">第' + progress.question + '题 · ' + dateStr + '</div>';
+          html += '</div>';
+          html += '</div>';
+          html += '<button class="continue-btn">继续</button>';
+          html += '</div>';
+          html += '</div>';
+        }
+      });
+      
+      if (!hasHistory) {
+        html = '<div class="empty-state">';
+        html += '<div class="empty-icon">📚</div>';
+        html += '<div class="empty-title">暂无训练记录</div>';
+        html += '<div class="empty-desc">完成练习后将显示在这里<br>点击继续上次的训练进度</div>';
+        html += '</div>';
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    function formatDate(date) {
+      var now = new Date();
+      var diff = now - date;
+      var hours = Math.floor(diff / (1000 * 60 * 60));
+      var days = Math.floor(hours / 24);
+      
+      if (hours < 1) return '刚刚';
+      if (hours < 24) return hours + '小时前';
+      if (days < 7) return days + '天前';
+      return date.getMonth() + 1 + '月' + date.getDate() + '日';
+    }
+    
+    function continueHistory(page, question) {
+      navigateTo(page + '?q=' + question);
+    }
+  </script>
+  
+  <div class="bottomnav">
+    <div class="nav-item" onclick="navigateTo('index.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span>首页</span></div>
+    <div class="nav-item" onclick="navigateTo('knowledge.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span>知识库</span></div>
+    <div class="nav-item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>考试</span></div>
+    <div class="nav-item" onclick="navigateTo('profile.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>我的</span></div>
+  </div>
+</body>
+</html>

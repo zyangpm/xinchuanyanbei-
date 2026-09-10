@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 论述题详情</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../../packages/content/essay-data.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <div>
+        <button class="crumb-btn" onclick="goBack()"><span id="essay-category">‹ 新媒体概论</span></button>
+        <div class="app-title" style="font-size:15.5px;"><span id="essay-title">媒介素养的内涵与演变</span> <span id="essay-tag" class="tagchip">30分·1200字</span></div>
+      </div>
+      <div class="icon-btns">
+        <div class="icon-btn" onclick="toggleFavorite(event)">☆</div>
+        <div class="icon-btn" onclick="openNoteModal()">✎</div>
+      </div>
+    </div>
+    
+    <div class="app-body">
+      <div class="tabs" style="grid-template-columns:repeat(4,1fr);">
+        <div class="tab active" onclick="switchTab(this,'e-frame')">答题框架</div>
+        <div class="tab" onclick="switchTab(this,'e-variant')">真题设问变式</div>
+        <div class="tab" onclick="switchTab(this,'e-ans')">答案内容</div>
+        <div class="tab" onclick="switchTab(this,'e-mem')">辅助记忆</div>
+      </div>
+      
+      <div class="panel active" id="e-frame">
+        <div id="essay-frame-content"></div>
+        
+        <div class="term-switcher" style="margin-top:16px;">
+          <div class="switch-btn prev" onclick="prevEssay()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextEssay()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="e-variant">
+        <div class="fw-block">
+          <div class="fw-label">★ 真题设问变式</div>
+          <div id="essay-variants-container"></div>
+        </div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevEssay()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextEssay()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="e-ans">
+        <div class="def-text" id="essay-answer-text"></div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevEssay()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextEssay()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="panel" id="e-mem">
+        <div class="def-text" id="essay-memory-tip"></div>
+        
+        <div class="section-divider"></div>
+        
+        <div class="selftest-switcher">
+          <div class="selftest-btn active" onclick="switchSelfTestMode('drag')">拖拽还原</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('fill')">填空记忆</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('framework')">框架默写</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('redfilm')">红膜背书</div>
+          <div class="selftest-btn" onclick="switchSelfTestMode('flashcard')">闪卡模式</div>
+        </div>
+        
+        <div id="selftest-drag" class="selftest-panel">
+          <div class="drop-hint">拖拽还原：研究三阶段按时间先后排序</div>
+          <div class="chip-pool" id="essay-chip-pool-1">
+            <div class="chip" draggable="true" data-order="2">
+              <span class="drag-dot">::</span>辨识能力阶段（60s–80s）
+            </div>
+            <div class="chip" draggable="true" data-order="3">
+              <span class="drag-dot">::</span>能动赋权阶段（80s至今）
+            </div>
+            <div class="chip" draggable="true" data-order="1">
+              <span class="drag-dot">::</span>保护主义阶段（20世纪初–60s）
+            </div>
+          </div>
+          
+          <div class="section-divider"></div>
+          
+          <div class="drop-hint">拖拽还原：三维度按环节排序</div>
+          <div class="chip-pool" id="essay-chip-pool-2">
+            <div class="chip" draggable="true" data-order="3">
+              <span class="drag-dot">::</span>内容生产：跨媒介叙事、版权意识
+            </div>
+            <div class="chip" draggable="true" data-order="1">
+              <span class="drag-dot">::</span>媒介使用：人机协同、戒断素养
+            </div>
+            <div class="chip" draggable="true" data-order="2">
+              <span class="drag-dot">::</span>信息获取：辨谣、算法素养
+            </div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-fill" class="selftest-panel" style="display:none;">
+          <div class="drop-hint">填空记忆：点击空白处填入正确答案</div>
+          <div class="fill-blank-area">
+            <div class="blank-item">
+              <span>媒介素养指公众</span>
+              <span class="blank" onclick="fillBlank(this, '获取、分析、衡量、批判和传播')">______</span>
+              <span>媒介讯息的能力。</span>
+            </div>
+            <div class="blank-item">
+              <span>研究第一阶段：</span>
+              <span class="blank" onclick="fillBlank(this, '保护主义')">______</span>
+              <span>（提高免疫力）</span>
+            </div>
+            <div class="blank-item">
+              <span>新媒体时代三维度：媒介使用、信息消费、</span>
+              <span class="blank" onclick="fillBlank(this, '内容生产')">______</span>
+            </div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-framework" class="selftest-panel" style="display:none;">
+          <div class="drop-hint">框架默写：手动复现总分结构</div>
+          <div class="framework-write-area">
+            <textarea class="framework-textarea" placeholder="请在此输入您对媒介素养内涵与演变的框架默写..."></textarea>
+            <button class="framework-compare-btn" onclick="showFrameworkAnswer()">调出标准答案</button>
+            <div class="framework-answer" id="essay-framework-answer"></div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-redfilm" class="selftest-panel" style="display:none;">
+          <div class="drop-hint">红膜背书：点击空白位置显示内容</div>
+          <div class="fill-blank-area">
+            <div class="blank-item">
+              <span><span class="redfilm-span" onclick="toggleRedFilm(this)">媒介素养</span>指公众获取、分析、衡量、批判和传播媒介讯息的能力。其研究经历<span class="redfilm-span" onclick="toggleRedFilm(this)">保护主义</span>（提高免疫力）、<span class="redfilm-span" onclick="toggleRedFilm(this)">辨识能力</span>（培养批判性思维）、<span class="redfilm-span" onclick="toggleRedFilm(this)">能动赋权</span>（培养合格数字公众）三个阶段。</span>
+            </div>
+            <div class="blank-item">
+              <span>新媒体时代，受众需具备<span class="redfilm-span" onclick="toggleRedFilm(this)">媒介使用与人机协同</span>、<span class="redfilm-span" onclick="toggleRedFilm(this)">信息消费与内容批判</span>、<span class="redfilm-span" onclick="toggleRedFilm(this)">内容生产与跨媒介叙事</span>三方面素养。</span>
+            </div>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div id="selftest-flashcard" class="selftest-panel" style="display:none;">
+          <div class="flashcard-area">
+            <div class="flashcard-question" id="essay-flashcard-question"></div>
+            <div class="flashcard-answer-box" id="essay-flashcard-answer" onclick="toggleFlashcard(this)">
+              <div class="flashcard-answer-hidden"></div>
+            </div>
+            <button class="flashcard-toggle-btn" onclick="toggleFlashcard(document.getElementById('essay-flashcard-answer'))">切换答案显示</button>
+          </div>
+          <button class="framework-compare-btn" onclick="completeSelfTest()">完成自测</button>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <div class="tts-bar">
+          <button class="tts-btn" onclick="toggleTTS('essay')">▶</button>
+          <div class="tts-progress">
+            <div class="tts-progress-bar"></div>
+          </div>
+          <div class="tts-status">朗读中...</div>
+        </div>
+        
+        <div class="mem-share-area">
+          <div class="share-header">
+            <div class="share-title">考生记忆分享</div>
+            <span class="official-badge">官方推荐</span>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">官</div>
+              <div>
+                <div class="mem-author">官方记忆思路</div>
+                <div class="mem-time">置顶</div>
+              </div>
+            </div>
+            <div class="mem-content">媒介素养记忆口诀：三阶段"保辨赋"（保护主义→辨识能力→能动赋权），三维度"用消产"（媒介使用→信息消费→内容生产）。结合李普曼拟态环境理论理解辨识能力阶段的重要性。</div>
+            <div class="mem-actions">
+              <span class="mem-action">👍 156</span>
+              <span class="mem-action">💬 18</span>
+            </div>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">案</div>
+              <div>
+                <div class="mem-author">案例大王</div>
+                <div class="mem-time">2天前</div>
+              </div>
+            </div>
+            <div class="mem-content">【案例运用技巧】论述题中可以举"短视频算法推荐导致信息茧房"的例子，说明为什么需要算法素养和戒断素养。案例要紧扣论点，不能只讲故事。</div>
+            <div class="mem-actions">
+              <span class="mem-action" onclick="toggleMemLike(this)">👍 67</span>
+              <span class="mem-action">💬 5</span>
+            </div>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">辩</div>
+              <div>
+                <div class="mem-author">辩证达人</div>
+                <div class="mem-time">5天前</div>
+              </div>
+            </div>
+            <div class="mem-content">【辩证段落技巧】论述媒介素养时不要只说好的一面，可以加入"数字鸿沟导致媒介素养不平等"的辩证视角，让论述更有深度。</div>
+            <div class="mem-actions">
+              <span class="mem-action" onclick="toggleMemLike(this)">👍 89</span>
+              <span class="mem-action">💬 12</span>
+            </div>
+          </div>
+          
+          <div class="mem-card">
+            <div class="mem-header">
+              <div class="mem-avatar">开</div>
+              <div>
+                <div class="mem-author">开头结尾王</div>
+                <div class="mem-time">1周前</div>
+              </div>
+            </div>
+            <div class="mem-content">【开头结尾写作经验】开头用热点案例引入，比如"央视曝光短视频沉迷"；结尾升华到国家战略层面，"媒介素养是数字公民的必修课"。</div>
+            <div class="mem-actions">
+              <span class="mem-action" onclick="toggleMemLike(this)">👍 103</span>
+              <span class="mem-action">💬 7</span>
+            </div>
+          </div>
+          
+          <div class="submit-mem-btn" onclick="openSubmitMemModal()">发布我的记忆方法</div>
+        </div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevEssay()">‹ 上一题</div>
+          <div class="switch-btn next" onclick="nextEssay()">下一题 ›</div>
+        </div>
+      </div>
+      
+      <div class="status-row">
+        <div class="status-btn no" onclick="handleStatus('no')">不会</div>
+        <div class="status-btn blur" onclick="handleStatus('blur')">模糊</div>
+        <div class="status-btn yes" onclick="handleStatus('yes')">认识</div>
+      </div>
+    </div>
+    
+    <div id="note-modal" class="modal-overlay" style="display:none;" onclick="closeModal('note-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">记笔记</div>
+        <div class="modal-close" onclick="closeModal('note-modal')">×</div>
+        <textarea class="form-input" id="note-text" rows="6" placeholder="记录您的学习笔记..."></textarea>
+        <button class="save-btn" onclick="saveNote()">保存笔记</button>
+      </div>
+    </div>
+    
+    <div id="submit-mem-modal" class="modal-overlay" style="display:none;" onclick="closeModal('submit-mem-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">发布记忆方法</div>
+        <div class="modal-close" onclick="closeModal('submit-mem-modal')">×</div>
+        <textarea class="form-input" id="mem-submit-text" rows="6" placeholder="分享您的记忆口诀、案例运用技巧、辩证段落写作经验或开头结尾写作方法..."></textarea>
+        <button class="save-btn" onclick="submitMemoryMethod()">提交审核</button>
+      </div>
+    </div>
+    
+    <div id="complete-modal" class="modal-overlay" style="display:none;" onclick="closeModal('complete-modal')">
+      <div class="modal-content complete-modal" onclick="event.stopPropagation()">
+        <div class="complete-icon">🎉</div>
+        <div class="complete-title">自测完成</div>
+        <div class="complete-desc">请标记您的掌握程度，数据将联动到学习进度</div>
+        <div class="status-btns">
+          <div class="status-btn no" onclick="handleStatus('no');closeModal('complete-modal')">不会</div>
+          <div class="status-btn blur" onclick="handleStatus('blur');closeModal('complete-modal')">模糊</div>
+          <div class="status-btn yes" onclick="handleStatus('yes');closeModal('complete-modal')">认识</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof loadEssayDetail === 'function') {
+      loadEssayDetail();
+    }
+  });
+</script>
+</body>
+</html>

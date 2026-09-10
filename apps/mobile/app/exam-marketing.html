@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 品牌整合营销策划</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">品牌整合营销</div>
+    </div>
+    
+    <div class="interview-body">
+      <div class="question-header">
+        <div class="question-info">
+          <div class="question-type">第 <span id="current-question">1</span> / 3 题</div>
+          <div class="question-title" id="question-title"></div>
+        </div>
+        <div class="question-badge">广告全案</div>
+      </div>
+      
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchMarketingTab('framework')">答题框架</div>
+        <div class="tab-item" onclick="switchMarketingTab('answer')">考生作答</div>
+        <div class="tab-item" onclick="switchMarketingTab('analysis')">用户分析</div>
+      </div>
+      
+      <div id="tab-framework" class="tab-panel active">
+        <div class="framework-content" id="framework-content">
+        </div>
+      </div>
+      
+      <div id="tab-answer" class="tab-panel">
+        <div class="answer-content" id="answer-content">
+        </div>
+      </div>
+      
+      <div id="tab-analysis" class="tab-panel">
+        <div class="analysis-section">
+          <button class="publish-analysis-btn" onclick="openPublishAnalysisModal()">📝 发布我的分析</button>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">张</div>
+              <div class="analysis-info">
+                <div class="analysis-name">小张同学</div>
+                <div class="analysis-time">2小时前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">解题思路</div>
+            <div class="analysis-content">品牌整合营销策划的核心是运用STP、4C、IMC三大理论。首先通过PEST和SWOT分析理清市场环境，然后进行市场细分、目标市场选择和市场定位，最后制定整合传播策略。这道题需要从宏观到微观层层递进。</div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">李</div>
+              <div class="analysis-info">
+                <div class="analysis-name">小李学姐</div>
+                <div class="analysis-time">5小时前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">答题技巧</div>
+            <div class="analysis-content">广告全案策划题一定要写十大部分，每个部分都要有具体内容。特别要注意广告预算分配部分，要标注四大板块的占比，这样显得专业。创意物料部分最好写30秒短视频分镜，包含水源、产品、人群三个镜头。</div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">王</div>
+              <div class="analysis-info">
+                <div class="analysis-name">王学长</div>
+                <div class="analysis-time">1天前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">知识点</div>
+            <div class="analysis-content">STP战略包含市场细分、目标市场、市场定位三个环节。市场细分可以按年龄、消费能力、使用场景划分；目标市场要锁定核心消费群体；市场定位要提炼差异化心智占位，比如国货定位、功能定位或情感定位。</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bottom-action-bar" id="bottom-bar">
+        <button class="nav-btn" onclick="prevMarketingQuestion()" id="prev-btn">上一题</button>
+        <div id="action-btns">
+          <button class="action-btn" onclick="showMyMarketingAnswers()">查看我的答案汇总</button>
+          <button class="action-btn" onclick="showFullMarketingAnswer()">查看完整答案</button>
+        </div>
+        <button class="nav-btn" onclick="nextMarketingQuestion()" id="next-btn">下一题</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      initMarketingPage();
+    });
+  </script>
+</body>
+</html>

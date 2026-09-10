@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 名词解释详情</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../../packages/content/noun-data.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <div>
+        <button class="crumb-btn" onclick="goBack()"><span id="noun-category">‹ 大众传播理论</span></button>
+        <div class="app-title"><span id="noun-title">沉默的螺旋</span> <span id="noun-tag" class="tagchip">高频·近5年3考</span></div>
+      </div>
+      <div class="icon-btns">
+        <div class="icon-btn" onclick="toggleFavorite(event)">☆</div>
+        <div class="icon-btn" onclick="openNoteModal()">✎</div>
+      </div>
+    </div>
+    
+    <div class="app-body" style="padding-bottom:160px;">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this, 'panel-video')">视频</div>
+        <div class="tab" onclick="switchTab(this, 'panel-text')">知识框架</div>
+        <div class="tab" onclick="switchTab(this, 'panel-tree')">分层串记</div>
+        <div class="tab" onclick="switchTab(this, 'panel-community')">研友分享</div>
+      </div>
+      
+      <div id="panel-video" class="panel active">
+        <div class="video-section">
+          <div class="source-toggle">
+            <div class="toggle-pill active" onclick="switchVideoSource('official')">官方教材视频</div>
+            <div class="toggle-pill" onclick="switchVideoSource('user')">@宝藏老师 用户上传</div>
+          </div>
+          <div class="video-box" id="video-box">
+            <div class="video-bg"></div>
+            <div class="video-placeholder" id="video-placeholder">视频资源待上传</div>
+            <div class="play-btn" id="play-btn" onclick="playVideo()">▶</div>
+            <div class="caption-line" id="video-caption">沉默的螺旋是诺依曼提出的受众理论……</div>
+          </div>
+          <div class="video-progress-row">
+            <div class="video-progress-bar-bg" onclick="seekVideo(event)">
+              <div class="video-progress-bar" id="video-progress-bar" style="width:0%;"></div>
+            </div>
+            <span class="video-time" id="video-time">00:00 / 00:05</span>
+          </div>
+          <div class="src-row">
+            <span>当前播放：<b id="video-source">官方教材视频</b></span>
+            <span class="source-link" onclick="openSourceModal()">严格按教材 ›</span>
+          </div>
+        </div>
+        
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevTerm()">‹ 上一个</div>
+          <div class="switch-btn next" onclick="nextTerm()">下一个 ›</div>
+        </div>
+      </div>
+      
+      <div id="panel-text" class="panel">
+        <div class="text-section">
+          <div class="fw-block">
+            <div class="fw-label">① 定义块</div>
+            <div class="sub-section">
+              <div class="sub-section-title">概念名称</div>
+              <div class="sub-section-content">沉默的螺旋</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">提出信息</div>
+              <div class="sub-section-content">诺依曼于1974年在《重归大众传播的强力观》中提出</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">所属学科场景</div>
+              <div class="sub-section-content">大众传播效果/民意形成研究领域</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">生成诱因</div>
+              <div class="sub-section-content">源于对纽伦堡审判前后民意变化的观察</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">核心表现</div>
+              <div class="sub-section-content">因个体害怕因持少数意见而被孤立，外在表现为敢言的多数意见愈发强势、不敢言的少数意见趋于沉默</div>
+            </div>
+          </div>
+
+          <div class="fw-block">
+            <div class="fw-label">② 范畴块</div>
+            <div class="sub-section">
+              <div class="sub-section-title">理论来源/诞生背景</div>
+              <div class="sub-section-content">研究起源于对舆论形成机制的探索，前期铺垫理论包括舆论学、社会心理学</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">适用范围</div>
+              <div class="sub-section-content">适配选举、公共议题等群体舆论形成场景，覆盖大众传播效果研究范畴</div>
+            </div>
+          </div>
+
+          <div class="fw-block">
+            <div class="fw-label">③ 特征块</div>
+            <div class="sub-section">
+              <div class="sub-section-title">内在属性规律</div>
+              <div class="sub-section-content">假设受众具有"准感官统计"能力，能感知周围意见气候</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">相似概念区分</div>
+              <div class="sub-section-content">与"第三人效应""多元无知"区分——后者强调对他人影响的错误估计，而非从众发声行为本身</div>
+            </div>
+          </div>
+
+          <div class="fw-block">
+            <div class="fw-label">④ 延伸块（负面媒介现象类）</div>
+            <div class="sub-section-content">现实危害：可能导致"多数暴政"，压制少数群体真实意见的表达，助长舆论极化；在算法推荐环境下，这种压制效应可能被进一步放大</div>
+          </div>
+
+          <div class="fw-block">
+            <div class="fw-label">⑤ 评价块（负面概念公式）</div>
+            <div class="sub-section">
+              <div class="sub-section-title">研究参考价值</div>
+              <div class="sub-section-content">为理解舆论"一边倒"现象提供解释框架，奠定受众心理研究基础</div>
+            </div>
+            <div class="sub-section">
+              <div class="sub-section-title">行业/平台化解对策</div>
+              <div class="sub-section-content">媒体应保护多元意见表达空间，平台需警惕算法放大主流声音、抑制少数声音的机制</div>
+            </div>
+          </div>
+        </div>
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevTerm()">‹ 上一个</div>
+          <div class="switch-btn next" onclick="nextTerm()">下一个 ›</div>
+        </div>
+      </div>
+      
+      <div id="panel-tree" class="panel">
+        <div class="mindmap-section">
+          <div class="tree-mindmap-root" id="mindmapCenter" style="cursor:pointer;" onclick="toggleMindmap()">
+            <span id="mindmapTitle">沉默的螺旋</span>
+            <span style="font-size:11px;opacity:0.7;display:block;margin-top:4px;">点击展开/收起思维导图</span>
+          </div>
+          <div id="mindmapContent" style="display:none;"></div>
+        </div>
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevTerm()">‹ 上一个</div>
+          <div class="switch-btn next" onclick="nextTerm()">下一个 ›</div>
+        </div>
+      </div>
+      
+      <div id="panel-community" class="panel">
+        <div class="community-section">
+          <div class="community-post">
+            <div class="post-header">
+              <div class="post-avatar">小</div>
+              <div>
+                <div class="post-user">小橙学姐</div>
+                <div class="post-time">2小时前</div>
+              </div>
+            </div>
+            <div class="post-content">记忆口诀分享：沉默的螺旋 = 少数人不敢说话 → 声音越来越小 → 多数人声音越来越大 → 螺旋上升</div>
+            <div class="post-actions">
+              <span class="post-action">👍 28</span>
+              <span class="post-action">💬 3</span>
+            </div>
+          </div>
+          
+          <div class="community-post">
+            <div class="post-header">
+              <div class="post-avatar">考</div>
+              <div>
+                <div class="post-user">考研小王</div>
+                <div class="post-time">5小时前</div>
+              </div>
+            </div>
+            <div class="post-content">我是这样记的：想象一个螺旋楼梯，越往上走的人越少，因为大家都害怕掉下去（被孤立）</div>
+            <div class="post-actions">
+              <span class="post-action">👍 16</span>
+              <span class="post-action">💬 1</span>
+            </div>
+          </div>
+          
+          <div class="community-post">
+            <div class="post-header">
+              <div class="post-avatar">背</div>
+              <div>
+                <div class="post-user">背诵达人</div>
+                <div class="post-time">昨天</div>
+              </div>
+            </div>
+            <div class="post-content">建议配合第三人效应一起记，两者都是关于受众对意见的感知，但一个是自己沉默，一个是觉得别人会受影响</div>
+            <div class="post-actions">
+              <span class="post-action">👍 42</span>
+              <span class="post-action">💬 5</span>
+            </div>
+          </div>
+          
+          <div class="add-post-btn" onclick="openPostModal()">分享你的背诵技巧</div>
+        </div>
+        <div class="term-switcher">
+          <div class="switch-btn prev" onclick="prevTerm()">‹ 上一个</div>
+          <div class="switch-btn next" onclick="nextTerm()">下一个 ›</div>
+        </div>
+      </div>
+      
+      <div class="status-row">
+        <div class="status-btn no" onclick="handleStatus('no')">不会</div>
+        <div class="status-btn blur" onclick="handleStatus('blur')">模糊</div>
+        <div class="status-btn yes" id="status-yes-btn" onclick="handleStatus('yes')">认识</div>
+      </div>
+    </div>
+    
+    <div class="ai-switcher-left" onclick="openAiAssistModal()">AI助记</div>
+    <div class="ai-switcher" onclick="openAiModal()">更换AI设置</div>
+    
+    <div id="source-modal" class="modal-overlay" style="display:none;" onclick="closeModal('source-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">视频来源</div>
+        <div class="modal-close" onclick="closeModal('source-modal')">×</div>
+        <div class="user-list">
+          <div class="user-item" onclick="switchToUserVideo('宝藏老师')">
+            <div class="user-avatar">宝</div>
+            <div class="user-name">@宝藏老师</div>
+          </div>
+          <div class="user-item" onclick="switchToUserVideo('传播学小王子')">
+            <div class="user-avatar">传</div>
+            <div class="user-name">@传播学小王子</div>
+          </div>
+          <div class="user-item" onclick="switchToUserVideo('新传考研君')">
+            <div class="user-avatar">新</div>
+            <div class="user-name">@新传考研君</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="ai-modal" class="modal-overlay" style="display:none;" onclick="closeModal('ai-modal')">
+      <div class="modal-content ai-modal" onclick="event.stopPropagation()">
+        <div class="modal-title">AI模型设置</div>
+        <div class="modal-close" onclick="closeModal('ai-modal')">×</div>
+        
+        <div class="form-row">
+          <div class="form-label">选择AI模型</div>
+          <div class="ai-option active" onclick="selectAiModel('deepseek')">
+            <span class="ai-name">DeepSeek</span>
+            <span class="check">✓</span>
+          </div>
+          <div class="ai-option" onclick="selectAiModel('gpt')">
+            <span class="ai-name">GPT</span>
+            <span class="check"></span>
+          </div>
+          <div class="ai-option" onclick="selectAiModel('claude')">
+            <span class="ai-name">Claude</span>
+            <span class="check"></span>
+          </div>
+          <div class="ai-option" onclick="selectAiModel('gemini')">
+            <span class="ai-name">Gemini</span>
+            <span class="check"></span>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-label">API密钥</div>
+          <input type="text" class="api-input" placeholder="请输入API密钥">
+          <div class="subtitle">密钥仅保存在本地，不会上传至服务器</div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-label">生成画质</div>
+          <select class="form-select">
+            <option>标准</option>
+            <option>高清</option>
+            <option>超清</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-label">文字详细程度</div>
+          <select class="form-select">
+            <option>简洁</option>
+            <option>标准</option>
+            <option>详细</option>
+          </select>
+        </div>
+        
+        <button class="save-btn" onclick="saveAiSettings()">保存设置</button>
+      </div>
+    </div>
+    
+    <div id="post-modal" class="modal-overlay" style="display:none;" onclick="closeModal('post-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">分享背诵技巧</div>
+        <div class="modal-close" onclick="closeModal('post-modal')">×</div>
+        <textarea class="form-input" rows="6" placeholder="写下你的记忆口诀、背诵思路或使用建议..."></textarea>
+        <button class="save-btn" onclick="publishPost()">发布</button>
+      </div>
+    </div>
+    
+    <div id="video-gen-modal" class="modal-overlay" style="display:none;" onclick="closeModal('video-gen-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">生成AI记忆视频</div>
+        <div class="modal-close" onclick="closeModal('video-gen-modal')">×</div>
+        
+        <div class="form-row">
+          <div class="form-label">选择API</div>
+          <select class="form-select" id="video-api">
+            <option value="deepseek">DeepSeek API</option>
+            <option value="gpt">ChatGPT API</option>
+            <option value="claude">Claude API</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-label">视频内容描述</div>
+          <textarea class="form-input" id="video-prompt" rows="4" placeholder="描述您想要生成的视频内容，例如：用动画讲解沉默的螺旋理论，重点突出孤立恐惧和意见气候..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-label">视频时长</div>
+          <select class="form-select">
+            <option>30秒</option>
+            <option>1分钟</option>
+            <option>2分钟</option>
+            <option>3分钟</option>
+          </select>
+        </div>
+        
+        <button class="save-btn" onclick="generateVideo()">开始生成</button>
+      </div>
+    </div>
+    
+    <div id="note-modal" class="modal-overlay" style="display:none;" onclick="closeModal('note-modal')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">记笔记</div>
+        <div class="modal-close" onclick="closeModal('note-modal')">×</div>
+        <textarea class="form-input" id="note-text" rows="6" placeholder="记录您的学习笔记..."></textarea>
+        <button class="save-btn" onclick="saveNote()">保存笔记</button>
+      </div>
+    </div>
+    
+    <div id="ai-assist-modal" class="modal-overlay" style="display:none;" onclick="closeModal('ai-assist-modal')">
+      <div class="modal-content ai-assist-modal" onclick="event.stopPropagation()">
+        <div class="modal-title">AI助记</div>
+        <div class="modal-close" onclick="closeModal('ai-assist-modal')">×</div>
+        
+        <div class="ai-assist-intro">
+          选择一个提问模板，或直接输入您的问题，让AI帮您找到更好的记忆方法
+        </div>
+        
+        <div class="ai-template-list">
+          <div class="ai-template-item" onclick="useTemplate('memory-method')">
+            <div class="ai-template-icon">💡</div>
+            <div class="ai-template-text">
+              <div class="ai-template-title">记忆方法推荐</div>
+              <div class="ai-template-desc">针对此概念有什么好的背诵技巧？</div>
+            </div>
+          </div>
+          <div class="ai-template-item" onclick="useTemplate('real-example')">
+            <div class="ai-template-icon">🌍</div>
+            <div class="ai-template-text">
+              <div class="ai-template-title">现实案例</div>
+              <div class="ai-template-desc">能举一个生活中的实例帮助理解吗？</div>
+            </div>
+          </div>
+          <div class="ai-template-item" onclick="useTemplate('compare')">
+            <div class="ai-template-icon">⚖️</div>
+            <div class="ai-template-text">
+              <div class="ai-template-title">对比分析</div>
+              <div class="ai-template-desc">这个概念与相似概念有什么区别？</div>
+            </div>
+          </div>
+          <div class="ai-template-item" onclick="useTemplate('exam-tip')">
+            <div class="ai-template-icon">📝</div>
+            <div class="ai-template-text">
+              <div class="ai-template-title">考试重点</div>
+              <div class="ai-template-desc">考试中常如何考这个知识点？</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-top:16px;padding:12px;background:var(--paper);border-radius:12px;text-align:center;">
+          <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">需要更多帮助？</div>
+          <button class="save-btn" onclick="openVideoGenModal()" style="width:100%;background:linear-gradient(135deg,#243A5E,#3A5276);">生成AI记忆视频</button>
+        </div>
+        
+        <div class="ai-assist-input-row">
+          <textarea class="form-input" id="ai-assist-input" rows="3" placeholder="或输入您的具体问题..."></textarea>
+          <button class="save-btn" onclick="submitAiAssist()">发送给AI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      if (typeof loadNounDetail === 'function') {
+        loadNounDetail();
+      }
+    });
+  </script>
+</body>
+</html>

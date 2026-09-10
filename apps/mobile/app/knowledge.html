@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 知识库</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-body" style="padding-top:16px;">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="searchbar" id="search-input" placeholder="搜索知识点 / 章节 / 关键词" oninput="handleSearch(this.value)">
+        <div class="search-result-count" id="search-result-count"></div>
+      </div>
+      
+      <div class="filter-row">
+        <div class="filter-chip active" onclick="filterByType('all', event)">全部</div>
+        <div class="filter-chip" onclick="filterByType('noun', event)">名词解释</div>
+        <div class="filter-chip" onclick="filterByType('short', event)">简答题</div>
+        <div class="filter-chip" onclick="filterByType('essay', event)">论述题</div>
+      </div>
+      
+      <div>
+        <div class="textbook-head">
+          <div class="lib-group" style="margin:0;">教材分类</div>
+          <div class="add-btn" onclick="openUploadModal()">＋</div>
+        </div>
+        <div class="textbook-row" style="margin-top:6px;">
+          <div class="textbook-chip active" onclick="filterByBook('all', event)">全部教材</div>
+        <div class="textbook-chip" onclick="filterByBook('传播学原理', event)">《传播学原理》</div>
+        <div class="textbook-chip" onclick="filterByBook('新闻学概论', event)">《新闻学概论》</div>
+        <div class="textbook-chip" onclick="filterByBook('网络传播概论', event)">《网络传播概论》</div>
+        <div class="textbook-chip" onclick="filterByBook('媒介伦理法规', event)">《媒介伦理法规》</div>
+        </div>
+      </div>
+      
+      <div data-book-group="传播学原理">
+        <div class="lib-group">传播学基础</div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=新闻价值')">
+          <span>新闻价值</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=传播')">
+          <span>传播</span><span class="tag">基础</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=媒介')">
+          <span>媒介</span><span class="tag">基础</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=受众')">
+          <span>受众</span><span class="tag">基础</span>
+        </div>
+      </div>
+      
+      <div data-book-group="传播学原理">
+        <div class="lib-group" style="margin-top:10px;">大众传播理论</div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=沉默的螺旋')">
+          <span>沉默的螺旋</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=编码解码模型')">
+          <span>编码解码模型</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=知沟理论')">
+          <span>知沟理论</span><span class="tag">重点</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=议程设置')">
+          <span>议程设置</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=第三人效应')">
+          <span>第三人效应</span><span class="tag">重点</span>
+        </div>
+      </div>
+      
+      <div data-book-group="网络传播概论">
+        <div class="lib-group" style="margin-top:10px;">网络传播</div>
+        <div class="lib-row" data-type="noun" data-book="网络传播概论" onclick="navigateTo('noun-detail.html?term=网络舆论')">
+          <span>网络舆论</span><span class="tag">热点</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="网络传播概论" onclick="navigateTo('noun-detail.html?term=算法推荐')">
+          <span>算法推荐</span><span class="tag">热点</span>
+        </div>
+        <div class="lib-row" data-type="noun" data-book="网络传播概论" onclick="navigateTo('noun-detail.html?term=信息茧房')">
+          <span>信息茧房</span><span class="tag">高频</span>
+        </div>
+      </div>
+      
+      <div data-book-group="传播学原理">
+        <div class="lib-group" style="margin-top:10px;">简答题</div>
+        <div class="lib-row" data-book="传播学原理" data-type="short" onclick="navigateTo('short-detail.html?short=short001')">
+          <span>霍尔编码解码模型</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-book="传播学原理" data-type="short" onclick="navigateTo('short-detail.html?short=short002')">
+          <span>议程设置理论</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-book="传播学原理" data-type="short" onclick="navigateTo('short-detail.html?short=short003')">
+          <span>第三人效应</span><span class="tag">重点</span>
+        </div>
+        <div class="lib-row" data-book="传播学原理" data-type="short" onclick="navigateTo('short-detail.html?short=short004')">
+          <span>知沟理论</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-book="传播学原理" data-type="short" onclick="navigateTo('short-detail.html?short=short005')">
+          <span>把关人理论</span><span class="tag">基础</span>
+        </div>
+      </div>
+      
+      <div data-book-group="新媒体概论">
+        <div class="lib-group" style="margin-top:10px;">论述题</div>
+        <div class="lib-row" data-book="新媒体概论" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay001')">
+          <span>媒介素养的内涵与演变</span><span class="tag">高频</span>
+        </div>
+        <div class="lib-row" data-book="网络传播概论" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay002')">
+          <span>算法推荐对信息传播的影响</span><span class="tag">热点</span>
+        </div>
+        <div class="lib-row" data-book="传播学原理" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay003')">
+          <span>社交媒体时代的舆论引导</span><span class="tag">重点</span>
+        </div>
+        <div class="lib-row" data-book="新闻学概论" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay004')">
+          <span>数字时代的新闻专业主义</span><span class="tag">高频</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottomnav">
+      <div class="nav-item" onclick="navigateTo('index.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span>首页</span></div>
+      <div class="nav-item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18"/><path d="M15 9h6"/><path d="M15 12h6"/><path d="M15 15h6"/></svg></span><span>知识库</span></div>
+      <div class="nav-item" onclick="navigateTo('collections.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>收藏</span></div>
+      <div class="nav-item" onclick="navigateTo('exam-home.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>考试</span></div>
+      <div class="nav-item" onclick="navigateTo('profile.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>我的</span></div>
+    </div>
+  </div>
+  
+  <div id="upload-modal" class="modal-overlay" style="display:none;" onclick="closeModal('upload-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">上传资料</div>
+      <div class="modal-close" onclick="closeModal('upload-modal')">×</div>
+      <div class="upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="upload-text">点击或拖拽上传资料</div>
+        <div class="upload-hint">支持 PDF、Word、TXT 格式，自动解析生成题库</div>
+      </div>
+      <input type="file" id="file-input" style="display:none;" accept=".pdf,.doc,.docx,.txt">
+      <div class="form-row">
+        <div class="form-label">资料名称</div>
+        <input type="text" class="form-input" placeholder="输入资料名称">
+      </div>
+      <div class="form-row">
+        <div class="form-label">所属教材</div>
+        <select class="form-select">
+          <option>《传播学原理》</option>
+          <option>《新闻学概论》</option>
+          <option>《网络传播概论》</option>
+          <option>《媒介伦理法规》</option>
+          <option>自建分类</option>
+        </select>
+      </div>
+      <button class="save-btn" onclick="handleKnowledgeUpload()">上传并解析</button>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      var params = new URLSearchParams(window.location.search);
+      var type = params.get('type');
+      if (type) {
+        var chips = document.querySelectorAll('.filter-chip');
+        for (var i = 0; i < chips.length; i++) {
+          var onclickAttr = chips[i].getAttribute('onclick') || '';
+          if (onclickAttr.indexOf("'" + type + "'") >= 0) {
+            chips[i].click();
+            break;
+          }
+        }
+      }
+      if (typeof renderUploadedMaterials === 'function') {
+        renderUploadedMaterials();
+      }
+    });
+  </script>
+</body>
+</html>

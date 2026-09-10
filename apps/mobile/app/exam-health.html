@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 健康传播策划</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">健康传播策划</div>
+    </div>
+    
+    <div class="interview-body">
+      <div class="question-header">
+        <div class="question-info">
+          <div class="question-type">第 <span id="current-question">1</span> / 4 题</div>
+          <div class="question-title" id="question-title"></div>
+        </div>
+        <div class="question-badge">深大专属</div>
+      </div>
+      
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchHealthTab('framework')">答题框架</div>
+        <div class="tab-item" onclick="switchHealthTab('answer')">考生作答</div>
+        <div class="tab-item" onclick="switchHealthTab('analysis')">用户分析</div>
+      </div>
+      
+      <div id="tab-framework" class="tab-panel active">
+        <div class="framework-content" id="framework-content">
+        </div>
+      </div>
+      
+      <div id="tab-answer" class="tab-panel">
+        <div class="answer-content" id="answer-content">
+        </div>
+      </div>
+      
+      <div id="tab-analysis" class="tab-panel">
+        <div class="analysis-section">
+          <button class="publish-analysis-btn" onclick="openPublishAnalysisModal()">📝 发布我的分析</button>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">张</div>
+              <div class="analysis-info">
+                <div class="analysis-name">小张同学</div>
+                <div class="analysis-time">2小时前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">解题思路</div>
+            <div class="analysis-content">健康传播策划的核心在于运用HBM健康信念模型和KAP知信行模式。首先要明确目标受众的健康认知水平，然后通过传播改变态度，最终引导行为改变。这道题需要从认知、态度、行为三个层面设计干预方案。</div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">李</div>
+              <div class="analysis-info">
+                <div class="analysis-name">小李学姐</div>
+                <div class="analysis-time">5小时前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">答题技巧</div>
+            <div class="analysis-content">深大334健康传播策划题一定要写三阶段传播策略（预热期、爆发期、长效期），每个阶段都要有线上线下的具体活动。还要注意创意物料设计部分，最好写30秒短视频分镜，这样能拿到高分。</div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-avatar">王</div>
+              <div class="analysis-info">
+                <div class="analysis-name">王学长</div>
+                <div class="analysis-time">1天前</div>
+              </div>
+            </div>
+            <div class="analysis-type-tag">知识点</div>
+            <div class="analysis-content">HBM模型包含感知威胁、感知易感性、感知效益、感知障碍、自我效能五个要素。在答题时要把这些要素融入到传播策略中，特别是自我效能部分，可以设计一些激励机制来提升受众的行动意愿。</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bottom-action-bar" id="bottom-bar">
+        <button class="nav-btn" onclick="prevHealthQuestion()" id="prev-btn">上一题</button>
+        <div id="action-btns">
+          <button class="action-btn" onclick="showMyHealthAnswers()">查看我的答案汇总</button>
+          <button class="action-btn" onclick="showFullHealthAnswer()">查看完整答案</button>
+        </div>
+        <button class="nav-btn" onclick="nextHealthQuestion()" id="next-btn">下一题</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      initHealthPage();
+    });
+  </script>
+</body>
+</html>

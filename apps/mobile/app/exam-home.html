@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 考试训练</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .exam-tabs {
+      display: flex;
+      background: var(--paper);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 12px;
+    }
+    
+    .exam-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 6px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-light);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .exam-tab.active {
+      background: var(--seal);
+      color: #fff;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .exam-card {
+      margin-bottom: 10px;
+    }
+    
+    .section-header {
+      display: none;
+    }
+    
+    .exam-body {
+      padding-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <div class="top-title" style="text-align:center;flex:1;">考试训练</div>
+    </div>
+    
+    <div class="exam-body">
+      <div class="exam-hero">
+        <div class="exam-badge">专项训练</div>
+        <div class="exam-desc">新传考研考试模拟系统</div>
+      </div>
+      
+      <div class="exam-tabs">
+        <div class="exam-tab active" onclick="switchExamTab('practice')">实务题</div>
+        <div class="exam-tab" onclick="switchExamTab('theory')">理论题</div>
+        <div class="exam-tab" onclick="switchExamTab('mock')">模拟考试</div>
+      </div>
+      
+      <div id="practice" class="tab-content active">
+        <div class="exam-card-list">
+          <div class="exam-card" onclick="navigateTo('exam-interview.html')">
+            <div class="card-icon" style="background:var(--seal);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">新闻采访题</div>
+              <div class="card-desc">采访提纲设计、采访计划制定</div>
+            </div>
+            <div class="card-badge active">第一阶段</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('exam-comment.html')">
+            <div class="card-icon" style="background:var(--gold);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5B4520" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">新闻评论题</div>
+              <div class="card-desc">短评、述评、编者按写作</div>
+            </div>
+            <div class="card-badge active">第二阶段</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('exam-news.html')">
+            <div class="card-icon" style="background:var(--green);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <path d="M9 3v18"/>
+                <path d="M15 9h6"/>
+                <path d="M15 12h6"/>
+                <path d="M15 15h6"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">新闻消息题</div>
+              <div class="card-desc">消息写作、倒金字塔结构</div>
+            </div>
+            <div class="card-badge active">第三阶段</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('exam-health.html')">
+            <div class="card-icon" style="background:var(--green);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">健康传播策划</div>
+              <div class="card-desc">深大专属·健康干预方案设计</div>
+            </div>
+            <div class="card-badge" style="background:var(--gold);color:#5B4520;">深大专属</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('exam-marketing.html')">
+            <div class="card-icon" style="background:var(--gold);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <path d="M18 20V10M8 20V4M3 12h18"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">品牌整合营销</div>
+              <div class="card-desc">广告全案策划·STP/4C/IMC</div>
+            </div>
+            <div class="card-badge">广告全案</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('exam-copywriting.html')">
+            <div class="card-icon" style="background:var(--seal);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">广告小实务文案</div>
+              <div class="card-desc">创意设计·短视频·海报</div>
+            </div>
+            <div class="card-badge">创意设计</div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="theory" class="tab-content">
+        <div class="exam-card-list">
+          <div class="exam-card" onclick="navigateTo('noun-detail.html?term=新闻价值')" style="cursor:pointer;">
+            <div class="card-icon" style="background:var(--seal);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">名词解释</div>
+              <div class="card-desc">核心概念深度解析</div>
+            </div>
+            <div class="card-badge" style="background:var(--seal);color:#fff;">进入</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('short-detail.html?short=short001')" style="cursor:pointer;">
+            <div class="card-icon" style="background:var(--red);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">简答题</div>
+              <div class="card-desc">知识点框架梳理</div>
+            </div>
+            <div class="card-badge" style="background:var(--red);color:#fff;">进入</div>
+          </div>
+          
+          <div class="exam-card" onclick="navigateTo('essay-detail.html?essay=essay001')" style="cursor:pointer;">
+            <div class="card-icon" style="background:var(--green);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <path d="M9 3v18"/>
+                <path d="M15 9h6"/>
+                <path d="M15 12h6"/>
+                <path d="M15 15h6"/>
+                <path d="M15 18h6"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">论述题</div>
+              <div class="card-desc">综合分析能力训练</div>
+            </div>
+            <div class="card-badge" style="background:var(--green);color:#fff;">进入</div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="mock" class="tab-content">
+        <div class="exam-card-list">
+          <div class="exam-card disabled">
+            <div class="card-icon" style="background:var(--ink-light);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="card-info">
+              <div class="card-name">全真模拟</div>
+              <div class="card-desc">完整考试流程模拟</div>
+            </div>
+            <div class="card-badge">后续开发</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="exam-tips">
+        <div class="tips-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin-right:6px;vertical-align:middle;">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          训练提示
+        </div>
+        <div class="tips-content">
+          <div class="tip-item">1. 先学习官方答题框架，理解答题结构</div>
+          <div class="tip-item">2. 按照框架独立作答，主动输出</div>
+          <div class="tip-item">3. 查看完整答案，对比分析差距</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottomnav">
+      <div class="nav-item" onclick="navigateTo('index.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span>首页</span></div>
+      <div class="nav-item" onclick="navigateTo('knowledge.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18"/><path d="M15 9h6"/><path d="M15 12h6"/><path d="M15 15h6"/></svg></span><span>知识库</span></div>
+      <div class="nav-item" onclick="navigateTo('collections.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>收藏</span></div>
+      <div class="nav-item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>考试</span></div>
+      <div class="nav-item" onclick="navigateTo('profile.html')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>我的</span></div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script>
+    function switchExamTab(tabName) {
+      document.querySelectorAll('.exam-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      const tabBtn = document.querySelector(`.exam-tab[onclick="switchExamTab('${tabName}')"]`);
+      if (tabBtn) tabBtn.classList.add('active');
+      
+      const content = document.getElementById(tabName);
+      if (content) content.classList.add('active');
+    }
+  </script>
+</body>
+</html>

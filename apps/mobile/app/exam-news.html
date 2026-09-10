@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>新传研背 - 新闻消息题训练</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●</span>
+    </div>
+    
+    <div class="app-top">
+      <button class="crumb-btn" onclick="navigateTo('exam-home.html')">‹ 返回</button>
+      <div class="top-title">新闻消息题</div>
+    </div>
+    
+    <div class="question-progress">
+      <span>第 <span id="current-question">1</span> / <span id="total-questions">3</span> 题</span>
+    </div>
+    
+    <div class="interview-body">
+      <div class="question-header">
+        <div class="question-type">类型：消息改写</div>
+        <div class="question-title">请根据以下材料，改写一篇500字左右的新闻消息。<br><br>【材料】近日，某市残联联合多家企业举办了一场残疾人就业招聘会。据了解，此次招聘会共有50家企业参与，提供了300多个就业岗位，涵盖了电商客服、手工制作、数据录入等多个领域。现场共有200余名残疾人求职者参与，最终有86人达成就业意向。市残联负责人表示，将持续推进残疾人就业帮扶工作，为残疾人提供更多就业机会。</div>
+      </div>
+      
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchNewsTab('framework')">答题框架</div>
+        <div class="tab-item" onclick="switchNewsTab('answer')">考生作答</div>
+        <div class="tab-item" onclick="switchNewsTab('analysis')">用户分析</div>
+      </div>
+      
+      <div class="tab-content">
+        <div id="tab-framework" class="tab-panel active">
+          <div class="framework-chapter">
+            <div class="chapter-title">一、前期写作基础要素（消息改写审题必备）</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）主题选择三大标准（审题第一步）</div>
+              <div class="sub-content">① 政治视角：贴合现行政策导向（例：残疾人就业、文化创业）</div>
+              <div class="sub-content">② 受众视角：聚焦大众普遍关心的现实问题（例：残障群体如何就业追梦）</div>
+              <div class="sub-content">③ 时效性：紧扣当下迫切的社会议题</div>
+              <div class="sub-content" style="margin-top:8px;font-weight:600;">提炼主题方法</div>
+              <div class="sub-content">占有材料 → 感性认知上升为理性综合分析，抓住全局核心重点。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）新闻材料（写作原材料）</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 三类材料区分（改写必考，严守真实性）</div>
+                <div class="sub-content">• 一手材料：记者现场亲自采访所得，可信度最高，优先使用</div>
+                <div class="sub-content">• 二手材料：当事人亲口讲述</div>
+                <div class="sub-content">• 三手材料：路人、知情者转述，必须核查真伪，防范反转新闻</div>
+                <div class="sub-content" style="margin-top:8px;color:var(--seal);">真题案例：红山晚报不实白菜报道（三手信源未经核实引发失实）</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 材料使用黄金口诀</div>
+                <div class="sub-content">采访阶段：多多益善，广泛收集素材</div>
+                <div class="sub-content">写作阶段：以一当十，筛选保留贴合主题的内容</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（三）新闻角度（写作切入点）</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 定义</div>
+                <div class="sub-content">同一新闻事件，选取不同侧面展开报道</div>
+                <div class="sub-content">举例：残疾人电影题材，可选角度：主创追梦故事 / 创始人助残行动 / 产业政策扶持</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 选取角度三原则</div>
+                <div class="sub-content">① 比：列出多个角度横向对比，选取新闻价值最高者</div>
+                <div class="sub-content">② 小：拒绝面面俱到，坚持以小见大（不要空谈全行业，聚焦少数典型人物）</div>
+                <div class="sub-content">③ 异：避开同质化套路，追求表达新意</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（四）新闻语言（消息专属规范）</div>
+              <div class="sub-content" style="font-weight:600;">三大核心特征：准确、通俗、简洁</div>
+              
+              <div class="sub-content">1. 准确：规避 "大概、很多" 模糊词汇，尽量量化表述，杜绝空话</div>
+              <div class="sub-content">2. 通俗：多用动词、细节描写，减少抽象议论</div>
+              <div class="sub-content">3. 简洁：删减冗余文字；习仲勋提出新闻 "真、短、快、活、强" 五项要求</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">4. 特殊写作手法：新闻跳笔（消息专用）</div>
+                <div class="sub-content">• 特点：段落极短，一段承载一条独立信息，无需过渡句，阅读节奏明快</div>
+                <div class="sub-content">• 作用：信息层次清晰，适配报纸、新媒体消息写作</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（五）新闻来源（信源规范）</div>
+              <div class="sub-content">尽量使用实名信源；减少 "据悉、知情人士" 匿名表述；少出现 "记者认为"，降低主观色彩。</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（六）引语分类与使用规则</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 三类引语区分</div>
+                <div class="sub-content">• 直接引语：添加双引号，原文引用，增强现场感</div>
+                <div class="sub-content">• 间接引语：概括转述话语，精简篇幅</div>
+                <div class="sub-content">• 混合引语：直接 + 间接穿插使用，行文节奏更佳</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 使用规则</div>
+                <div class="sub-content">引语贴合人物身份，严禁断章取义；核心人物观点放置在文中突出位置。</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（七）新闻背景</div>
+              <div class="sub-content">三类背景，按需穿插，不可喧宾夺主：</div>
+              <div class="sub-content">1. 衬托型：新旧、好坏对比，增加报道厚度</div>
+              <div class="sub-content">2. 解释型：解读专业名词、陌生事件，降低受众理解门槛</div>
+              <div class="sub-content">3. 启示型：客观陈列材料，含蓄传递观点</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">背景写作技巧</div>
+                <div class="sub-content">✅ 开门见山，铺陈渲染：背景置于导语，起到衬托、对比、引领作用</div>
+                <div class="sub-content">✅ 正反对比，凸显个性：引入反向案例与新闻事实对照，深化主题</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">二、消息基础理论</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）消息三大特点</div>
+              <div class="sub-content">事实精炼、时效性极强、以倒金字塔结构为主（重中之重）</div>
+              <div class="sub-content" style="color:var(--seal);">考场规则：无特殊说明，优先选用倒金字塔结构</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）消息三类题型</div>
+              <div class="sub-content">1. 简讯：一两句话，要素齐全即可，篇幅极简</div>
+              <div class="sub-content">2. 动态消息：新鲜突发事件，考试最高频题型</div>
+              <div class="sub-content">3. 综合消息：覆盖一段时期、大范围事件，写作要求点面结合</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（三）消息完整五大构成：标题 + 消息头 + 导语 + 主体 + 结尾</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 消息标题（分值占比高）</div>
+                <div class="sub-content">作用：概括事实、吸引受众、体现报道立场</div>
+                
+                <div class="sub-content" style="margin-top:8px;font-weight:600;">（1）三层分类</div>
+                <div class="sub-content">① 层级划分：引题（肩题）、主题（核心）、副题（补充说明）</div>
+                <div class="sub-content">② 行数划分：单行题（仅主题）、双行题（引 + 主 / 主 + 副）、三行题（引 + 主 + 副）</div>
+                <div class="sub-content">③ 虚实划分：实题陈述事实；虚题提炼意义；复合标题要求虚实结合</div>
+                
+                <div class="sub-content" style="margin-top:8px;font-weight:600;">（2）制作原则：内容具体、题文一致、简洁生动</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 导语（消息灵魂，阅卷重点）</div>
+                
+                <div class="sub-content" style="margin-top:8px;font-weight:600;">1. 四代导语发展脉络</div>
+                <div class="sub-content">一代导语：5W1H 要素全部堆砌，老式冗长写法</div>
+                <div class="sub-content">二代导语：选取 1～2 个核心要素概括（当下主流叙述导语）</div>
+                <div class="sub-content">三代导语：延缓式导语，设置悬念吸引读者</div>
+                <div class="sub-content">四代导语：流线型轻量化导语，抓人眼球</div>
+                
+                <div class="sub-content" style="margin-top:8px;font-weight:600;">2. 三大必考导语类型</div>
+                <div class="sub-content">① 叙述型：直白概括核心事实，稳妥不出错</div>
+                <div class="sub-content">② 描写型：从现场细节切入，画面感强</div>
+                <div class="sub-content">③ 评述型：细分设问式、引语式、评论式，自带观点、吸睛</div>
+                
+                <div class="sub-content" style="margin-top:8px;font-weight:600;">3. 导语写作要求：实、简、活；突出最新事实，内容不要和主体重复</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">3. 消息主体 + 结尾</div>
+                <div class="sub-content">主体：补充导语遗漏的细节、背景、人物引语，多用短段落、新闻跳笔</div>
+                <div class="sub-content">结尾 6 种写法：总结展望、自然收束、背景补充、提醒建议、引语收尾、对比反差</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（四）五大消息结构（考题常会指定结构）</div>
+              
+              <div class="table-wrapper">
+                <table class="exam-table">
+                  <thead>
+                    <tr>
+                      <th>结构类型</th>
+                      <th>核心特点</th>
+                      <th>使用场景</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>倒金字塔（万能首选）</td><td>事实按照重要程度由高到低排布</td><td>考场通用，遇事不决直接选用</td></tr>
+                    <tr><td>时间顺序（编年体）</td><td>严格按照事件发生先后叙事</td><td>事件时间线清晰完整</td></tr>
+                    <tr><td>沙漏结构</td><td>开头采用倒金字塔，后半段切换时间线叙事</td><td>兼具时效性与故事性</td></tr>
+                    <tr><td>并列结构</td><td>多条同等重要事实平行排布</td><td>多案例、多点位综合报道</td></tr>
+                    <tr><td>华尔街日报体（故事型）</td><td>小人物小故事切入→过渡宏观主题→结尾首尾呼应</td><td>侧重人文、深度叙事类消息</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">三、消息改写"天龙八步"</div>
+            
+            <div class="framework-section">
+              <div class="section-title">1. 分析材料</div>
+              <div class="sub-content">• 厘清核心要素（5W+H）和背景</div>
+              <div class="sub-content">• 留意新闻人物说的让人印象深刻、突出主题的话，为拟标题和写导语作准备</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">2. 选择角度</div>
+              <div class="sub-content">根据直觉选择最有意义和价值的事情</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">3. 确定结构</div>
+              <div class="sub-content">• 遇事不决"倒金字塔"</div>
+              <div class="sub-content">• 时间清晰选"沙漏式"</div>
+              <div class="sub-content">• 结构清晰选"并列式"</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">4. 拟写标题</div>
+              <div class="sub-content">• 字数规范：一般 20 字以内，写在纸上一行以内</div>
+              <div class="sub-content">• 巧用数字：尽量使用小数字、整数，如"34578 人"，可写成"3 万多人"</div>
+              <div class="sub-content">• 借用引语："站在阳光下的感觉，很暖""让他们有尊严地去追求梦想"</div>
+              <div class="sub-content">• 抓关键词：例如——百余名残疾人、五年时间、原创动画电影</div>
+              <div class="sub-content">• 挖掘细节：例如——五年改一百多遍剧本</div>
+              <div class="sub-content">• 单行题——概括核心事实信息（抓数字、抓细节、抓亮点）</div>
+              <div class="sub-content">• 双行题——引题：基于事实进行发挥（虚题）；主题：概括核心事实信息（实题）</div>
+              <div class="sub-content">• 三行题——引题：基于事实进行发挥（虚题）；主题：概括核心事实信息（实题）；副题：补充次要事实信息（实题）</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">5. 加消息头</div>
+              <div class="sub-content">• 没有特别要求，就写：本报讯（记者 xxx）</div>
+              <div class="sub-content">• 消息头之前注意空两格！！</div>
+              <div class="sub-content">• 消息头和记者名字之间，可空可不空</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">6. 设计导语</div>
+              <div class="sub-content">• 叙述型导语——求稳</div>
+              <div class="sub-content">• 评述型导语——求新又求稳（引语式/设问式）</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">7. 编排正文</div>
+              <div class="sub-content">如果是按照"倒金字塔"，不必过于纠结重要性排序</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">8. 检查修改</div>
+              <div class="sub-content">• 注意事实性差错：不要改变材料原意，写错人名，或是人物和所说的话不对应</div>
+              <div class="sub-content">• 注意文字性差错：错别字、标点符号、语句不通等</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">四、消息改写模板</div>
+            
+            <div class="framework-section">
+              <div class="section-title">标题：</div>
+              <div class="sub-content">• 单行题——求稳（抓数字、抓细节、抓亮点）</div>
+              <div class="sub-content">• 双行题——求新（引题+主题）</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">导语：</div>
+              <div class="sub-content">• 叙述型导语——求稳</div>
+              <div class="sub-content">• 评述型导语——求新又求稳（引语式/设问式）</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">结构：</div>
+              <div class="sub-content">• 遇事不决"倒金字塔"</div>
+              <div class="sub-content">• 时间清晰选"沙漏式"</div>
+              <div class="sub-content">• 结构清晰选"并列式"</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">五、广播电视消息改写模板</div>
+            
+            <div class="framework-section">
+              <div class="sub-content">（单行式标题，提炼核心事实）</div>
+              <div class="sub-content">（导语）xxx 请听/看本台记者前方发来的报道。</div>
+              <div class="sub-content">（正文）xxx</div>
+              <div class="sub-content">（同期声）xxx</div>
+              <div class="sub-content">（正文）xxx</div>
+              <div class="sub-content">（同期声）xxx</div>
+              <div class="sub-content">（正文）xxx</div>
+              <div class="sub-content">（同期声）xxx</div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">要点提示：</div>
+              <div class="sub-content">• 结构上：线索单一，脉络清晰</div>
+              <div class="sub-content">• 内容上：直接引语转为同期声</div>
+              <div class="sub-content">• 语言上：短句为主，贴近日常</div>
+            </div>
+          </div>
+          
+          <div class="framework-chapter">
+            <div class="chapter-title">六、新媒体消息写作</div>
+            
+            <div class="framework-section">
+              <div class="section-title">（一）新媒体标题怎么写？</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 新媒体消息标题的要求</div>
+                <div class="sub-content">（1）宁实勿虚，抓住要点。</div>
+                <div class="sub-content">（2）长短有度，不宜过长</div>
+                <div class="sub-content">（3）正确使用标点符号</div>
+                <div class="sub-content">（4）标题表达要富有表现力</div>
+                <div class="sub-content">（5）贴合不同平台特性</div>
+              </div>
+              
+              <div class="sub-section">
+                <div class="sub-title">2. 向新华社微信公众号偷师</div>
+                <div class="sub-content">（1）重大事件类，"单刀直入"</div>
+                <div class="sub-content">（2）情感共鸣类，"反客为主"</div>
+                <div class="sub-content">（3）情节故事类，"抛砖引玉"</div>
+                <div class="sub-content">（4）重点突出类，"欲擒故纵"</div>
+                <div class="sub-content">（5）与众不同类，"一反常态"</div>
+                <div class="sub-content">（6）言语感人类，"直接引语"</div>
+                <div class="sub-content">（7）类比热度类，"声东击西"</div>
+              </div>
+            </div>
+            
+            <div class="framework-section">
+              <div class="section-title">（二）新媒体消息怎么写？</div>
+              
+              <div class="sub-section">
+                <div class="sub-title">1. 新媒体消息主体的要求</div>
+                <div class="sub-content">（1）先果后因，由近及远</div>
+                <div class="sub-content">（2）从小到大，从实到虚</div>
+                <div class="sub-content">（3）以少胜多，以小见大</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-answer" class="tab-panel">
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">一、标题</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-title')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-title" placeholder="请输入标题（单行题求稳，双行题求新）" oninput="saveNewsAnswer('title')"></textarea>
+            <div class="ai-hint" id="ai-title">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 单行题：概括核心事实（抓数字、抓细节、抓亮点）</div>
+              <div class="hint-content">2. 双行题：引题（虚题）+ 主题（实题）</div>
+              <div class="hint-content">3. 巧用数字：使用小数字、整数</div>
+              <div class="hint-content">4. 借用引语：使用人物话语增强感染力</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">二、消息头</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-head')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-head" placeholder="请输入消息头（例：本报讯（记者 XXX））" oninput="saveNewsAnswer('head')"></textarea>
+            <div class="ai-hint" id="ai-head">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 标准格式：本报讯（记者 XXX）</div>
+              <div class="hint-content">2. 消息头之前注意空两格</div>
+              <div class="hint-content">3. 如果材料未提供记者名，可用"本报记者"</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">三、导语</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-intro')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-intro" placeholder="请输入导语（叙述型求稳，评述型求新）" oninput="saveNewsAnswer('intro')"></textarea>
+            <div class="ai-hint" id="ai-intro">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 叙述型导语：概括核心事实，稳妥不出错</div>
+              <div class="hint-content">2. 评述型导语：引语式或设问式，自带观点</div>
+              <div class="hint-content">3. 突出最新事实，不要和主体内容重复</div>
+              <div class="hint-content">4. 选取1-2个核心要素（5W1H）</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">四、主体</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-body')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-body" placeholder="请输入主体内容（补充细节、背景、引语，多用短段落）" oninput="saveNewsAnswer('body')"></textarea>
+            <div class="ai-hint" id="ai-body">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 倒金字塔结构：重要事实在前，次要事实在后</div>
+              <div class="hint-content">2. 多用短段落，运用新闻跳笔</div>
+              <div class="hint-content">3. 补充导语遗漏的细节、背景信息</div>
+              <div class="hint-content">4. 加入人物引语增强现场感</div>
+            </div>
+          </div>
+          
+          <div class="answer-section">
+            <div class="answer-header">
+              <div class="section-title">五、结尾</div>
+              <button class="ai-btn" onclick="toggleAiHint('ai-end')">💡 AI思路</button>
+            </div>
+            <textarea class="answer-textarea" id="ans-end" placeholder="请输入结尾（总结展望/自然收束/背景补充等）" oninput="saveNewsAnswer('end')"></textarea>
+            <div class="ai-hint" id="ai-end">
+              <div class="hint-title">思考方向：</div>
+              <div class="hint-content">1. 总结展望式：对事件未来发展的期待</div>
+              <div class="hint-content">2. 自然收束式：说完即止，不拖沓</div>
+              <div class="hint-content">3. 背景补充式：补充相关背景信息</div>
+              <div class="hint-content">4. 引语收尾式：用人物话语结尾，余味悠长</div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-analysis" class="tab-panel">
+          <div class="analysis-section">
+            <button class="publish-analysis-btn" onclick="openPublishAnalysisModal()">📝 发布我的分析</button>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">张</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小张同学</div>
+                  <div class="analysis-time">2小时前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">解题思路</div>
+              <div class="analysis-content">这道题是典型的动态消息改写题。核心要素是招聘会的规模（50家企业、300个岗位）和成果（86人达成意向）。标题可以突出数字，导语概括核心事实，主体补充细节和引语。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">李</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小李同学</div>
+                  <div class="analysis-time">5小时前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">记忆方法</div>
+              <div class="analysis-content">我用"标题-消息头-导语-主体-结尾"五段式来记忆消息结构。每个部分都有固定的写作要求，标题抓亮点、导语讲核心、主体补细节，这样不容易遗漏要点。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">王</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小王同学</div>
+                  <div class="analysis-time">1天前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">案例分析</div>
+              <div class="analysis-content">参考新华社关于残疾人就业的报道，他们通常会用"数字+故事"的方式，既展示宏观成果，又讲述个体经历，这样报道既有说服力又有感染力。</div>
+            </div>
+            
+            <div class="analysis-card">
+              <div class="analysis-header">
+                <div class="analysis-avatar">赵</div>
+                <div class="analysis-info">
+                  <div class="analysis-name">小赵同学</div>
+                  <div class="analysis-time">2天前</div>
+                </div>
+              </div>
+              <div class="analysis-type-tag">答题技巧</div>
+              <div class="analysis-content">写消息一定要注意倒金字塔结构，最重要的信息放在最前面。标题要简洁有力，导语要开门见山，主体多用短段落，这样符合消息的阅读习惯，也容易得高分。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottom-action-bar" id="bottom-bar">
+      <button class="nav-btn" onclick="prevNewsQuestion()" id="prev-btn">上一题</button>
+      <div id="action-btns">
+        <button class="action-btn" onclick="showMyNewsAnswers()">查看我的答案汇总</button>
+        <button class="action-btn" onclick="showNewsFullAnswer()">查看完整答案</button>
+      </div>
+      <button class="nav-btn" onclick="nextNewsQuestion()" id="next-btn">下一题</button>
+    </div>
+  </div>
+  
+  <div id="full-answer-modal" class="modal-overlay" style="display:none;" onclick="closeModal('full-answer-modal')">
+    <div class="modal-content" style="max-height:85vh;overflow:hidden;" onclick="event.stopPropagation()">
+      <div class="modal-title">完整参考答案</div>
+      <div class="modal-close" onclick="closeModal('full-answer-modal')">×</div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding:0 16px;">
+        <div class="answer-section">
+          <div class="section-title">一、标题</div>
+          <div class="section-content">某市举办残疾人就业招聘会 86 人达成就业意向</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">二、消息头</div>
+          <div class="section-content">本报讯（记者 XXX）</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">三、导语</div>
+          <div class="section-content">近日，某市残联联合多家企业举办残疾人就业招聘会，现场共有200余名残疾人求职者参与，最终86人达成就业意向。</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">四、主体</div>
+          <div class="section-content">据了解，此次招聘会共有50家企业参与，提供了300多个就业岗位，涵盖电商客服、手工制作、数据录入等多个领域。<br><br>
+            招聘会现场气氛热烈，不少残疾人求职者与企业负责人深入交流，了解岗位要求和薪资待遇。<br><br>
+            市残联负责人表示："我们将持续推进残疾人就业帮扶工作，为残疾人提供更多就业机会，帮助他们实现就业梦想。"<br><br>
+            参与招聘会的某企业负责人介绍，公司一直重视残疾人就业问题，此次提供了多个适合残疾人的岗位，希望能为残疾人就业贡献一份力量。</div>
+        </div>
+        
+        <div class="answer-section">
+          <div class="section-title">五、结尾</div>
+          <div class="section-content">据悉，市残联今后将定期举办残疾人就业招聘会，搭建残疾人与企业之间的沟通桥梁，助力残疾人更好地融入社会。</div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="closeModal('full-answer-modal')">关闭</button>
+    </div>
+  </div>
+  
+  <div id="my-answers-modal" class="modal-overlay" style="display:none;" onclick="closeModal('my-answers-modal')">
+    <div class="modal-content" style="max-height:85vh;overflow:hidden;" onclick="event.stopPropagation()">
+      <div class="modal-title">我的答案汇总</div>
+      <div class="modal-close" onclick="closeModal('my-answers-modal')">×</div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding:0 16px;" id="my-news-answers-content"></div>
+      <button class="save-btn" onclick="closeModal('my-answers-modal')">关闭</button>
+    </div>
+  </div>
+  
+  <div id="publish-analysis-modal" class="modal-overlay" style="display:none;" onclick="closeModal('publish-analysis-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">发布我的分析</div>
+      <div class="modal-close" onclick="closeModal('publish-analysis-modal')">×</div>
+      <div style="padding:0 16px;">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:13px;color:var(--ink);margin-bottom:6px;">选择分析类型</div>
+          <div style="display:flex;gap:8px;">
+            <button class="analysis-type-btn active" onclick="selectAnalysisType('思路')">解题思路</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('记忆')">记忆方法</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('案例')">案例分析</button>
+            <button class="analysis-type-btn" onclick="selectAnalysisType('技巧')">答题技巧</button>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;color:var(--ink);margin-bottom:6px;">我的分析内容</div>
+          <textarea id="analysis-content" style="width:100%;min-height:150px;padding:12px;border:1px solid var(--paper-line);border-radius:var(--radius);font-size:13px;line-height:1.6;color:var(--ink);background:var(--paper);resize:vertical;outline:none;" placeholder="请输入你的分析内容..."></textarea>
+        </div>
+      </div>
+      <button class="save-btn" onclick="submitAnalysis()">发布分析</button>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      initNewsPage();
+    });
+  </script>
+</body>
+</html>
