@@ -1,2 +1,2 @@
-# xinchuanyanbei-
-AI-powered journalism learning app with CMS.
+# 新传研背
+AI-powered journalism learning app.
