@@ -1,5 +1,10 @@
 // ===== 管理后台 Electron 主进程 =====
-// 独立于学生端APP，单独打包为EXE
+// 该文件负责启动管理后台窗口、设置菜单栏和应用生命周期。
+// 这是管理员端的入口脚本，独立于学生端 APP，通常会单独打包成桌面程序。
+// 作用概览：
+// 1. 创建主窗口并加载 dashboard.html / index.html
+// 2. 设置中文菜单栏和快捷功能
+// 3. 处理窗口关闭、激活和退出事件
 
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');

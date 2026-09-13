@@ -17,6 +17,7 @@
     "dev": "turbo run dev"
   },
   "devDependencies": {
+    "playwright": "^1.63.0",
     "turbo": "^2.0.0"
   },
   "engines": {

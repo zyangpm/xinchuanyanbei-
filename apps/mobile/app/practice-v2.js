@@ -1,3 +1,9 @@
+// ===== 实务题详细页逻辑 =====
+// 这个文件负责实务题的详细展示和用户交互：
+// 1. 根据 URL 中的 practice 参数加载对应题目
+// 2. 渲染题目框架、范例、答案编辑区和笔记区
+// 3. 支持保存用户答案、发布笔记、切换题目
+
 function getAllPracticeV2Ids() {
   if (typeof practiceV2Data !== 'undefined' && practiceV2Data.items) {
     return practiceV2Data.items.map(function(item) { return item.id; });

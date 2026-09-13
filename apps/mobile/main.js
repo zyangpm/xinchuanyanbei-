@@ -1,3 +1,10 @@
+// ===== 学生端 Electron 主进程 =====
+// 这是学生端 APP 的桌面版入口脚本，负责：
+// 1. 启动启动页 splash 和主窗口
+// 2. 通过 electron-store 管理本地配置与缓存
+// 3. 暴露 IPC 通道给前端页面，允许读取/写入本地存储
+// 4. 统一设置菜单和应用级对话框
+
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
