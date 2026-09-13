@@ -31,38 +31,8 @@
         <div class="filter-chip" onclick="filterCollection('essay', event)">论述题</div>
       </div>
       
-      <div data-collection-group="noun">
-        <div class="lib-group">名词解释</div>
-        <div class="lib-row" data-type="noun" onclick="navigateTo('noun-detail.html?term=沉默的螺旋')">
-          <span>沉默的螺旋</span><span class="tag">高频</span>
-        </div>
-        <div class="lib-row" data-type="noun" onclick="navigateTo('noun-detail.html?term=编码解码模型')">
-          <span>编码解码模型</span><span class="tag">高频</span>
-        </div>
-        <div class="lib-row" data-type="noun" onclick="navigateTo('noun-detail.html?term=议程设置')">
-          <span>议程设置</span><span class="tag">重点</span>
-        </div>
-      </div>
-      
-      <div data-collection-group="short">
-        <div class="lib-group" style="margin-top:10px;">简答题</div>
-        <div class="lib-row" data-type="short" onclick="navigateTo('short-detail.html?short=short002')">
-          <span>霍尔编码解码模型</span><span class="tag">20分</span>
-        </div>
-        <div class="lib-row" data-type="short" onclick="navigateTo('short-detail.html?short=short003')">
-          <span>知沟理论的内涵</span><span class="tag">15分</span>
-        </div>
-      </div>
-      
-      <div data-collection-group="essay">
-        <div class="lib-group" style="margin-top:10px;">论述题</div>
-        <div class="lib-row" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay001')">
-          <span>媒介素养的内涵与演变</span><span class="tag">30分</span>
-        </div>
-        <div class="lib-row" data-type="essay" onclick="navigateTo('essay-detail.html?essay=essay002')">
-          <span>网络舆论的形成机制</span><span class="tag">25分</span>
-        </div>
-      </div>
+      <!-- V5.0：收藏列表改为渲染 favorites 真实数据（renderCollections），保留原筛选交互 -->
+      <div id="collection-list"></div>
     </div>
     
     <div class="bottomnav">

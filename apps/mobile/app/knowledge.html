@@ -43,7 +43,13 @@
         <div class="textbook-chip" onclick="filterByBook('媒介伦理法规', event)">《媒介伦理法规》</div>
         </div>
       </div>
-      
+
+      <!-- V5.0：搜索无结果空态（handleSearch 控制） -->
+      <div id="search-empty-state" class="empty-state" style="display:none;">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-text">没有找到相关内容<br>换个关键词试试，或浏览下方教材分类</div>
+      </div>
+
       <div data-book-group="传播学原理">
         <div class="lib-group">传播学基础</div>
         <div class="lib-row" data-type="noun" data-book="传播学原理" onclick="navigateTo('noun-detail.html?term=新闻价值')">

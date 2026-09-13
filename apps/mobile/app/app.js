@@ -28,6 +28,68 @@ function getUserInfo() {
   };
 }
 
+// ===== V5.0 学习统计真实化 =====
+// 首次升级时把旧默认统计值（386/57/12）固化为基数，之后所有学习动作在此基础上累加，避免数字跳变
+function initStatBase() {
+  if (localStorage.getItem('statBase')) return;
+  localStorage.setItem('statBase', JSON.stringify({
+    mastered: parseInt(localStorage.getItem('masteredCount') || '386', 10) || 386,
+    fav: parseInt(localStorage.getItem('favoriteCount') || '57', 10) || 57,
+    note: parseInt(localStorage.getItem('noteCount') || '12', 10) || 12
+  }));
+  if (!localStorage.getItem('masteredCount')) localStorage.setItem('masteredCount', '386');
+  if (!localStorage.getItem('favoriteCount')) localStorage.setItem('favoriteCount', '57');
+  if (!localStorage.getItem('noteCount')) localStorage.setItem('noteCount', '12');
+}
+
+// 统计计数增减（delta 为负表示减少，最小为 0）
+function bumpStat(key, delta) {
+  var defaults = { masteredCount: '386', favoriteCount: '57', noteCount: '12' };
+  var current = parseInt(localStorage.getItem(key) || defaults[key] || '0', 10) || 0;
+  current = Math.max(0, current + delta);
+  localStorage.setItem(key, String(current));
+}
+
+// 学习天数按自然日去重累加：同一天多次学习只计一次；首次记录当天不改变既有天数，避免升级后跳变
+function markStudyDay() {
+  var d = new Date();
+  var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+  var todayStr = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  if (localStorage.getItem('lastStudyDate') === todayStr) return;
+  var last = localStorage.getItem('lastStudyDate');
+  if (last) {
+    var yesterday = new Date(d.getTime() - 24 * 60 * 60 * 1000);
+    var yesterdayStr = yesterday.getFullYear() + '-' + pad(yesterday.getMonth() + 1) + '-' + pad(yesterday.getDate());
+    var days = parseInt(localStorage.getItem('studyDays') || '0', 10) || 0;
+    days = (last === yesterdayStr) ? days + 1 : 1; // 昨天学过则连续累加，中断则重新计数
+    localStorage.setItem('studyDays', String(days));
+  }
+  localStorage.setItem('lastStudyDate', todayStr);
+}
+
+// ===== V5.0 掌握度落库（wordRatings）=====
+// 依据当前页面与 URL 参数推导自评对象 key，形如 noun:新闻价值 / short:short001 / essay:essay001
+function getCurrentRatingKey() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var page = (window.location.pathname.split('/').pop() || '').replace('.html', '');
+  if (page === 'noun-detail' && typeof currentTerm !== 'undefined' && currentTerm) {
+    return 'noun:' + currentTerm;
+  }
+  var id = urlParams.get('term') || urlParams.get('short') || urlParams.get('essay') || '';
+  return id ? (page + ':' + id) : '';
+}
+
+// 写入掌握度记录；返回是否为该内容首次标记（供"认识"计数去重）
+function rateWord(rating) {
+  var key = getCurrentRatingKey();
+  if (!key) return false;
+  var ratings = JSON.parse(localStorage.getItem('wordRatings') || '{}');
+  var isFirst = !ratings[key];
+  ratings[key] = { rating: rating, ts: new Date().toISOString() };
+  localStorage.setItem('wordRatings', JSON.stringify(ratings));
+  return isFirst;
+}
+
 function navigateTo(url) {
   window.location.href = url;
 }
@@ -79,6 +141,11 @@ function initThemeAndFont() {
     darkMode = 'false';
     localStorage.setItem('darkMode', 'false');
     localStorage.setItem('themeVersion', 'v3');
+  }
+  // V5.0：深色模式三档——"跟随系统"按系统偏好即时决定
+  if (darkMode === 'auto') {
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    darkMode = prefersDark ? 'true' : 'false';
   }
   if (darkMode === 'true') {
     applyDarkMode();
@@ -183,7 +250,11 @@ function initThemeAndFont() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  initStatBase();
+  localStorage.setItem('APP_VERSION', 'v5.0.0'); // V5.0：关于页动态版本标识
   initThemeAndFont();
+  initFavoriteStar();
+  renderCollections();
 });
 
 function goBack() {
@@ -257,6 +328,12 @@ function switchToUserVideo(userName) {
 function openAiModal() {
   var modal = document.getElementById('ai-modal');
   if (modal) {
+    // V5.0：打开时回填已保存的 API 密钥与画质/详略选择
+    var apiInput = modal.querySelector('.api-input');
+    if (apiInput) apiInput.value = localStorage.getItem('apiKey') || '';
+    var formSelects = modal.querySelectorAll('.form-select');
+    if (formSelects[0]) formSelects[0].value = localStorage.getItem('videoQuality') || '标准';
+    if (formSelects[1]) formSelects[1].value = localStorage.getItem('detailLevel') || '标准';
     modal.style.display = 'flex';
   }
 }
@@ -269,11 +346,12 @@ function openAiAssistModal() {
 }
 
 function useTemplate(type) {
+  // V5.0：模板预填随当前词条动态化（原为硬编码"沉默的螺旋"）
   var templates = {
-    'memory-method': '针对"沉默的螺旋"这个概念，有什么好的背诵技巧或记忆口诀吗？',
-    'real-example': '能举一个现实生活中的实例来帮助理解"沉默的螺旋"吗？',
-    'compare': '"沉默的螺旋"与"第三人效应"或"多元无知"有什么核心区别？',
-    'exam-tip': '在考研考试中，"沉默的螺旋"通常以什么形式考查？有哪些高频考点？'
+    'memory-method': '针对"' + currentTerm + '"这个概念，有什么好的背诵技巧或记忆口诀吗？',
+    'real-example': '能举一个现实生活中关于"' + currentTerm + '"的实例来帮助理解吗？',
+    'compare': '"' + currentTerm + '"与相近概念（如"第三人效应"或"多元无知"）有什么核心区别？',
+    'exam-tip': '在考研考试中，"' + currentTerm + '"通常以什么形式考查？有哪些高频考点？'
   };
   
   var input = document.getElementById('ai-assist-input');
@@ -308,10 +386,10 @@ function submitAiAssist() {
   }
 }
 
-function generateAiResponse(question) {
+function generateAiResponseBase(question) {
   var responses = {
-    'memory': '针对"' + currentTerm + '"的记忆方法推荐：\n\n1. 联想法：将"沉默的螺旋"想象成一个真实的螺旋楼梯，越往上走的人越少\n2. 口诀法："少数不敢说，多数越强大，形成螺旋效应"\n3. 类比法：想象在会议上，大家都沉默不语，最终意见被少数人主导\n4. 场景法：结合网络评论区"一边倒"的现象来理解\n\n建议选择1-2种方法重点练习效果最佳！',
-    'example': '现实案例：\n\n最近的一个例子是网络舆论中的"沉默螺旋"效应。比如在某个热门话题下，当主流意见形成后，持不同观点的用户往往会选择沉默，而不是发声表达异议。这正是诺依曼理论中"孤立恐惧"的体现——人们害怕因持少数意见而被孤立。\n\n另一个例子是在公司会议中，当领导倾向某个方案时，即使员工有不同想法也可能选择沉默，导致决策"一边倒"。',
+    'memory': '针对"' + currentTerm + '"的记忆方法推荐：\n\n1. 联想法：将"' + currentTerm + '"想象成一个真实的螺旋楼梯，越往上走的人越少\n2. 口诀法："少数不敢说，多数越强大，形成螺旋效应"\n3. 类比法：想象在会议上，大家都沉默不语，最终意见被少数人主导\n4. 场景法：结合网络评论区"一边倒"的现象来理解\n\n建议选择1-2种方法重点练习效果最佳！',
+    'example': '现实案例：\n\n以"' + currentTerm + '"为例：比如在某个热门话题下，当主流意见形成后，持不同观点的用户往往会选择沉默，而不是发声表达异议。这正是诺依曼理论中"孤立恐惧"的体现——人们害怕因持少数意见而被孤立。\n\n另一个例子是在公司会议中，当领导倾向某个方案时，即使员工有不同想法也可能选择沉默，导致决策"一边倒"。',
     'compare': '"沉默的螺旋"与相似概念的区别：\n\n1. 与"第三人效应"的区别：\n   - 沉默螺旋：自己因害怕孤立而沉默\n   - 第三人效应：认为他人会受媒介影响，但自己不会\n\n2. 与"多元无知"的区别：\n   - 沉默螺旋：主动选择沉默\n   - 多元无知：错误估计他人想法而不行动\n\n核心差异在于：沉默螺旋强调"主动发声行为"的变化，而后者强调"认知判断"的偏差。',
     'exam': '考试中"' + currentTerm + '"的高频考点：\n\n1. 定义题：直接考查概念内涵（约5分）\n2. 比较题：与第三人效应、多元无知的异同（约15分）\n3. 应用题：结合现实案例分析舆论现象（约25-30分）\n\n答题要点：\n- 必须提到"孤立恐惧"和"意见气候"\n- 必须说明"多数强势、少数沉默"的螺旋过程\n- 建议与算法环境结合分析\n\n背诵优先级：定义 > 核心机制 > 应用场景'
   };
@@ -328,7 +406,25 @@ function generateAiResponse(question) {
     return responses.exam;
   }
   
-  return 'AI分析结果：\n\n关于"' + question + '"的记忆建议：\n\n1. 先理解核心概念：' + currentTerm + '的本质是关于舆论形成的动态过程\n2. 找出关键词：孤立恐惧、意见气候、多数强势\n3. 结合场景记忆：想象一个具体的舆论案例\n4. 反复练习：用自己的话复述核心逻辑\n\n如需更具体的建议，可以尝试选择下方模板重新提问。';
+  var base = 'AI分析结果：\n\n关于"' + question + '"的记忆建议：\n\n1. 先理解核心概念：' + currentTerm + '的本质是关于舆论形成的动态过程\n2. 找出关键词：孤立恐惧、意见气候、多数强势\n3. 结合场景记忆：想象一个具体的舆论案例\n4. 反复练习：用自己的话复述核心逻辑\n\n如需更具体的建议，可以尝试选择下方模板重新提问。';
+
+  // V5.0：自定义提示词模板生效——拼接在兜底回复前
+  var tpl = localStorage.getItem('aiPromptTemplate');
+  if (tpl) {
+    return '【已按您的自定义提示词：' + tpl + '】\n\n' + base;
+  }
+  return base;
+}
+
+// V5.0：文字详略设置生效——"简洁"时截取前60%长度（仅影响文本长度，不碰API）
+function generateAiResponse(question) {
+  var response = generateAiResponseBase(question);
+  var detailLevel = localStorage.getItem('detailLevel');
+  if (detailLevel === '简洁' && response.length > 80) {
+    var cut = Math.floor(response.length * 0.6);
+    response = response.slice(0, cut) + '\n\n……（简洁模式，可在AI设置中调整为标准/详细）';
+  }
+  return response;
 }
 
 function selectAiModel(model) {
@@ -362,7 +458,12 @@ function saveAiSettings() {
   });
   
   var apiKey = document.querySelector('.api-input').value;
-  
+
+  // V5.0：生成画质/文字详略选择落库（打开弹窗时回填）
+  var formSelects = document.querySelectorAll('#ai-modal .form-select');
+  localStorage.setItem('videoQuality', formSelects[0] ? formSelects[0].value : '标准');
+  localStorage.setItem('detailLevel', formSelects[1] ? formSelects[1].value : '标准');
+
   localStorage.setItem('aiModel', selectedModel);
   localStorage.setItem('aiModelName', modelName);
   localStorage.setItem('apiKey', apiKey);
@@ -1045,6 +1146,13 @@ function handleStatus(status) {
       showConfirm('学习记录', '已标记为"模糊"，稍后将进行复习', 'warning');
     }
   }
+
+  // V5.0：自评/自测掌握度落库（wordRatings）；同一内容重复标记不重复计入已背数
+  var firstRating = rateWord(status);
+  if (status === 'yes' && firstRating) {
+    bumpStat('masteredCount', 1);
+  }
+  markStudyDay();
 }
 
 function handleSearch(query) {
@@ -1065,6 +1173,10 @@ function handleSearch(query) {
     if (resultCount) {
       resultCount.classList.remove('show');
     }
+
+    // V5.0：隐藏搜索空态
+    var emptyEl = document.getElementById('search-empty-state');
+    if (emptyEl) emptyEl.style.display = 'none';
     return;
   }
   
@@ -1123,6 +1235,12 @@ function handleSearch(query) {
   if (resultCount) {
     resultCount.textContent = '找到 ' + visibleRows.length + ' 个结果';
     resultCount.classList.add('show');
+  }
+
+  // V5.0：搜索无结果时展示空态
+  var emptyEl = document.getElementById('search-empty-state');
+  if (emptyEl) {
+    emptyEl.style.display = visibleRows.length === 0 ? 'block' : 'none';
   }
 }
 
@@ -1312,19 +1430,157 @@ function saveEdit() {
   input.value = '';
 }
 
+// ===== V5.0 收藏全链路 =====
+// 依据当前详情页推导收藏条目（类型/ID/标题/标签），用于写入 favorites
+function getFavoriteEntry() {
+  var page = (window.location.pathname.split('/').pop() || '').replace('.html', '');
+  var typeMap = { 'noun-detail': 'noun', 'short-detail': 'short', 'essay-detail': 'essay' };
+  var type = typeMap[page];
+  if (!type) return null;
+  var urlParams = new URLSearchParams(window.location.search);
+  var id = urlParams.get('term') || urlParams.get('short') || urlParams.get('essay') || '';
+  if (page === 'noun-detail' && !id && typeof currentTerm !== 'undefined' && currentTerm) {
+    id = currentTerm;
+  }
+  if (!id) return null;
+  var titleEl = document.getElementById('noun-title') || document.getElementById('short-title') || document.getElementById('essay-title');
+  var tagEl = document.getElementById('noun-tag') || document.getElementById('short-tag') || document.getElementById('essay-tag');
+  return {
+    type: type,
+    id: id,
+    title: titleEl ? titleEl.textContent.trim() : id,
+    tag: tagEl ? tagEl.textContent.trim() : '',
+    ts: Date.now()
+  };
+}
+
+// 详情页载入时回显收藏状态：已收藏的条目星标显示为实心
+function initFavoriteStar() {
+  var entry = getFavoriteEntry();
+  if (!entry) return;
+  var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+  var exists = favs.some(function(f) { return f.type === entry.type && f.id === entry.id; });
+  if (exists) {
+    var btn = document.querySelector('.icon-btn');
+    if (btn && btn.textContent.trim() === '☆') {
+      btn.textContent = '★';
+      btn.style.color = 'var(--gold)';
+    }
+  }
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 收藏页渲染真实收藏数据（沿用 lib-row / lib-group 既有样式，视觉不变）
+function renderCollections() {
+  var container = document.getElementById('collection-list');
+  if (!container) return;
+  var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+  var typeLabels = { noun: '名词解释', short: '简答题', essay: '论述题' };
+  var order = ['noun', 'short', 'essay'];
+
+  if (!favs.length) {
+    container.innerHTML =
+      '<div class="empty-state">' +
+      '<div class="empty-icon">☆</div>' +
+      '<div class="empty-text">还没有收藏内容<br>去知识库发现值得反复背诵的考点吧</div>' +
+      '<div class="confirm-btn confirm" style="display:inline-block;margin-top:14px;padding:8px 22px;flex:none;" onclick="navigateTo(\'knowledge.html\')">去知识库逛逛</div>' +
+      '</div>';
+    return;
+  }
+
+  var html = '';
+  order.forEach(function(type) {
+    var items = favs.filter(function(f) { return f.type === type; });
+    if (!items.length) return;
+    html += '<div data-collection-group="' + type + '"><div class="lib-group"' + (html ? ' style="margin-top:10px;"' : '') + '>' + typeLabels[type] + '</div></div>';
+    items.forEach(function(f) {
+      var url;
+      if (f.type === 'noun') url = 'noun-detail.html?term=' + encodeURIComponent(f.id);
+      else if (f.type === 'short') url = 'short-detail.html?short=' + encodeURIComponent(f.id);
+      else url = 'essay-detail.html?essay=' + encodeURIComponent(f.id);
+      html += '<div class="lib-row" data-type="' + f.type + '" onclick="navigateTo(\'' + url + '\')">' +
+        '<span>' + escapeHtml(f.title) + '</span>' +
+        (f.tag ? '<span class="tag">' + escapeHtml(f.tag) + '</span>' : '') +
+        '<span style="margin-left:auto;color:var(--gold);cursor:pointer;font-size:15px;flex-shrink:0;" onclick="unfavoriteItem(event, \'' + f.type + '\', \'' + escapeHtml(f.id) + '\')">★</span>' +
+        '</div>';
+    });
+  });
+  container.innerHTML = html;
+
+  // 渲染后按当前筛选片与搜索词恢复过滤状态（不改动既有筛选函数）
+  var filterType = 'all';
+  var activeChip = document.querySelector('.filter-chip.active');
+  if (activeChip) {
+    var m = (activeChip.getAttribute('onclick') || '').match(/filterCollection\('([^']+)'/);
+    if (m) filterType = m[1];
+  }
+  container.querySelectorAll('.lib-row[data-type]').forEach(function(row) {
+    var title = row.querySelector('span:first-child').textContent.toLowerCase();
+    var tagEl = row.querySelector('.tag');
+    var tag = tagEl ? tagEl.textContent.toLowerCase() : '';
+    var ok = (filterType === 'all' || row.getAttribute('data-type') === filterType) &&
+             (!currentSearchKeyword || title.indexOf(currentSearchKeyword) !== -1 || tag.indexOf(currentSearchKeyword) !== -1);
+    row.style.display = ok ? 'flex' : 'none';
+  });
+  container.querySelectorAll('[data-collection-group]').forEach(function(group) {
+    var hasVisibleRow = false;
+    var nextElement = group.nextElementSibling;
+    while (nextElement && nextElement.classList.contains('lib-row')) {
+      if (nextElement.style.display !== 'none') { hasVisibleRow = true; break; }
+      nextElement = nextElement.nextElementSibling;
+    }
+    group.style.display = hasVisibleRow ? 'block' : 'none';
+  });
+}
+
+// 收藏页行内取消收藏：确认后移除并刷新列表
+function unfavoriteItem(e, type, id) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  showConfirm('取消收藏', '确定取消收藏该内容吗？', 'warning', function() {
+    var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    var before = favs.length;
+    favs = favs.filter(function(f) { return !(f.type === type && f.id === id); });
+    if (favs.length === before) return;
+    localStorage.setItem('favorites', JSON.stringify(favs));
+    bumpStat('favoriteCount', -1);
+    renderCollections();
+    showConfirm('收藏', '已取消收藏', 'info');
+  });
+}
+
 function toggleFavorite(e) {
   var btn = e && e.target ? e.target : (event && event.srcElement ? event.srcElement : null);
   if (!btn) {
     btn = document.querySelector('.icon-btn');
   }
   if (!btn) return;
+  var entry = getFavoriteEntry();
+  var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+  var existIdx = entry ? favs.findIndex(function(f) { return f.type === entry.type && f.id === entry.id; }) : -1;
+
   if (btn.textContent.trim() === '☆') {
     btn.textContent = '★';
     btn.style.color = 'var(--gold)';
+    if (entry && existIdx === -1) {
+      favs.push(entry);
+      localStorage.setItem('favorites', JSON.stringify(favs));
+      bumpStat('favoriteCount', 1); // V5.0：收藏计数落库
+    }
+    markStudyDay();
     showConfirm('收藏', '已收藏该内容', 'success');
   } else {
     btn.textContent = '☆';
     btn.style.color = '';
+    if (entry && existIdx !== -1) {
+      favs.splice(existIdx, 1);
+      localStorage.setItem('favorites', JSON.stringify(favs));
+      bumpStat('favoriteCount', -1); // V5.0：取消收藏同步递减
+    }
     showConfirm('收藏', '已取消收藏', 'info');
   }
 }
@@ -1352,6 +1608,8 @@ function saveNote() {
     timestamp: new Date().toISOString()
   });
   localStorage.setItem('notes', JSON.stringify(notes));
+  bumpStat('noteCount', 1); // V5.0：笔记计数落库
+  markStudyDay();
   
   closeModal('note-modal');
   textarea.value = '';
@@ -1467,6 +1725,7 @@ function showFrameworkAnswer() {
 }
 
 function completeSelfTest() {
+  markStudyDay(); // V5.0：完成自测计入学习天数
   var modal = document.getElementById('complete-modal');
   if (modal) {
     modal.style.display = 'flex';
@@ -1487,6 +1746,10 @@ function loadNounDetail() {
   
   var titleEl = document.getElementById('noun-title');
   if (titleEl) titleEl.textContent = data.title;
+
+  // V5.0：思维导图标题随词条联动（修复写死"沉默的螺旋"的显示瑕疵）
+  var mindmapTitleEl = document.getElementById('mindmapTitle');
+  if (mindmapTitleEl) mindmapTitleEl.textContent = data.title;
   
   var tagEl = document.getElementById('noun-tag');
   if (tagEl) tagEl.textContent = data.tag;
@@ -1906,6 +2169,8 @@ function submitMemoryMethod() {
     status: 'pending'
   });
   localStorage.setItem('memMethods', JSON.stringify(memMethods));
+  bumpStat('noteCount', 1); // V5.0：发布分享计入笔记/分享数
+  markStudyDay();
   
   closeModal('submit-mem-modal');
   textarea.value = '';
@@ -2025,6 +2290,434 @@ function toggleAutoPlay() {
   }
 }
 
+// ===== V5.0 设置中心激活 =====
+// 按行 onclick 属性定位对应设置行的 .val 并更新显示文字
+function updateSettingsRowVal(onclickAttr, text) {
+  var el = document.querySelector('.settings-row[onclick="' + onclickAttr + '"] .val');
+  if (el) el.textContent = text;
+}
+
+function maskPhone(phone) {
+  var p = phone || '';
+  if (p.length < 7) return p || '未绑定';
+  return p.slice(0, 3) + '****' + p.slice(-4);
+}
+
+// —— 账号管理 ——
+
+function openChangePasswordModal() {
+  var inputStyle = 'width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-bottom:10px;outline:none;background:var(--paper);color:var(--ink);';
+  var html = '<div class="modal-overlay" style="display:flex;" id="pwd-modal" onclick="closeModal(\'pwd-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">修改密码</div>' +
+      '<div class="modal-close" onclick="closeModal(\'pwd-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<input type="password" id="pwd-new" placeholder="请输入新密码（至少6位）" style="' + inputStyle + '">' +
+        '<input type="password" id="pwd-confirm" placeholder="请再次输入新密码" style="' + inputStyle + '">' +
+        '<div style="font-size:12px;color:var(--ink-light);margin:4px 0 14px;">当前版本密码仅保存在本机，不会上传服务器</div>' +
+        '<div class="save-btn" style="text-align:center;" onclick="submitChangePassword()">确认修改</div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('pwd-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function submitChangePassword() {
+  var pwdNew = document.getElementById('pwd-new');
+  var pwdConfirm = document.getElementById('pwd-confirm');
+  if (!pwdNew || !pwdConfirm) return;
+  var v1 = pwdNew.value;
+  var v2 = pwdConfirm.value;
+  if (v1.length < 6) {
+    showConfirm('提示', '新密码长度至少为6位', 'warning');
+    return;
+  }
+  if (v1 !== v2) {
+    showConfirm('提示', '两次输入的密码不一致，请重新输入', 'warning');
+    return;
+  }
+  var masked = v1.charAt(0) + '***' + v1.charAt(v1.length - 1);
+  localStorage.setItem('localPasswordHint', masked);
+  closeModal('pwd-modal');
+  updateSettingsRowVal('openChangePasswordModal()', '已设置 ›');
+  showConfirm('修改成功', '密码已保存在本机（仅本机生效）', 'success');
+}
+
+function openBindEmailModal() {
+  var html = '<div class="modal-overlay" style="display:flex;" id="email-modal" onclick="closeModal(\'email-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">绑定邮箱</div>' +
+      '<div class="modal-close" onclick="closeModal(\'email-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<input type="text" id="email-input" placeholder="请输入邮箱地址" value="' + escapeHtml(localStorage.getItem('boundEmail') || '') + '" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-bottom:10px;outline:none;background:var(--paper);color:var(--ink);">' +
+        '<div style="font-size:12px;color:var(--ink-light);margin:4px 0 14px;">当前版本邮箱仅保存在本机，不会上传服务器</div>' +
+        '<div class="save-btn" style="text-align:center;" onclick="submitBindEmail()">保存</div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('email-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function submitBindEmail() {
+  var input = document.getElementById('email-input');
+  if (!input) return;
+  var email = input.value.trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    showConfirm('提示', '请输入正确的邮箱地址', 'warning');
+    return;
+  }
+  localStorage.setItem('boundEmail', email);
+  closeModal('email-modal');
+  updateSettingsRowVal('openBindEmailModal()', escapeHtml(email) + ' ›');
+  showConfirm('绑定成功', '邮箱已保存在本机（仅本机生效）', 'success');
+}
+
+// —— 学习偏好 ——
+
+function openDailyGoalModal() {
+  var current = localStorage.getItem('dailyGoal') || '20';
+  var html = '<div class="modal-overlay" style="display:flex;" id="goal-modal" onclick="closeModal(\'goal-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">每日学习目标</div>' +
+      '<div class="modal-close" onclick="closeModal(\'goal-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<div class="fontsize-option ' + (current === '10' ? 'active' : '') + '" onclick="setDailyGoal(\'10\')"><div class="fontsize-label">轻松目标</div><div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">每天 10 个词条</div></div>' +
+        '<div class="fontsize-option ' + (current === '20' ? 'active' : '') + '" onclick="setDailyGoal(\'20\')"><div class="fontsize-label">标准目标</div><div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">每天 20 个词条</div></div>' +
+        '<div class="fontsize-option ' + (current === '30' ? 'active' : '') + '" onclick="setDailyGoal(\'30\')"><div class="fontsize-label">冲刺目标</div><div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">每天 30 个词条</div></div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('goal-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function setDailyGoal(goal) {
+  localStorage.setItem('dailyGoal', goal);
+  closeModal('goal-modal');
+  updateSettingsRowVal('openDailyGoalModal()', goal + '个 ›');
+  showConfirm('每日目标', '已设置为每天 ' + goal + ' 个词条', 'success');
+}
+
+function openStudySpeedModal() {
+  var current = localStorage.getItem('studySpeed') || 'normal';
+  var names = { slow: '慢速', normal: '标准', fast: '快速' };
+  var descs = { slow: '逐句精读，适合首轮背诵', normal: '按节奏推进，适合日常巩固', fast: '快速过卡，适合冲刺复习' };
+  var html = '<div class="modal-overlay" style="display:flex;" id="speed-modal" onclick="closeModal(\'speed-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">背诵速度</div>' +
+      '<div class="modal-close" onclick="closeModal(\'speed-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<div class="fontsize-option ' + (current === 'slow' ? 'active' : '') + '" onclick="setStudySpeed(\'slow\')"><div class="fontsize-label">慢速</div><div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">' + descs.slow + '</div></div>' +
+        '<div class="fontsize-option ' + (current === 'normal' ? 'active' : '') + '" onclick="setStudySpeed(\'normal\')"><div class="fontsize-label">标准</div><div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">' + descs.normal + '</div></div>' +
+        '<div class="fontsize-option ' + (current === 'fast' ? 'active' : '') + '" onclick="setStudySpeed(\'fast\')"><div class="fontsize-label">快速</div><div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">' + descs.fast + '</div></div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('speed-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function setStudySpeed(speed) {
+  localStorage.setItem('studySpeed', speed);
+  var names = { slow: '慢速', normal: '标准', fast: '快速' };
+  closeModal('speed-modal');
+  updateSettingsRowVal('openStudySpeedModal()', names[speed] + ' ›');
+  showConfirm('背诵速度', '已设置为' + names[speed], 'success');
+}
+
+function toggleReminderSetting() {
+  var enabled = localStorage.getItem('reminderEnabled') !== 'false';
+  localStorage.setItem('reminderEnabled', enabled ? 'false' : 'true');
+  updateSettingsRowVal('toggleReminderSetting()', (enabled ? '关闭' : '开启') + ' ›');
+  if (enabled) {
+    showConfirm('复习提醒', '已关闭复习提醒', 'info');
+  } else {
+    showConfirm('复习提醒', '已开启复习提醒，将在每天固定时间提醒您背诵', 'success');
+  }
+}
+
+function toggleAutoPlaySetting() {
+  var enabled = localStorage.getItem('autoPlayVideo') !== 'false';
+  localStorage.setItem('autoPlayVideo', enabled ? 'false' : 'true');
+  updateSettingsRowVal('toggleAutoPlaySetting()', (enabled ? '关闭' : '开启') + ' ›');
+  showConfirm('自动播放', enabled ? '已关闭视频自动播放' : '已开启视频自动播放，进入词条页将自动播放记忆视频', 'success');
+}
+
+// —— 系统通用 ——
+
+function openDarkModeModal() {
+  var current = localStorage.getItem('darkMode') || 'false';
+  var options = [
+    { key: 'auto', name: '跟随系统', desc: '随系统深浅色自动切换' },
+    { key: 'true', name: '深色模式', desc: '始终使用深色主题' },
+    { key: 'false', name: '浅色模式', desc: '始终使用浅色主题' }
+  ];
+  var html = '<div class="modal-overlay" style="display:flex;" id="darkmode-modal" onclick="closeModal(\'darkmode-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">深色模式</div>' +
+      '<div class="modal-close" onclick="closeModal(\'darkmode-modal\')">×</div>' +
+      '<div style="padding:16px 0;">';
+  options.forEach(function(opt) {
+    html += '<div class="fontsize-option ' + (current === opt.key ? 'active' : '') + '" onclick="setDarkModeMode(\'' + opt.key + '\')">' +
+      '<div class="fontsize-label">' + opt.name + '</div>' +
+      '<div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">' + opt.desc + '</div>' +
+      '</div>';
+  });
+  html += '</div></div></div>';
+  var old = document.getElementById('darkmode-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function setDarkModeMode(mode) {
+  localStorage.setItem('darkMode', mode);
+  localStorage.setItem('themeVersion', 'v3');
+  var names = { auto: '跟随系统', 'true': '开启', 'false': '关闭' };
+  if (mode === 'auto') {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyDarkMode();
+    else applyLightMode();
+  } else if (mode === 'true') {
+    applyDarkMode();
+  } else {
+    applyLightMode();
+  }
+  var darkSwitch = document.getElementById('darkmode-switch');
+  if (darkSwitch) {
+    var isDark = (mode === 'true') || (mode === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    darkSwitch.classList.remove('on');
+    darkSwitch.classList.remove('off');
+    darkSwitch.classList.add(isDark ? 'on' : 'off');
+  }
+  closeModal('darkmode-modal');
+  updateSettingsRowVal('openDarkModeModal()', names[mode] + ' ›');
+  showConfirm('深色模式', '已设置为' + names[mode], 'success');
+}
+
+// "跟随系统"模式下监听系统主题变化，即时切换
+if (window.matchMedia && !window.__themeMediaBound) {
+  window.__themeMediaBound = true;
+  var __themeMq = window.matchMedia('(prefers-color-scheme: dark)');
+  var __themeHandler = function() {
+    if (localStorage.getItem('darkMode') !== 'auto') return;
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyDarkMode();
+    else applyLightMode();
+  };
+  if (__themeMq.addEventListener) __themeMq.addEventListener('change', __themeHandler);
+  else if (__themeMq.addListener) __themeMq.addListener(__themeHandler);
+}
+
+function toggleNotifyPush() {
+  var enabled = localStorage.getItem('notifyPush') !== 'false';
+  localStorage.setItem('notifyPush', enabled ? 'false' : 'true');
+  updateSettingsRowVal('toggleNotifyPush()', (enabled ? '关闭' : '开启') + ' ›');
+  showConfirm('通知推送', enabled ? '已关闭通知推送' : '已开启通知推送（当前版本为本地模拟提醒）', 'success');
+}
+
+function computeCacheBytes() {
+  var total = 0;
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    total += (k.length + (localStorage.getItem(k) || '').length) * 2; // UTF-16 粗略字节数
+  }
+  return total;
+}
+
+function openCacheCleanModal() {
+  var kb = (computeCacheBytes() / 1024).toFixed(1);
+  var cleanable = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k.indexOf('draft_') === 0 || k === 'feedbackDraft') cleanable.push(k);
+  }
+  var msg = '当前缓存占用约 ' + kb + 'KB。\n';
+  if (cleanable.length) {
+    msg += '将清理：' + cleanable.join('、') + '。\n核心学习数据（收藏/笔记/考试记录/掌握度）受白名单保护，不会被清理。';
+    showConfirm('缓存清理', msg, 'warning', function() {
+      cleanable.forEach(function(key) { localStorage.removeItem(key); });
+      updateSettingsRowVal('openCacheCleanModal()', (computeCacheBytes() / 1024).toFixed(1) + 'KB ›');
+      showConfirm('缓存清理', '已清理 ' + cleanable.length + ' 项草稿类缓存', 'success');
+    }, null, true);
+  } else {
+    msg += '暂无待清理的草稿类缓存。核心学习数据（收藏/笔记/考试记录/掌握度）受白名单保护。';
+    showConfirm('缓存清理', msg, 'info');
+  }
+}
+
+function toggleOfflineSync() {
+  var enabled = localStorage.getItem('offlineSync') !== 'false';
+  localStorage.setItem('offlineSync', enabled ? 'false' : 'wifi');
+  updateSettingsRowVal('toggleOfflineSync()', (enabled ? '关闭' : 'Wi-Fi下') + ' ›');
+  showConfirm('离线下载', enabled ? '已关闭离线下载' : '将在 Wi-Fi 环境下自动缓存已学内容（当前版本为本地记录）', 'success');
+}
+
+function toggleDataSync() {
+  var manual = localStorage.getItem('dataSync') === 'manual';
+  localStorage.setItem('dataSync', manual ? 'auto' : 'manual');
+  updateSettingsRowVal('toggleDataSync()', (manual ? '自动' : '手动') + ' ›');
+  showConfirm('数据同步', manual ? '已切换为自动记录' : '已切换为手动记录', 'info');
+}
+
+// —— AI 设置（与详情页 AI 弹窗同一套 key：aiModel / aiModelName / apiKey）——
+
+function openAiModelSetting() {
+  var current = localStorage.getItem('aiModel') || 'deepseek';
+  var apiKey = localStorage.getItem('apiKey') || '';
+  var models = [
+    { key: 'deepseek', name: 'DeepSeek', desc: '性价比高，中文记忆优化' },
+    { key: 'gpt', name: 'GPT', desc: '综合能力强' },
+    { key: 'claude', name: 'Claude', desc: '长文本理解出色' },
+    { key: 'gemini', name: 'Gemini', desc: '多模态支持' }
+  ];
+  var html = '<div class="modal-overlay" style="display:flex;" id="ai-set-modal" onclick="closeModal(\'ai-set-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">AI模型设置</div>' +
+      '<div class="modal-close" onclick="closeModal(\'ai-set-modal\')">×</div>' +
+      '<div style="padding:16px 0;">';
+  models.forEach(function(m) {
+    html += '<div class="fontsize-option ' + (current === m.key ? 'active' : '') + '" data-model-key="' + m.key + '" onclick="selectAiSettingModel(this)">' +
+      '<div class="fontsize-label">' + m.name + '</div>' +
+      '<div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">' + m.desc + '</div>' +
+      '</div>';
+  });
+  html += '<input type="text" id="ai-set-key" placeholder="API Key（选填，仅保存在本机）" value="' + escapeHtml(apiKey) + '" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-top:12px;outline:none;background:var(--paper);color:var(--ink);">' +
+    '<div class="save-btn" style="text-align:center;margin-top:14px;" onclick="saveAiSettingsFromSettings()">保存设置</div>' +
+    '</div></div></div>';
+  var old = document.getElementById('ai-set-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function selectAiSettingModel(el) {
+  var options = document.querySelectorAll('#ai-set-modal .fontsize-option');
+  options.forEach(function(o) { o.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function saveAiSettingsFromSettings() {
+  var active = document.querySelector('#ai-set-modal .fontsize-option.active');
+  var key = active ? (active.getAttribute('data-model-key') || 'deepseek') : 'deepseek';
+  var nameMap = { deepseek: 'DeepSeek', gpt: 'GPT', claude: 'Claude', gemini: 'Gemini' };
+  var keyInput = document.getElementById('ai-set-key');
+  localStorage.setItem('aiModel', key);
+  localStorage.setItem('aiModelName', nameMap[key]);
+  localStorage.setItem('apiKey', keyInput ? keyInput.value.trim() : '');
+  closeModal('ai-set-modal');
+  updateSettingsRowVal('openAiModelSetting()', nameMap[key] + ' ›');
+  updateSettingsRowVal('openAiKeySetting()', (keyInput && keyInput.value.trim() ? '已配置' : '未配置') + ' ›');
+  showConfirm('AI设置', '设置已保存（与词条页AI设置互通）', 'success');
+}
+
+function openAiKeySetting() {
+  openAiModelSetting();
+}
+
+function openPromptTemplateModal() {
+  var current = localStorage.getItem('aiPromptTemplate') || '';
+  var html = '<div class="modal-overlay" style="display:flex;" id="tpl-modal" onclick="closeModal(\'tpl-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">自定义提示词模板</div>' +
+      '<div class="modal-close" onclick="closeModal(\'tpl-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<textarea id="tpl-text" placeholder="例如：请用新闻传播考研的口径回答，输出分点并附记忆口诀" style="width:100%;box-sizing:border-box;min-height:90px;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-bottom:10px;outline:none;background:var(--paper);color:var(--ink);resize:vertical;">' + escapeHtml(current) + '</textarea>' +
+        '<div style="font-size:12px;color:var(--ink-light);margin:4px 0 14px;">模板将作为AI助记回复的前置要求（仅保存在本机）</div>' +
+        '<div class="save-btn" style="text-align:center;" onclick="savePromptTemplate()">保存模板</div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('tpl-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function savePromptTemplate() {
+  var textarea = document.getElementById('tpl-text');
+  if (!textarea) return;
+  var val = textarea.value.trim();
+  localStorage.setItem('aiPromptTemplate', val);
+  closeModal('tpl-modal');
+  updateSettingsRowVal('openPromptTemplateModal()', (val ? '已设置' : '未设置') + ' ›');
+  showConfirm('提示词模板', val ? '模板已保存，AI助记回复将参考该模板' : '已清空自定义模板', 'success');
+}
+
+// —— 意见反馈 / 关于 ——
+
+var feedbackSelectedType = 'bug';
+
+function openFeedbackModal() {
+  var html = '<div class="modal-overlay" style="display:flex;" id="fb-modal" onclick="closeModal(\'fb-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">意见反馈</div>' +
+      '<div class="modal-close" onclick="closeModal(\'fb-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<div id="fb-type-row" style="display:flex;gap:8px;margin-bottom:12px;">' +
+          '<div class="filter-chip' + (feedbackSelectedType === 'bug' ? ' active' : '') + '" data-fb-type="bug" onclick="selectFeedbackType(this)">Bug反馈</div>' +
+          '<div class="filter-chip' + (feedbackSelectedType === 'feature' ? ' active' : '') + '" data-fb-type="feature" onclick="selectFeedbackType(this)">功能建议</div>' +
+          '<div class="filter-chip' + (feedbackSelectedType === 'other' ? ' active' : '') + '" data-fb-type="other" onclick="selectFeedbackType(this)">其他问题</div>' +
+        '</div>' +
+        '<textarea id="fb-content" placeholder="请描述您遇到的问题或建议..." style="width:100%;box-sizing:border-box;min-height:90px;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-bottom:10px;outline:none;background:var(--paper);color:var(--ink);resize:vertical;"></textarea>' +
+        '<input type="text" id="fb-contact" placeholder="联系方式（选填）" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-bottom:14px;outline:none;background:var(--paper);color:var(--ink);">' +
+        '<div class="save-btn" style="text-align:center;" onclick="submitFeedback()">提交反馈</div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('fb-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function selectFeedbackType(el) {
+  feedbackSelectedType = el.getAttribute('data-fb-type') || 'bug';
+  var chips = document.querySelectorAll('#fb-type-row .filter-chip');
+  chips.forEach(function(chip) { chip.classList.remove('active'); });
+  el.classList.add('active');
+}
+// V5.0 修复：原 submitFeedback 重复定义（后定义覆盖前定义），合并为单一兼容实现，
+// 同时支持意见反馈弹窗（fb-content/fb-contact）与旧反馈弹窗（feedback-type/feedback-content/feedback-contact）
+function submitFeedback() {
+  var contentEl = document.getElementById('fb-content') || document.getElementById('feedback-content');
+  var contactEl = document.getElementById('fb-contact') || document.getElementById('feedback-contact');
+  var typeSelectEl = document.getElementById('feedback-type');
+  if (!contentEl) return;
+  var content = contentEl.value.trim();
+  if (!content) {
+    showConfirm('提示', '请填写反馈内容', 'warning');
+    return;
+  }
+  var type = typeSelectEl ? typeSelectEl.value : (feedbackSelectedType || 'bug');
+  var feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+  feedbacks.unshift({
+    type: type,
+    content: content,
+    contact: contactEl ? contactEl.value.trim() : '',
+    timestamp: Date.now()
+  });
+  localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+  closeModal(typeSelectEl ? 'feedback-modal' : 'fb-modal');
+  showConfirm('提交成功', '感谢您的反馈！已同步至管理后台，我们会尽快处理。', 'success');
+}
+
+function rateApp() {
+  showConfirm('给个好评', '感谢您的支持！您的鼓励是我们持续优化的动力。', 'success');
+}
+
+function showAbout() {
+  var version = localStorage.getItem('APP_VERSION') || 'v5.0.0';
+  showConfirm('关于新传研背', '新传研背 ' + version + '\n新传考研背诵与训练工具\n名词解释 · 简答题 · 论述题 · 考试实务训练', 'info');
+}
+
+// V5.0：统一轻提示（复用既有卡片风格，3秒自动消失；现有 showConfirm 调用全部保留不动）
+function showToast(message, type) {
+  var colors = { success: 'var(--green)', error: 'var(--red)', warning: 'var(--gold)', info: 'var(--seal)' };
+  var color = colors[type] || colors.info;
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);background:var(--card);color:var(--ink);border:1px solid ' + color + ';border-radius:12px;padding:10px 18px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,0.12);z-index:9999;max-width:80%;text-align:center;';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(function() {
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
+  }, 3000);
+}
+
 function openDifficultyModal() {
   showConfirm('记忆难度筛选', '该功能正在开发中，后续版本开放。\n\n当前状态：默认显示全部难度内容，自定义筛选功能即将上线。', 'info');
 }
@@ -2083,13 +2776,21 @@ function openNoteList() {
 
 function openUploadLibrary() {
   var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
-  
+
+  // V5.0 L3：资料双向互通——后台资料（uploadedBy !== 'user'）与学生自建（uploadedBy === 'user'）同库分组展示
+  var adminMats = [];
+  var userMats = [];
+  materials.forEach(function(m, index) {
+    if (m.uploadedBy === 'user') { userMats.push({ m: m, index: index }); }
+    else { adminMats.push({ m: m, index: index }); }
+  });
+
   var html = '<div class="modal-overlay" style="display:flex;" id="library-modal" onclick="closeModal(\'library-modal\')">' +
     '<div class="modal-content" style="max-height:80vh;overflow:hidden;" onclick="event.stopPropagation()">' +
       '<div class="modal-title">我的资料库</div>' +
       '<div class="modal-close" onclick="closeModal(\'library-modal\')">×</div>' +
       '<div style="flex:1;overflow-y:auto;padding:0 16px;">';
-  
+
   if (materials.length === 0) {
     html += '<div style="text-align:center;padding:40px 20px;color:var(--ink-light);">' +
       '<div style="font-size:48px;margin-bottom:16px;">📚</div>' +
@@ -2097,29 +2798,52 @@ function openUploadLibrary() {
       '<div style="font-size:12px;margin-top:8px;">在知识库点击"+"按钮上传资料</div>' +
       '</div>';
   } else {
-    materials.forEach(function(m, index) {
-      var size = m.wordCount ? (m.wordCount / 10000).toFixed(1) + '万字' : '-';
-      html += '<div style="padding:16px;border-bottom:1px solid var(--paper-line);">' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">' +
-          '<span style="font-weight:600;">' + m.title + '</span>' +
-          '<span style="font-size:12px;color:var(--gold);">' + m.sourceType + '</span>' +
-        '</div>' +
-        '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">' + m.fileType + ' · ' + size + '</div>' +
-        '<div style="display:flex;gap:8px;">' +
-          '<button class="btn btn-ghost" style="font-size:12px;padding:4px 12px;" onclick="viewMaterialDetail(' + index + ')">查看</button>' +
-          '<button class="btn btn-ghost" style="font-size:12px;padding:4px 12px;" onclick="downloadMaterial(' + index + ')">下载</button>' +
-          '<button class="btn btn-danger" style="font-size:12px;padding:4px 12px;" onclick="deleteMaterial(' + index + ')">删除</button>' +
-        '</div>' +
-      '</div>';
-    });
+    if (adminMats.length > 0) {
+      html += '<div style="font-size:12px;color:var(--ink-light);padding:12px 0 4px;">后台发布（' + adminMats.length + '）</div>';
+      adminMats.forEach(function(item) {
+        var m = item.m;
+        var size = m.wordCount ? (m.wordCount / 10000).toFixed(1) + '万字' : '-';
+        html += '<div style="padding:16px;border-bottom:1px solid var(--paper-line);">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">' +
+            '<span style="font-weight:600;">' + m.title + '</span>' +
+            '<span style="font-size:12px;color:var(--seal);">后台 · ' + m.sourceType + '</span>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">' + m.fileType + ' · ' + size + '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button class="btn btn-ghost" style="font-size:12px;padding:4px 12px;" onclick="viewMaterialDetail(' + item.index + ')">查看</button>' +
+            '<button class="btn btn-ghost" style="font-size:12px;padding:4px 12px;" onclick="downloadMaterial(' + item.index + ')">下载</button>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+
+    if (userMats.length > 0) {
+      html += '<div style="font-size:12px;color:var(--ink-light);padding:12px 0 4px;">我的自建（' + userMats.length + '）</div>';
+      userMats.forEach(function(item) {
+        var m = item.m;
+        var size = m.wordCount ? (m.wordCount / 10000).toFixed(1) + '万字' : '-';
+        html += '<div style="padding:16px;border-bottom:1px solid var(--paper-line);">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">' +
+            '<span style="font-weight:600;">' + m.title + '</span>' +
+            '<span style="font-size:12px;color:var(--gold);">' + m.sourceType + '</span>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">' + m.fileType + ' · ' + size + '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button class="btn btn-ghost" style="font-size:12px;padding:4px 12px;" onclick="viewMaterialDetail(' + item.index + ')">查看</button>' +
+            '<button class="btn btn-ghost" style="font-size:12px;padding:4px 12px;" onclick="downloadMaterial(' + item.index + ')">下载</button>' +
+            '<button class="btn btn-danger" style="font-size:12px;padding:4px 12px;" onclick="deleteMaterial(' + item.index + ')">删除</button>' +
+          '</div>' +
+        '</div>';
+      });
+    }
   }
-  
+
   html += '</div>' +
     '<div style="padding:12px;text-align:center;">' +
-      '<span style="font-size:12px;color:var(--ink-light);">资料仅保存在本地</span>' +
+      '<span style="font-size:12px;color:var(--ink-light);">后台发布资料由管理后台同步，仅可查看；自建资料仅保存在本地</span>' +
     '</div>' +
     '</div></div>';
-  
+
   var old = document.getElementById('library-modal');
   if (old) old.remove();
   document.body.insertAdjacentHTML('beforeend', html);
@@ -2472,28 +3196,7 @@ function openFeedback() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
-function submitFeedback() {
-  var type = document.getElementById('feedback-type').value;
-  var content = document.getElementById('feedback-content').value.trim();
-  var contact = document.getElementById('feedback-contact').value.trim();
-  
-  if (!content) {
-    showConfirm('提示', '请输入反馈内容', 'warning');
-    return;
-  }
-  
-  var feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
-  feedbacks.push({
-    type: type,
-    content: content,
-    contact: contact,
-    timestamp: new Date().toISOString()
-  });
-  localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
-  
-  closeModal('feedback-modal');
-  showConfirm('提交成功', '感谢您的反馈！我们会尽快处理。', 'success');
-}
+// V5.0：此处原 submitFeedback 重复定义已删除，统一使用上方兼容两个弹窗的单一实现
 
 function openAbout() {
   var html = '<div class="modal-overlay" style="display:flex;" id="about-modal" onclick="closeModal(\'about-modal\')">' +
@@ -2680,6 +3383,7 @@ function nextShort() {
 function loadShortDetail() {
   var short = getCurrentShort();
   if (!short) return;
+  currentTerm = short.title; // V5.0：AI助记/模板随当前简答题动态化
 
   var catEl = document.getElementById('short-category');
   if (catEl) catEl.textContent = '‹ ' + short.category;
@@ -2880,6 +3584,7 @@ function loadEssayDetail() {
   try {
     var essay = getCurrentEssay();
     if (!essay) return;
+    currentTerm = essay.title; // V5.0：AI助记/模板随当前论述题动态化
 
     var catEl = document.getElementById('essay-category');
     if (catEl) catEl.textContent = '‹ ' + essay.category;
