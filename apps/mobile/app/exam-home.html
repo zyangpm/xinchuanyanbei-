@@ -60,7 +60,15 @@
     </div>
     
     <div class="app-top">
+      <div style="width:28px;flex-shrink:0;"></div>
       <div class="top-title" style="text-align:center;flex:1;">考试训练</div>
+      <!-- V5.0：恢复 V3 既有"历史训练"入口，进入历史训练页 -->
+      <div class="icon-btn" style="flex-shrink:0;" onclick="navigateTo('exam-history.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
     </div>
     
     <div class="exam-body">

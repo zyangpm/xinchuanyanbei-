@@ -33,7 +33,8 @@
       <div style="background:#fff;margin:0 16px 12px;border-radius:12px;overflow:hidden;border:1px solid rgba(36,58,94,0.06);">
         <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="navigateTo('settings.html#account')"><span>账号管理</span><span class="val">›</span></div>
         <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="navigateTo('settings.html#preference')"><span>学习偏好设置</span><span class="val">›</span></div>
-        <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="navigateTo('collections.html')"><span>自建资料收藏</span><span class="val">›</span></div>
+        <!-- V5.0 L3：自建资料收藏入口激活，直接打开我的资料库（读 xc_materials，含后台互通资料） -->
+        <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="openUploadLibrary()"><span>自建资料收藏</span><span class="val">›</span></div>
         <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="navigateTo('settings.html#ai')"><span>AI模型自定义管理</span><span class="val">›</span></div>
         <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="navigateTo('settings.html#general')"><span>系统通用设置</span><span class="val">›</span></div>
         <div class="settings-row" style="padding:14px 16px;cursor:pointer;" onclick="navigateTo('settings.html#about')"><span>意见反馈 / 关于 App</span><span class="val">›</span></div>

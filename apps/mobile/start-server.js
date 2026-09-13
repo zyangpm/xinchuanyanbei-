@@ -152,7 +152,7 @@ function serveFile(filePath, res) {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = mimeTypes[ext] || 'application/octet-stream';
 
-    res.writeHead(200, { 'Content-Type': contentType });
+    res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-cache' });
     fs.createReadStream(filePath).pipe(res);
 }
 

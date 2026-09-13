@@ -28,7 +28,8 @@
         <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="showSettingsSection('preference')">
           <span>学习偏好设置</span><span class="val">›</span>
         </div>
-        <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="navigateTo('collections.html')">
+        <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="openUploadLibrary()">
+          <!-- V5.0 L3：自建资料收藏入口激活，打开我的资料库（读 xc_materials，含后台互通资料） -->
           <span>自建资料收藏</span><span class="val">›</span>
         </div>
         <div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;" onclick="showSettingsSection('ai')">
@@ -63,50 +64,74 @@
   
   <script src="app.js"></script>
   <script>
+    // V5.0：设置中心激活——各分区行接入真实数据与交互（账号/偏好/AI/系统/反馈）
+    var rowStyle = 'padding:14px 16px;border-bottom:1px solid #f0ede6;';
+    var rowStyleFlex = 'padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;';
+    var rowStyleLast = 'padding:14px 16px;';
+    var rowStyleFlexLast = 'padding:14px 16px;display:flex;justify-content:space-between;align-items:center;';
+
     function showSettingsSection(section) {
       var main = document.getElementById('settings-main');
       var detail = document.getElementById('settings-detail');
       var content = document.getElementById('detail-content');
-      
+
       var html = '';
       if (section === 'account') {
-        html = '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;"><span>修改密码</span><span class="val">›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;"><span>绑定手机</span><span class="val">138****8888</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;"><span>绑定邮箱</span><span class="val">未绑定</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;"><span>退出登录</span><span class="val" style="color:var(--red);">›</span></div>';
+        var boundEmail = localStorage.getItem('boundEmail');
+        var pwdHint = localStorage.getItem('localPasswordHint');
+        var phone = localStorage.getItem('userPhone') || '13800000000';
+        html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openChangePasswordModal()"><span>修改密码</span><span class="val">' + (pwdHint ? '已设置' : '未设置') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '"><span>绑定手机</span><span class="val">' + maskPhone(phone) + '</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openBindEmailModal()"><span>绑定邮箱</span><span class="val">' + (boundEmail ? escapeHtml(boundEmail) : '未绑定') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="handleLogout()"><span>退出登录</span><span class="val" style="color:var(--red);">›</span></div>';
       } else if (section === 'preference') {
-        html = '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>每日学习目标</span><span class="val">20个 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>复习提醒</span><span class="val">每天19:00 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>背诵速度</span><span class="val">标准 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;"><span>自动播放视频</span><span class="val">关闭 ›</span></div>';
+        var dailyGoal = localStorage.getItem('dailyGoal') || '20';
+        var reminderOn = localStorage.getItem('reminderEnabled') !== 'false';
+        var speed = { slow: '慢速', normal: '标准', fast: '快速' };
+        var autoPlayOn = localStorage.getItem('autoPlayVideo') !== 'false';
+        html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openDailyGoalModal()"><span>每日学习目标</span><span class="val">' + dailyGoal + '个 ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="toggleReminderSetting()"><span>复习提醒</span><span class="val">' + (reminderOn ? '开启' : '关闭') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openStudySpeedModal()"><span>背诵速度</span><span class="val">' + (speed[localStorage.getItem('studySpeed') || 'normal']) + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="toggleAutoPlaySetting()"><span>自动播放视频</span><span class="val">' + (autoPlayOn ? '开启' : '关闭') + ' ›</span></div>';
       } else if (section === 'ai') {
-        html = '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>AI模型</span><span class="val">GPT-4 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>API Key</span><span class="val">已配置 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;"><span>自定义提示词模板</span><span class="val">›</span></div>';
+        var aiName = localStorage.getItem('aiModelName') || 'DeepSeek';
+        var hasKey = !!localStorage.getItem('apiKey');
+        var hasTpl = !!localStorage.getItem('aiPromptTemplate');
+        html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openAiModelSetting()"><span>AI模型</span><span class="val">' + escapeHtml(aiName) + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openAiKeySetting()"><span>API Key</span><span class="val">' + (hasKey ? '已配置' : '未配置') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="openPromptTemplateModal()"><span>自定义提示词模板</span><span class="val">' + (hasTpl ? '已设置' : '未设置') + ' ›</span></div>';
       } else if (section === 'general') {
-        html = '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>字体大小</span><span class="val">标准 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>深色模式</span><span class="val">跟随系统 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>通知推送</span><span class="val">开启 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>缓存清理</span><span class="val">23.5MB ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>离线下载</span><span class="val">Wi-Fi下 ›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;"><span>数据同步</span><span class="val">自动 ›</span></div>';
+        var fontSize = localStorage.getItem('fontSize') || 'normal';
+        var sizeNames = { small: '小号', normal: '标准', large: '大号', xlarge: '特大' };
+        var darkMode = localStorage.getItem('darkMode') || 'false';
+        var darkNames = { auto: '跟随系统', 'true': '开启', 'false': '关闭' };
+        var notifyOn = localStorage.getItem('notifyPush') !== 'false';
+        var offlineOn = localStorage.getItem('offlineSync') !== 'false';
+        var syncMode = localStorage.getItem('dataSync') === 'manual' ? '手动' : '自动';
+        html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openFontSizeModal()"><span>字体大小</span><span class="val">' + sizeNames[fontSize] + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openDarkModeModal()"><span>深色模式</span><span class="val">' + darkNames[darkMode] + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="toggleNotifyPush()"><span>通知推送</span><span class="val">' + (notifyOn ? '开启' : '关闭') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openCacheCleanModal()"><span>缓存清理</span><span class="val">' + (computeCacheBytes() / 1024).toFixed(1) + 'KB ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="toggleOfflineSync()"><span>离线下载</span><span class="val">' + (offlineOn ? 'Wi-Fi下' : '关闭') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="toggleDataSync()"><span>数据同步</span><span class="val">' + syncMode + ' ›</span></div>';
       } else if (section === 'about') {
-        html = '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;"><span>意见反馈</span><span class="val">›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;"><span>给个好评</span><span class="val">›</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;border-bottom:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center;"><span>版本号</span><span class="val">v4.0.0</span></div>' +
-               '<div class="settings-row" style="padding:14px 16px;"><span>关于新传研背</span><span class="val">›</span></div>';
+        var version = localStorage.getItem('APP_VERSION') || 'v5.0.0';
+        html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openFeedbackModal()"><span>意见反馈</span><span class="val">›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="rateApp()"><span>给个好评</span><span class="val">›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="showAbout()"><span>版本号</span><span class="val">' + version + '</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="showAbout()"><span>关于新传研背</span><span class="val">›</span></div>';
       }
-      
+
       content.innerHTML = html;
       main.style.display = 'none';
       detail.style.display = 'block';
     }
-    
+
     function backToSettingsMain() {
       document.getElementById('settings-main').style.display = 'block';
       document.getElementById('settings-detail').style.display = 'none';
     }
-    
+
     window.addEventListener('load', function() {
       var hash = window.location.hash.substring(1);
       if (hash) {

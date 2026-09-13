@@ -844,6 +844,23 @@ function refreshStats() {
     cards[2].textContent = stats.contentsReviewing;
     cards[3].textContent = stats.questionsUnpublished;
   }
+
+  // V5.0 L2：学生端学习数据上行（只读展示学生端真实 localStorage 统计）
+  var studentGrid = document.getElementById('student-stats-grid');
+  if (studentGrid) {
+    var studentCards = studentGrid.querySelectorAll('.stat-value');
+    var examHistory = JSON.parse(localStorage.getItem('exam_history') || '{}');
+    var studentStats = [
+      localStorage.getItem('masteredCount') || '0',
+      localStorage.getItem('favoriteCount') || '0',
+      localStorage.getItem('noteCount') || '0',
+      localStorage.getItem('studyDays') || '0',
+      Object.keys(examHistory).length
+    ];
+    studentCards.forEach(function(card, i) {
+      if (studentStats[i] !== undefined) card.textContent = studentStats[i];
+    });
+  }
 }
 
 // ===== 初始化 =====
