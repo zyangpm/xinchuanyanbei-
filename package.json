@@ -1,6 +1,6 @@
 {
   "name": "xinchuan-yanbei",
-  "version": "4.0.0",
+  "version": "5.1.0",
   "private": true,
   "description": "新传研背 - 新传考研考试模拟系统（Monorepo）",
   "workspaces": [

@@ -1,4 +1,4 @@
-﻿﻿// ===== 学生端通用应用逻辑 =====
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// ===== 学生端通用应用逻辑 =====
 // 这个脚本主要负责：
 // 1. 初始化默认登录状态和用户信息
 // 2. 主题、字体、学习模式等设置
@@ -251,7 +251,7 @@ function initThemeAndFont() {
 
 document.addEventListener('DOMContentLoaded', function() {
   initStatBase();
-  localStorage.setItem('APP_VERSION', 'v5.0.0');
+  localStorage.setItem('APP_VERSION', 'v5.1.0');
   initThemeAndFont();
   initFavoriteStar();
   renderCollections();
@@ -366,17 +366,136 @@ function switchToUserVideo(userName) {
   }
 }
 
+// ===== V5.1 名词详情页：七厂商 AI 模型弹窗 =====
+var aiModalSelectedKey = null;
+var aiChatAbort = null;
+
 function openAiModal() {
   var modal = document.getElementById('ai-modal');
-  if (modal) {
-    // V5.0：打开时回填已保存的 API 密钥与画质/详略选择
-    var apiInput = modal.querySelector('.api-input');
-    if (apiInput) apiInput.value = localStorage.getItem('apiKey') || '';
-    var formSelects = modal.querySelectorAll('.form-select');
-    if (formSelects[0]) formSelects[0].value = localStorage.getItem('videoQuality') || '标准';
-    if (formSelects[1]) formSelects[1].value = localStorage.getItem('detailLevel') || '标准';
-    modal.style.display = 'flex';
+  if (!modal) return;
+
+  // 回填画质 / 详略
+  var formSelects = modal.querySelectorAll('.form-select');
+  if (formSelects[0]) formSelects[0].value = localStorage.getItem('videoQuality') || '标准';
+  if (formSelects[1]) formSelects[1].value = localStorage.getItem('detailLevel') || '标准';
+
+  // 当前选中厂商（默认上次选择，否则 deepseek）
+  aiModalSelectedKey = localStorage.getItem('aiModel') || 'deepseek';
+  if (!AiService.isModelSupported(aiModalSelectedKey)) aiModalSelectedKey = 'deepseek';
+
+  renderAiProviderList();
+  fillAiConfigPanel();
+  modal.style.display = 'flex';
+}
+
+// 渲染 7 家可点选厂商，徽标如实反映配置状态（绝不出现"待接入"）
+function renderAiProviderList() {
+  var box = document.getElementById('ai-provider-list');
+  if (!box) return;
+  var keys = AiService.providerKeys;
+  var html = '';
+  keys.forEach(function (key) {
+    var p = AiService.getProvider(key);
+    var configured = AiService.isConfigured(key);
+    var badge, badgeColor;
+    if (configured) { badge = '已配置'; badgeColor = '#1e7d4f'; }
+    else if (p.builtin) { badge = '待填 Key'; badgeColor = '#a87b1f'; }
+    else { badge = '需自行配置'; badgeColor = '#8a8f99'; }
+    var active = key === aiModalSelectedKey;
+    html += '<div class="ai-provider-item" data-model="' + key + '" onclick="selectAiModel(\'' + key + '\')" ' +
+      'style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;margin-bottom:8px;' +
+      'border:1px solid ' + (active ? 'var(--primary,#243A5E)' : 'var(--paper-line,#e6e1d6)') + ';' +
+      'border-radius:10px;cursor:pointer;background:' + (active ? '#f2f5fa' : 'var(--paper,#fff)') + ';' +
+      'transition:border-color .15s,background .15s,transform .12s;" ' +
+      'onmousedown="this.style.transform=\'scale(0.98)\'" onmouseup="this.style.transform=\'scale(1)\'" onmouseleave="this.style.transform=\'scale(1)\'">' +
+      '<div>' +
+        '<div style="font-weight:600;font-size:14px;color:var(--ink,#222);">' + escapeHtml(p.label) + '</div>' +
+        '<div style="font-size:11px;margin-top:2px;color:' + badgeColor + ';font-weight:600;">' + badge + '</div>' +
+      '</div>' +
+      '<div class="check" style="font-size:16px;color:var(--primary,#243A5E);font-weight:700;">' + (active ? '✓' : '') + '</div>' +
+    '</div>';
+  });
+  box.innerHTML = html;
+}
+
+// 回填当前厂商的接口地址 / 模型名 / Key
+function fillAiConfigPanel() {
+  var p = AiService.getProvider(aiModalSelectedKey);
+  if (!p) return;
+  var label = document.getElementById('ai-cfg-label');
+  var hint = document.getElementById('ai-cfg-hint');
+  var ep = document.getElementById('ai-endpoint-input');
+  var md = document.getElementById('ai-model-input');
+  var ky = document.getElementById('ai-key-input');
+  if (label) label.textContent = '接口配置 · ' + p.label;
+  if (hint) hint.textContent = p.hint || '';
+  if (ep) {
+    ep.value = p.endpoint || '';
+    // DeepSeek 内置官方地址，不允许在名词详情里改（避免误填导致不可用）
+    ep.disabled = !!p.builtin;
+    ep.style.background = p.builtin ? '#f1efe9' : '#fff';
   }
+  if (md) {
+    md.value = p.model || '';
+    md.disabled = !!p.builtin;
+    md.style.background = p.builtin ? '#f1efe9' : '#fff';
+  }
+  if (ky) ky.value = p.keyVal || '';
+}
+
+function selectAiModel(key) {
+  if (!AiService.isModelSupported(key)) return;
+  aiModalSelectedKey = key;
+  renderAiProviderList();
+  fillAiConfigPanel();
+}
+
+function saveAiSettings() {
+  var key = aiModalSelectedKey || 'deepseek';
+  var p = AiService.getProvider(key);
+  var epEl = document.getElementById('ai-endpoint-input');
+  var mdEl = document.getElementById('ai-model-input');
+  var kyEl = document.getElementById('ai-key-input');
+
+  var endpoint = epEl ? epEl.value.trim() : '';
+  var model = mdEl ? mdEl.value.trim() : '';
+  var keyVal = kyEl ? kyEl.value.trim() : '';
+
+  // 画质 / 详略落库
+  var formSelects = document.querySelectorAll('#ai-modal .form-select');
+  localStorage.setItem('videoQuality', formSelects[0] ? formSelects[0].value : '标准');
+  localStorage.setItem('detailLevel', formSelects[1] ? formSelects[1].value : '标准');
+
+  if (p.builtin) {
+    // DeepSeek：内置 endpoint/model，只存 Key（沿用 apiKey 字段）
+    localStorage.setItem('apiKey', keyVal);
+  } else {
+    // 其余厂商：endpoint/model/key 存独立配置
+    AiService.saveProviderConfig(key, { endpoint: endpoint, model: model, key: keyVal });
+  }
+
+  localStorage.setItem('aiModel', key);
+  localStorage.setItem('aiModelName', p.label);
+
+  // 同步设置页 AI 行文案
+  updateSettingsRowValSafe('openAiModelSetting()', p.label + ' ›');
+
+  closeModal('ai-modal');
+
+  if (AiService.isConfigured(key)) {
+    showConfirm('AI设置', '已保存并启用「' + p.label + '」，现在可以使用 AI 助记了。', 'success');
+  } else if (p.builtin) {
+    showConfirm('AI设置', '已选择「' + p.label + '」，但还未填写 API Key，暂不能调用。', 'warning');
+  } else {
+    showConfirm('AI设置', '已选择「' + p.label + '」，但接口地址或 API Key 未填写完整，暂不能调用。', 'warning');
+  }
+}
+
+// 设置页可能尚未渲染对应行，做安全更新
+function updateSettingsRowValSafe(onclickAttr, val) {
+  try {
+    if (typeof updateSettingsRowVal === 'function') updateSettingsRowVal(onclickAttr, val);
+  } catch (e) {}
 }
 
 function openAiAssistModal() {
@@ -401,121 +520,88 @@ function useTemplate(type) {
   }
 }
 
+// ===== V5.1 AI 助记：真实调用大模型（未配置零请求拦截） =====
+var aiLoadingEl = null;
+function showAiLoading(modelLabel) {
+  hideAiLoading();
+  var el = document.createElement('div');
+  el.id = 'ai-loading-overlay';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  el.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:22px 24px;width:min(78vw,300px);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2);">' +
+      '<div style="width:34px;height:34px;border:3px solid #e0e0e0;border-top-color:#243A5E;border-radius:50%;margin:0 auto 12px;animation:aiSpin .8s linear infinite;"></div>' +
+      '<div style="font-size:14px;font-weight:600;color:#222;">AI 思考中…</div>' +
+      '<div style="font-size:12px;color:#8a8f99;margin-top:4px;">' + escapeHtml(modelLabel || '') + '</div>' +
+    '</div>';
+  document.body.appendChild(el);
+  if (!document.getElementById('ai-spin-style')) {
+    var st = document.createElement('style');
+    st.id = 'ai-spin-style';
+    st.textContent = '@keyframes aiSpin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+  aiLoadingEl = el;
+}
+function hideAiLoading() {
+  if (aiLoadingEl && aiLoadingEl.parentNode) aiLoadingEl.parentNode.removeChild(aiLoadingEl);
+  aiLoadingEl = null;
+}
+
 function submitAiAssist() {
   var input = document.getElementById('ai-assist-input');
-  if (input && input.value.trim()) {
-    var question = input.value.trim();
-    closeModal('ai-assist-modal');
-    
-    var btn = document.querySelector('#ai-assist-modal .save-btn');
-    if (btn) {
-      var originalText = btn.textContent;
-      btn.textContent = 'AI思考中...';
-      btn.disabled = true;
-      
-      setTimeout(function() {
-        var response = generateAiResponse(question);
-        showConfirm('AI助记', response, 'info');
-        btn.textContent = originalText;
-        btn.disabled = false;
-      }, 1500);
-    }
-    
-    showConfirm('AI助记', 'AI正在为您分析问题...', 'info');
-  } else {
+  var question = input ? input.value.trim() : '';
+  if (!question) {
     showConfirm('提示', '请输入您的问题或选择一个模板', 'warning');
+    return;
   }
-}
 
-function generateAiResponseBase(question) {
-  var responses = {
-    'memory': '针对"' + currentTerm + '"的记忆方法推荐：\n\n1. 联想法：将"' + currentTerm + '"想象成一个真实的螺旋楼梯，越往上走的人越少\n2. 口诀法："少数不敢说，多数越强大，形成螺旋效应"\n3. 类比法：想象在会议上，大家都沉默不语，最终意见被少数人主导\n4. 场景法：结合网络评论区"一边倒"的现象来理解\n\n建议选择1-2种方法重点练习效果最佳！',
-    'example': '现实案例：\n\n以"' + currentTerm + '"为例：比如在某个热门话题下，当主流意见形成后，持不同观点的用户往往会选择沉默，而不是发声表达异议。这正是诺依曼理论中"孤立恐惧"的体现——人们害怕因持少数意见而被孤立。\n\n另一个例子是在公司会议中，当领导倾向某个方案时，即使员工有不同想法也可能选择沉默，导致决策"一边倒"。',
-    'compare': '"沉默的螺旋"与相似概念的区别：\n\n1. 与"第三人效应"的区别：\n   - 沉默螺旋：自己因害怕孤立而沉默\n   - 第三人效应：认为他人会受媒介影响，但自己不会\n\n2. 与"多元无知"的区别：\n   - 沉默螺旋：主动选择沉默\n   - 多元无知：错误估计他人想法而不行动\n\n核心差异在于：沉默螺旋强调"主动发声行为"的变化，而后者强调"认知判断"的偏差。',
-    'exam': '考试中"' + currentTerm + '"的高频考点：\n\n1. 定义题：直接考查概念内涵（约5分）\n2. 比较题：与第三人效应、多元无知的异同（约15分）\n3. 应用题：结合现实案例分析舆论现象（约25-30分）\n\n答题要点：\n- 必须提到"孤立恐惧"和"意见气候"\n- 必须说明"多数强势、少数沉默"的螺旋过程\n- 建议与算法环境结合分析\n\n背诵优先级：定义 > 核心机制 > 应用场景'
-  };
-  
-  var questionLower = question.toLowerCase();
-  
-  if (questionLower.indexOf('记忆') !== -1 || questionLower.indexOf('背诵') !== -1 || questionLower.indexOf('口诀') !== -1) {
-    return responses.memory;
-  } else if (questionLower.indexOf('案例') !== -1 || questionLower.indexOf('例子') !== -1 || questionLower.indexOf('现实') !== -1) {
-    return responses.example;
-  } else if (questionLower.indexOf('区别') !== -1 || questionLower.indexOf('对比') !== -1 || questionLower.indexOf('相似') !== -1) {
-    return responses.compare;
-  } else if (questionLower.indexOf('考试') !== -1 || questionLower.indexOf('考点') !== -1 || questionLower.indexOf('考法') !== -1) {
-    return responses.exam;
+  var modelKey = localStorage.getItem('aiModel') || 'deepseek';
+  if (!AiService.isModelSupported(modelKey)) modelKey = 'deepseek';
+  var provider = AiService.getProvider(modelKey);
+
+  // 未配置：不发任何网络请求，明确拦截并引导去配置
+  if (!AiService.isConfigured(modelKey)) {
+    var msg = provider.builtin
+      ? '当前模型「' + provider.label + '」还未配置 API Key。是否现在去配置？'
+      : '模型「' + provider.label + '」尚未配置：需要填写接口地址（URL）和 API Key。是否现在去配置？';
+    showConfirm('AI 未配置', msg, 'warning', function () { openAiModal(); }, null, true);
+    return;
   }
-  
-  var base = 'AI分析结果：\n\n关于"' + question + '"的记忆建议：\n\n1. 先理解核心概念：' + currentTerm + '的本质是关于舆论形成的动态过程\n2. 找出关键词：孤立恐惧、意见气候、多数强势\n3. 结合场景记忆：想象一个具体的舆论案例\n4. 反复练习：用自己的话复述核心逻辑\n\n如需更具体的建议，可以尝试选择下方模板重新提问。';
 
-  // V5.0：自定义提示词模板生效——拼接在兜底回复前
-  var tpl = localStorage.getItem('aiPromptTemplate');
-  if (tpl) {
-    return '【已按您的自定义提示词：' + tpl + '】\n\n' + base;
-  }
-  return base;
-}
+  closeModal('ai-assist-modal');
 
-// V5.0：文字详略设置生效——"简洁"时截取前60%长度（仅影响文本长度，不碰API）
-function generateAiResponse(question) {
-  var response = generateAiResponseBase(question);
-  var detailLevel = localStorage.getItem('detailLevel');
-  if (detailLevel === '简洁' && response.length > 80) {
-    var cut = Math.floor(response.length * 0.6);
-    response = response.slice(0, cut) + '\n\n……（简洁模式，可在AI设置中调整为标准/详细）';
-  }
-  return response;
-}
+  var detailLevel = localStorage.getItem('detailLevel') || '标准';
+  var lenHint = detailLevel === '简洁' ? '回答尽量精炼（200字内）'
+    : detailLevel === '详细' ? '回答详尽、分点展开，可适当举例'
+    : '回答结构清晰、分点说明（400字左右）';
+  var systemPrompt = '你是新闻传播学考研的助教，请围绕词条「' + currentTerm +
+    '」帮助学生理解与记忆。要求：专业准确、贴合考研答题、用中文、' + lenHint + '。';
 
-function selectAiModel(model) {
-  var options = document.querySelectorAll('.ai-option');
-  options.forEach(function(opt) {
-    opt.classList.remove('active');
-    opt.querySelector('.check').textContent = '';
+  showAiLoading(provider.label);
+
+  var controller = new AbortController();
+  aiChatAbort = controller;
+
+  AiService.chat({
+    modelKey: modelKey,
+    signal: controller.signal,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: question }
+    ]
+  }).then(function (answer) {
+    hideAiLoading();
+    aiChatAbort = null;
+    var html = escapeHtml(answer).replace(/\n/g, '<br>');
+    var modelName = localStorage.getItem('aiModelName') || provider.label;
+    showConfirm('AI助记 · ' + modelName, html, 'info');
+  }).catch(function (err) {
+    hideAiLoading();
+    aiChatAbort = null;
+    var friendly = AiService.friendlyError(err);
+    var needConfig = err && (err.code === 'NO_KEY' || err.code === 'NOT_CONFIGURED');
+    showConfirm('AI助记失败', friendly, 'error', needConfig ? function () { openAiModal(); } : null, null, needConfig);
   });
-  
-  var modelMap = { deepseek: 0, gpt: 1, claude: 2, gemini: 3 };
-  var activeOption = options[modelMap[model]];
-  
-  if (activeOption) {
-    activeOption.classList.add('active');
-    activeOption.querySelector('.check').textContent = '✓';
-  }
-}
-
-function saveAiSettings() {
-  var modelSelect = document.querySelectorAll('.ai-option');
-  var selectedModel = 'deepseek';
-  var modelName = 'DeepSeek';
-  
-  modelSelect.forEach(function(opt) {
-    if (opt.classList.contains('active')) {
-      var name = opt.querySelector('.ai-name').textContent;
-      var modelMap = { 'DeepSeek': 'deepseek', 'GPT': 'gpt', 'Claude': 'claude', 'Gemini': 'gemini' };
-      selectedModel = modelMap[name] || 'deepseek';
-      modelName = name;
-    }
-  });
-  
-  var apiKey = document.querySelector('.api-input').value;
-
-  // V5.0：生成画质/文字详略选择落库（打开弹窗时回填）
-  var formSelects = document.querySelectorAll('#ai-modal .form-select');
-  localStorage.setItem('videoQuality', formSelects[0] ? formSelects[0].value : '标准');
-  localStorage.setItem('detailLevel', formSelects[1] ? formSelects[1].value : '标准');
-
-  localStorage.setItem('aiModel', selectedModel);
-  localStorage.setItem('aiModelName', modelName);
-  localStorage.setItem('apiKey', apiKey);
-  
-  var aiModelEl = document.querySelector('.settings-row[onclick="openAiModal()"] .val');
-  if (aiModelEl) {
-    aiModelEl.textContent = modelName + ' ›';
-  }
-  
-  closeModal('ai-modal');
-  showConfirm('AI设置', '设置已保存', 'success');
 }
 
 function openPostModal() {
@@ -2623,52 +2709,124 @@ function toggleDataSync() {
 
 // —— AI 设置（与详情页 AI 弹窗同一套 key：aiModel / aiModelName / apiKey）——
 
+// ===== V5.1 设置页：七厂商 AI 模型（与名词详情页共用 AiService） =====
+var aiSetSelectedKey = null;
+
 function openAiModelSetting() {
-  var current = localStorage.getItem('aiModel') || 'deepseek';
-  var apiKey = localStorage.getItem('apiKey') || '';
-  var models = [
-    { key: 'deepseek', name: 'DeepSeek', desc: '性价比高，中文记忆优化' },
-    { key: 'gpt', name: 'GPT', desc: '综合能力强' },
-    { key: 'claude', name: 'Claude', desc: '长文本理解出色' },
-    { key: 'gemini', name: 'Gemini', desc: '多模态支持' }
-  ];
+  aiSetSelectedKey = localStorage.getItem('aiModel') || 'deepseek';
+  if (!AiService.isModelSupported(aiSetSelectedKey)) aiSetSelectedKey = 'deepseek';
+
+  var inputStyle = 'width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-top:8px;outline:none;background:var(--paper);color:var(--ink);';
   var html = '<div class="modal-overlay" style="display:flex;" id="ai-set-modal" onclick="closeModal(\'ai-set-modal\')">' +
-    '<div class="modal-content" onclick="event.stopPropagation()">' +
+    '<div class="modal-content" style="max-width:420px;" onclick="event.stopPropagation()">' +
       '<div class="modal-title">AI模型设置</div>' +
       '<div class="modal-close" onclick="closeModal(\'ai-set-modal\')">×</div>' +
-      '<div style="padding:16px 0;">';
-  models.forEach(function(m) {
-    html += '<div class="fontsize-option ' + (current === m.key ? 'active' : '') + '" data-model-key="' + m.key + '" onclick="selectAiSettingModel(this)">' +
-      '<div class="fontsize-label">' + m.name + '</div>' +
-      '<div class="fontsize-preview" style="font-size:12px;color:var(--ink-light);">' + m.desc + '</div>' +
-      '</div>';
-  });
-  html += '<input type="text" id="ai-set-key" placeholder="API Key（选填，仅保存在本机）" value="' + escapeHtml(apiKey) + '" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-top:12px;outline:none;background:var(--paper);color:var(--ink);">' +
-    '<div class="save-btn" style="text-align:center;margin-top:14px;" onclick="saveAiSettingsFromSettings()">保存设置</div>' +
-    '</div></div></div>';
+      '<div style="padding:12px 0 4px;">' +
+        '<div id="ai-set-provider-list"></div>' +
+        '<div style="margin-top:10px;">' +
+          '<div id="ai-set-cfg-label" style="font-size:13px;font-weight:600;color:var(--ink);"></div>' +
+          '<div id="ai-set-cfg-hint" style="font-size:11px;color:var(--ink-light);margin:3px 0 2px;line-height:1.5;"></div>' +
+          '<input type="text" id="ai-set-endpoint" placeholder="接口地址 URL" style="' + inputStyle + '">' +
+          '<input type="text" id="ai-set-model" placeholder="模型名称" style="' + inputStyle + '">' +
+          '<input type="password" id="ai-set-key" placeholder="API Key（仅保存在本机）" style="' + inputStyle + '">' +
+        '</div>' +
+        '<div class="save-btn" style="text-align:center;margin-top:14px;" onclick="saveAiSettingsFromSettings()">保存设置</div>' +
+      '</div>' +
+    '</div></div>';
   var old = document.getElementById('ai-set-modal');
   if (old) old.remove();
   document.body.insertAdjacentHTML('beforeend', html);
+
+  renderAiSettingProviderList();
+  fillAiSettingConfigPanel();
+}
+
+// 徽标如实反映配置状态（绝不出现"待接入"）
+function renderAiSettingProviderList() {
+  var box = document.getElementById('ai-set-provider-list');
+  if (!box) return;
+  var html = '';
+  AiService.providerKeys.forEach(function (key) {
+    var p = AiService.getProvider(key);
+    var configured = AiService.isConfigured(key);
+    var badge, badgeColor;
+    if (configured) { badge = '已配置'; badgeColor = '#1e7d4f'; }
+    else if (p.builtin) { badge = '待填 Key'; badgeColor = '#a87b1f'; }
+    else { badge = '需自行配置'; badgeColor = '#8a8f99'; }
+    var active = key === aiSetSelectedKey;
+    html += '<div class="fontsize-option ai-provider-item' + (active ? ' active' : '') + '" data-model-key="' + key + '" onclick="selectAiSettingModel(this)" style="cursor:pointer;">' +
+      '<div class="fontsize-label">' + escapeHtml(p.label) +
+        '<span style="font-size:11px;font-weight:600;color:' + badgeColor + ';margin-left:8px;">' + badge + '</span>' +
+      '</div>' +
+      '<div class="fontsize-preview" style="font-size:11px;color:var(--ink-light);">' + escapeHtml(p.hint || '') + '</div>' +
+    '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function fillAiSettingConfigPanel() {
+  var p = AiService.getProvider(aiSetSelectedKey);
+  if (!p) return;
+  var label = document.getElementById('ai-set-cfg-label');
+  var hint = document.getElementById('ai-set-cfg-hint');
+  var ep = document.getElementById('ai-set-endpoint');
+  var md = document.getElementById('ai-set-model');
+  var ky = document.getElementById('ai-set-key');
+  if (label) label.textContent = '接口配置 · ' + p.label;
+  if (hint) hint.textContent = p.builtin ? '官方接口地址已内置，只需填写 API Key。' : (p.hint || '');
+  if (ep) {
+    ep.value = p.endpoint || '';
+    ep.disabled = !!p.builtin;
+    ep.style.background = p.builtin ? '#f1efe9' : 'var(--paper)';
+  }
+  if (md) {
+    md.value = p.model || '';
+    md.disabled = !!p.builtin;
+    md.style.background = p.builtin ? '#f1efe9' : 'var(--paper)';
+  }
+  if (ky) ky.value = p.keyVal || '';
 }
 
 function selectAiSettingModel(el) {
+  var key = el.getAttribute('data-model-key');
+  if (!key || !AiService.isModelSupported(key)) return;
+  aiSetSelectedKey = key;
   var options = document.querySelectorAll('#ai-set-modal .fontsize-option');
-  options.forEach(function(o) { o.classList.remove('active'); });
+  options.forEach(function (o) { o.classList.remove('active'); });
   el.classList.add('active');
+  fillAiSettingConfigPanel();
 }
 
 function saveAiSettingsFromSettings() {
-  var active = document.querySelector('#ai-set-modal .fontsize-option.active');
-  var key = active ? (active.getAttribute('data-model-key') || 'deepseek') : 'deepseek';
-  var nameMap = { deepseek: 'DeepSeek', gpt: 'GPT', claude: 'Claude', gemini: 'Gemini' };
-  var keyInput = document.getElementById('ai-set-key');
+  var key = aiSetSelectedKey || 'deepseek';
+  var p = AiService.getProvider(key);
+  var ep = document.getElementById('ai-set-endpoint');
+  var md = document.getElementById('ai-set-model');
+  var ky = document.getElementById('ai-set-key');
+  var endpoint = ep ? ep.value.trim() : '';
+  var model = md ? md.value.trim() : '';
+  var keyVal = ky ? ky.value.trim() : '';
+
+  if (p.builtin) {
+    localStorage.setItem('apiKey', keyVal);
+  } else {
+    AiService.saveProviderConfig(key, { endpoint: endpoint, model: model, key: keyVal });
+  }
+
   localStorage.setItem('aiModel', key);
-  localStorage.setItem('aiModelName', nameMap[key]);
-  localStorage.setItem('apiKey', keyInput ? keyInput.value.trim() : '');
+  localStorage.setItem('aiModelName', p.label);
+
   closeModal('ai-set-modal');
-  updateSettingsRowVal('openAiModelSetting()', nameMap[key] + ' ›');
-  updateSettingsRowVal('openAiKeySetting()', (keyInput && keyInput.value.trim() ? '已配置' : '未配置') + ' ›');
-  showConfirm('AI设置', '设置已保存（与词条页AI设置互通）', 'success');
+  updateSettingsRowVal('openAiModelSetting()', p.label + ' ›');
+  updateSettingsRowVal('openAiKeySetting()', (AiService.isConfigured(key) ? '已配置' : '未配置') + ' ›');
+
+  if (AiService.isConfigured(key)) {
+    showConfirm('AI设置', '已保存并启用「' + p.label + '」，与词条页AI设置互通。', 'success');
+  } else if (p.builtin) {
+    showConfirm('AI设置', '已选择「' + p.label + '」，但还未填写 API Key。', 'warning');
+  } else {
+    showConfirm('AI设置', '已选择「' + p.label + '」，但接口地址或 API Key 未填写完整。', 'warning');
+  }
 }
 
 function openAiKeySetting() {
@@ -2763,7 +2921,7 @@ function rateApp() {
 }
 
 function showAbout() {
-  var version = localStorage.getItem('APP_VERSION') || 'v5.0.0';
+  var version = localStorage.getItem('APP_VERSION') || 'v5.1.0';
   showConfirm('关于新传研背', '新传研背 ' + version + '\n新传考研背诵与训练工具\n名词解释 · 简答题 · 论述题 · 考试实务训练', 'info');
 }
 
