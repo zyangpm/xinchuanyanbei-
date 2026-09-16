@@ -48,9 +48,7 @@
       <div style="background:#fff;margin:0 16px 12px;border-radius:12px;overflow:hidden;border:1px solid rgba(36,58,94,0.06);">
         <div id="detail-content"></div>
       </div>
-      <div style="text-align:center;padding:12px;">
-        <button class="crumb-btn" onclick="backToSettingsMain()" style="font-size:13px;color:var(--ink-light);">‹ 返回设置</button>
-      </div>
+      <!-- V5.1：底部的"返回设置"冗余入口已移除——页面顶部 crumb（‹ 我的）是唯一返回入口，符合 iOS 风格 -->
     </div>
     
     <div class="bottomnav">
@@ -62,6 +60,8 @@
     </div>
   </div>
   
+  <script src="xc-sync.js"></script>
+  <script src="ai-service.js"></script>
   <script src="app.js"></script>
   <script>
     // V5.0：设置中心激活——各分区行接入真实数据与交互（账号/偏好/AI/系统/反馈）
@@ -132,12 +132,16 @@
       document.getElementById('settings-detail').style.display = 'none';
     }
 
-    window.addEventListener('load', function() {
+    // V5.1：hash 导航支持——从 profile.html 点"账号管理/学习偏好"等跳过来能自动展开
+    // 既要在首次 load 时读 hash，也要在后续 hashchange 时响应（iOS Safari 切 hash 不 reload）
+    function applyInitialHash() {
       var hash = window.location.hash.substring(1);
-      if (hash) {
+      if (hash && typeof showSettingsSection === 'function' && showSettingsSection(hash) !== false) {
         showSettingsSection(hash);
       }
-    });
+    }
+    window.addEventListener('load', applyInitialHash);
+    window.addEventListener('hashchange', applyInitialHash);
   </script>
 </body>
 </html>

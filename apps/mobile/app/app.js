@@ -1,4 +1,4 @@
-// ===== 学生端通用应用逻辑 =====
+﻿﻿// ===== 学生端通用应用逻辑 =====
 // 这个脚本主要负责：
 // 1. 初始化默认登录状态和用户信息
 // 2. 主题、字体、学习模式等设置
@@ -251,11 +251,52 @@ function initThemeAndFont() {
 
 document.addEventListener('DOMContentLoaded', function() {
   initStatBase();
-  localStorage.setItem('APP_VERSION', 'v5.0.0'); // V5.0：关于页动态版本标识
+  localStorage.setItem('APP_VERSION', 'v5.0.0');
   initThemeAndFont();
   initFavoriteStar();
   renderCollections();
+  fillHomeCounts();       // B4：首页入口卡片动态数字
+  fillProfileStats();     // B2：profile 统计卡动态数字
 });
+
+// B4：首页核心入口卡片——动态显示词条数量，不再显示"加载中…"
+function fillHomeCounts() {
+  var nounEl = document.getElementById('home-noun-count');
+  var shortEl = document.getElementById('home-short-count');
+  var essayEl = document.getElementById('home-essay-count');
+  if (nounEl && typeof nounData !== 'undefined') {
+    // nounData 是对象，keys 是词条名
+    var n = Object.keys(nounData).length;
+    nounEl.textContent = n + ' 个名词词条';
+  }
+  if (shortEl && typeof shortData !== 'undefined') {
+    var s = (shortData.items || []).length;
+    shortEl.textContent = s + ' 道简答题';
+  }
+  if (essayEl && typeof essayData !== 'undefined') {
+    var e = (essayData.items || []).length;
+    essayEl.textContent = e + ' 道论述题';
+  }
+}
+
+// B2：profile 页面——统计卡动态读取 localStorage
+function fillProfileStats() {
+  var statM = document.getElementById('stat-mastered');
+  var statF = document.getElementById('stat-favorites');
+  var statN = document.getElementById('stat-notes');
+  if (statM) {
+    var v = parseInt(localStorage.getItem('masteredCount') || '0', 10);
+    statM.textContent = v || '0';
+  }
+  if (statF) {
+    var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    statF.textContent = favs.length || '0';
+  }
+  if (statN) {
+    var notes = JSON.parse(localStorage.getItem('notes') || '[]');
+    statN.textContent = notes.length || '0';
+  }
+}
 
 function goBack() {
   if (history.length > 1) {
@@ -1858,10 +1899,18 @@ function renderMindMap(definition, title) {
   var leafGap = 12;
   var gap = 32;
   var rootWidth = 90;
-  var branchWidth = 100;
   var minLeafWidth = 120;
   var hGap = 50;
   var lineGap = 20;
+  
+  // V5.1：预扫每个 branch 独立宽度（之前全局固定 100px，长文字会截断）
+  var branchWidths = [];
+  var maxBranchW = 0;
+  data.forEach(function(block) {
+    var bw = Math.max(70, (block.label || '').length * 11 + 28);
+    branchWidths.push(bw);
+    if (bw > maxBranchW) maxBranchW = bw;
+  });
   
   var branchHeights = [];
   var totalHeight = 0;
@@ -1880,7 +1929,8 @@ function renderMindMap(definition, title) {
   var rootRightX = rootX + rootWidth;
   var trunkX = rootRightX + lineGap;
   var branchLeftX = trunkX + lineGap;
-  var branchRightX = branchLeftX + branchWidth;
+  // V5.1 branchRightX 取所有 branch 中最宽的右边缘——这样所有 leaf 卡片左边缘对齐
+  var branchRightX = branchLeftX + maxBranchW;
   var leafLeftX = branchRightX + lineGap;
   
   var maxLeafWidth = minLeafWidth;
@@ -1906,6 +1956,8 @@ function renderMindMap(definition, title) {
   
   svg += '<rect x="' + rootX + '" y="' + (rootY - 22) + '" width="' + rootWidth + '" height="44" rx="22" fill="url(#rg)"/>';
   svg += '<text x="' + (rootX + rootWidth/2) + '" y="' + (rootY + 5) + '" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">' + escapeHtml(title || '核心概念') + '</text>';
+  // V5.1 补 root→trunk 横线（原始代码缺失，导致 root 看起来和 trunk 断开）
+  svg += '<line x1="' + rootRightX + '" y1="' + rootY + '" x2="' + trunkX + '" y2="' + rootY + '" stroke="#243A5E" stroke-width="1.2" opacity="0.55"/>';
   
   var curY = 0;
   var leafNodes = [];
@@ -1915,13 +1967,18 @@ function renderMindMap(definition, title) {
     var bCY = curY + bH / 2;
     var branchHeight = 38;
     var branchY = bCY - branchHeight / 2;
+    // V5.1 当前 branch 自己的宽度和右边缘
+    var bW = branchWidths[idx];
+    var curBranchRight = branchLeftX + bW;
     
     svg += '<line x1="' + trunkX + '" y1="' + bCY + '" x2="' + (branchLeftX - 10) + '" y2="' + bCY + '" stroke="#243A5E" stroke-width="1.2" opacity="0.5"/>';
-    svg += '<line x1="' + trunkX + '" y1="' + (curY + leafHeight/2) + '" x2="' + trunkX + '" y2="' + (curY + bH - leafHeight/2) + '" stroke="#243A5E" stroke-width="1" opacity="0.3"/>';
+    // V5.1 删掉循环里分散的 trunk 分段（每个 branch 只画自己内部那一小段，branch 之间 gap 段完全没竖线→看起来断着）
+    // 改在循环外画一条完整的 trunk 竖线
     
     var bl = escapeHtml(block.label);
-    svg += '<rect x="' + branchLeftX + '" y="' + branchY + '" width="' + branchWidth + '" height="' + branchHeight + '" rx="8" fill="#FFFEF7" stroke="#243A5E" stroke-width="1.2"/>';
-    svg += '<text x="' + (branchLeftX + branchWidth/2) + '" y="' + (bCY + 4) + '" text-anchor="middle" fill="#243A5E" font-size="11" font-weight="600">' + bl + '</text>';
+    // V5.1 branch 卡片 width 用 branchWidths[idx] 自适应
+    svg += '<rect x="' + branchLeftX + '" y="' + branchY + '" width="' + bW + '" height="' + branchHeight + '" rx="8" fill="#FFFEF7" stroke="#243A5E" stroke-width="1.2"/>';
+    svg += '<text x="' + (branchLeftX + bW/2) + '" y="' + (bCY + 4) + '" text-anchor="middle" fill="#243A5E" font-size="11" font-weight="600">' + bl + '</text>';
     
     if (block.items && block.items.length > 0) {
       block.items.forEach(function(item, li) {
@@ -1932,8 +1989,9 @@ function renderMindMap(definition, title) {
         
         var nodeId = 'leaf-' + idx + '-' + li;
         svg += '<g id="' + nodeId + '" style="cursor:pointer;">';
-        svg += '<line x1="' + branchRightX + '" y1="' + lCY + '" x2="' + leafLeftX + '" y2="' + lCY + '" stroke="#3A5276" stroke-width="1" opacity="0.4"/>';
-        svg += '<line x1="' + branchRightX + '" y1="' + bCY + '" x2="' + branchRightX + '" y2="' + lCY + '" stroke="#3A5276" stroke-width="0.8" opacity="0.3"/>';
+        // V5.1 leaf 横线 x1 用 curBranchRight（当前 branch 自己的右边缘），不再用全局固定的 branchRightX
+        svg += '<line x1="' + curBranchRight + '" y1="' + lCY + '" x2="' + leafLeftX + '" y2="' + lCY + '" stroke="#3A5276" stroke-width="1" opacity="0.4"/>';
+        svg += '<line x1="' + curBranchRight + '" y1="' + bCY + '" x2="' + curBranchRight + '" y2="' + lCY + '" stroke="#3A5276" stroke-width="0.8" opacity="0.3"/>';
         svg += '<rect x="' + leafLeftX + '" y="' + lY + '" width="' + leafW + '" height="' + leafHeight + '" rx="6" fill="#F5F0E8" stroke="#3A5276" stroke-width="0.8" stroke-opacity="0.4"/>';
         if (lt) {
           svg += '<text x="' + (leafLeftX + 8) + '" y="' + (lCY + 4) + '" fill="#1C1917" font-size="11">' + lt + '</text>';
@@ -1951,6 +2009,10 @@ function renderMindMap(definition, title) {
     }
     curY += bH + gap;
   });
+  // V5.1：trunk 竖线精确接到第一个 branch 卡片中点和最后一个 branch 卡片中点——之前 y1=0 超出顶部，y2=totalHeight 超出底部
+  var _firstCY = branchHeights[0] / 2;
+  var _lastCY = totalHeight - branchHeights[branchHeights.length - 1] / 2;
+  svg += '<line x1="' + trunkX + '" y1="' + _firstCY + '" x2="' + trunkX + '" y2="' + _lastCY + '" stroke="#243A5E" stroke-width="1" opacity="0.35"/>';
   svg += '</svg>';
   
   var tooltipHtml = '<div id="mm-tooltip" style="display:none;position:absolute;background:rgba(36,58,94,0.95);color:#fff;padding:10px 14px;border-radius:8px;font-size:12px;max-width:240px;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.5;"></div>';
@@ -2775,9 +2837,10 @@ function openNoteList() {
 }
 
 function openUploadLibrary() {
-  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+  // V5.1：资料库弹窗过滤后台种子资料（_seed:true），只保留真实上传/同步的资料
+  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]')
+    .filter(function(m) { return !m._seed; });
 
-  // V5.0 L3：资料双向互通——后台资料（uploadedBy !== 'user'）与学生自建（uploadedBy === 'user'）同库分组展示
   var adminMats = [];
   var userMats = [];
   materials.forEach(function(m, index) {
@@ -3248,38 +3311,46 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   var savedAvatar = localStorage.getItem('userAvatar');
-  if (savedAvatar) {
-    var avatar = document.querySelector('.profile-avatar');
-    if (avatar) avatar.textContent = savedAvatar;
-  }
-  
   var savedNickname = localStorage.getItem('userNickname');
-  if (savedNickname) {
-    var names = document.querySelectorAll('.profile-name, .name');
-    names.forEach(function(name) {
-      name.textContent = savedNickname;
-    });
+  var info = getUserInfo();
+  // B7：profile 头像+昵称+天数——无论有没有存值都覆盖，避免页面残留写死的"林"/"林同学"
+  var nameToUse = savedNickname || info.nickname;
+  var avatarChar = savedAvatar || (nameToUse ? nameToUse.charAt(0) : '我');
+  
+  var avatarEl = document.querySelector('.profile-avatar');
+  if (avatarEl) {
+    var img = localStorage.getItem('avatarImage');
+    if (img) {
+      avatarEl.style.backgroundImage = 'url(' + img + ')';
+      avatarEl.style.backgroundSize = 'cover';
+      avatarEl.style.backgroundPosition = 'center';
+      avatarEl.textContent = '';
+    } else {
+      avatarEl.textContent = avatarChar;
+    }
   }
   
-  var savedAvatarColor = localStorage.getItem('avatarColor');
-  var savedAvatarImage = localStorage.getItem('avatarImage');
-  var profileAvatarEl = document.querySelector('.profile-avatar');
-  var homeAvatarEl = document.querySelector('.home-user .avatar');
+  var names = document.querySelectorAll('.profile-name, .name');
+  names.forEach(function(n) { n.textContent = nameToUse; });
   
-  if (savedAvatarImage) {
-    if (profileAvatarEl) {
-      profileAvatarEl.style.backgroundImage = 'url(' + savedAvatarImage + ')';
-      profileAvatarEl.style.backgroundSize = 'cover';
-      profileAvatarEl.style.backgroundPosition = 'center';
-      profileAvatarEl.textContent = '';
-    }
-    if (homeAvatarEl) {
-      homeAvatarEl.style.backgroundImage = 'url(' + savedAvatarImage + ')';
-      homeAvatarEl.style.backgroundSize = 'cover';
-      homeAvatarEl.style.backgroundPosition = 'center';
-    }
+  // profile-stats 的"已坚持X天"动态替换
+  var daysEl = document.getElementById('profile-user-days');
+  if (daysEl) {
+    var savedDays = localStorage.getItem('studyDays') || '1';
+    daysEl.textContent = '新传考研 · 已坚持 ' + savedDays + ' 天';
+  }
+  
+  // 首页 avatar / avatarColor 兼容处理
+  var savedAvatarImage = localStorage.getItem('avatarImage');
+  var savedAvatarColor = localStorage.getItem('avatarColor');
+  var homeAvatarEl = document.querySelector('.home-user .avatar');
+  if (savedAvatarImage && homeAvatarEl) {
+    homeAvatarEl.style.backgroundImage = 'url(' + savedAvatarImage + ')';
+    homeAvatarEl.style.backgroundSize = 'cover';
+    homeAvatarEl.style.backgroundPosition = 'center';
   } else if (savedAvatarColor) {
-    if (profileAvatarEl) profileAvatarEl.style.background = savedAvatarColor;
+    var paE = document.querySelector('.profile-avatar');
+    if (paE) paE.style.background = savedAvatarColor;
     if (homeAvatarEl) homeAvatarEl.style.background = savedAvatarColor;
   }
   

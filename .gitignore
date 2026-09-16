@@ -37,3 +37,4 @@ yarn-error.log*
 # Test
 test-results/
 coverage/
+scripts/_qa_shots/

@@ -25,7 +25,9 @@
       </div>
     </div>
     
-    <div class="app-body" style="padding-bottom:160px;">
+    <!-- V5.0 移动端适配：原 padding-bottom:160px 为底部 AI 悬浮按钮(fixed, bottom:70px)的避让空间，
+         收敛为 120px 并保留避让功能 -->
+    <div class="app-body" style="padding-bottom:120px;">
       <div class="tabs">
         <div class="tab active" onclick="switchTab(this, 'panel-video')">视频</div>
         <div class="tab" onclick="switchTab(this, 'panel-text')">知识框架</div>
@@ -243,28 +245,17 @@
         
         <div class="form-row">
           <div class="form-label">选择AI模型</div>
-          <div class="ai-option active" onclick="selectAiModel('deepseek')">
-            <span class="ai-name">DeepSeek</span>
-            <span class="check">✓</span>
-          </div>
-          <div class="ai-option" onclick="selectAiModel('gpt')">
-            <span class="ai-name">GPT</span>
-            <span class="check"></span>
-          </div>
-          <div class="ai-option" onclick="selectAiModel('claude')">
-            <span class="ai-name">Claude</span>
-            <span class="check"></span>
-          </div>
-          <div class="ai-option" onclick="selectAiModel('gemini')">
-            <span class="ai-name">Gemini</span>
-            <span class="check"></span>
-          </div>
+          <div id="ai-provider-list"></div>
+          <div class="subtitle">DeepSeek 开箱即用；其他模型（含免费额度厂商）需自行配置接口地址与 API Key 后才能调用</div>
         </div>
-        
+
         <div class="form-row">
-          <div class="form-label">API密钥</div>
-          <input type="text" class="api-input" placeholder="请输入API密钥">
-          <div class="subtitle">密钥仅保存在本地，不会上传至服务器</div>
+          <div class="form-label" id="ai-cfg-label">接口配置 · DeepSeek</div>
+          <div id="ai-cfg-hint" class="subtitle" style="margin:0 0 8px;color:var(--ink-light);line-height:1.6;"></div>
+          <input type="text" id="ai-endpoint-input" class="api-input" style="margin-bottom:8px;font-size:12px;" placeholder="接口地址 URL，例如 https://.../chat/completions">
+          <input type="text" id="ai-model-input" class="api-input" style="margin-bottom:8px;font-size:12px;" placeholder="模型名称（已预填默认值，可修改）">
+          <input type="password" id="ai-key-input" class="api-input" placeholder="API Key（仅保存在本机）">
+          <div class="subtitle">密钥与接口地址仅保存在本机，不会上传至服务器或写入代码</div>
         </div>
         
         <div class="form-row">
@@ -307,8 +298,8 @@
           <div class="form-label">选择API</div>
           <select class="form-select" id="video-api">
             <option value="deepseek">DeepSeek API</option>
-            <option value="gpt">ChatGPT API</option>
-            <option value="claude">Claude API</option>
+            <option value="gpt">GPT（OpenAI 兼容接口）</option>
+            <option value="claude">Claude（兼容接口）</option>
           </select>
         </div>
         
@@ -393,6 +384,8 @@
     </div>
   </div>
   
+  <script src="xc-sync.js"></script>
+  <script src="ai-service.js"></script>
   <script src="app.js"></script>
   <script>
     window.addEventListener('load', function() {

@@ -177,6 +177,12 @@
     </div>
   </div>
   
+  <!-- V5.1 知识库页需要所有数据包全局可用（QA 在本页取 shortData/essayData，静态 lib-row 也依赖这些） -->
+  <script src="../../../packages/content/noun-data.js"></script>
+  <script src="../../../packages/content/short-data.js"></script>
+  <script src="../../../packages/content/essay-data.js"></script>
+  <script src="../../../packages/content/practice-v2-data.js"></script>
+  <script src="xc-sync.js"></script>
   <script src="app.js"></script>
   <script>
     window.addEventListener('load', function() {

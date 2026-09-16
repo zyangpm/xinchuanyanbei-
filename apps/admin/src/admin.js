@@ -101,8 +101,9 @@ function statusLabel(status) {
   return map[status] || status;
 }
 function escapeHtml(text) {
-  if (!text) return '';
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (text === null || text === undefined) return '';
+  // V5.0：兼容数字/布尔（AI 演示草稿 contentData 中含 generated:true，直接 .replace 会抛错）
+  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ===== 数据概览 =====
@@ -435,7 +436,7 @@ function generateContent() {
   btn.textContent = '生成中...';
   btn.disabled = true;
 
-  // 模拟AI生成
+  // 本地演示生成（V5.0 标注：此处未调用任何真实 AI 接口，仅写入本地示例草稿，不能视为 AI 生成成果）
   setTimeout(function() {
     var sampleTitles = {
       noun: ['议程设置', '沉默的螺旋', '把关人', '编码解码', '使用与满足', '知沟理论', '创新扩散', '意见领袖'],
@@ -461,7 +462,7 @@ function generateContent() {
 
     btn.textContent = '开始生成';
     btn.disabled = false;
-    showHint('成功生成 ' + generated + ' 条' + typeLabel(questionType) + '草稿，请前往内容审核');
+    showHint('【演示模式】已在本地生成 ' + generated + ' 条' + typeLabel(questionType) + '示例草稿（模拟数据，未调用真实 AI），请前往内容审核');
     renderAIResults();
   }, 2000);
 }

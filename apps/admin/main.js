@@ -76,7 +76,11 @@ function createWindow() {
     icon: path.join(__dirname, 'public', 'favicon.svg'),
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      // preload 需要 fs 读写双端共享 JSON（~/.xinchuan-yanbei/shared.json），
+      // Electron 20+ 默认 sandbox:true 会禁止 preload require('fs')，必须显式关闭沙箱
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js')
     }
   });
 
