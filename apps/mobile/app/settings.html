@@ -115,7 +115,7 @@
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="toggleOfflineSync()"><span>离线下载</span><span class="val">' + (offlineOn ? 'Wi-Fi下' : '关闭') + ' ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="toggleDataSync()"><span>数据同步</span><span class="val">' + syncMode + ' ›</span></div>';
       } else if (section === 'about') {
-        var version = localStorage.getItem('APP_VERSION') || 'v5.0.0';
+        var version = localStorage.getItem('APP_VERSION') || 'v5.1.0';
         html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openFeedbackModal()"><span>意见反馈</span><span class="val">›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="rateApp()"><span>给个好评</span><span class="val">›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="showAbout()"><span>版本号</span><span class="val">' + version + '</span></div>' +
