@@ -85,6 +85,8 @@ function createSplashWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      // 与管理后台一致：preload 用 fs 读写双端共享文件，需关闭沙箱（contextIsolation 仍保留）
+      sandbox: false,
       preload: path.join(__dirname, 'preload.js')
     }
   });
@@ -110,6 +112,7 @@ function createMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: false,
       preload: path.join(__dirname, 'preload.js')
     }
   });

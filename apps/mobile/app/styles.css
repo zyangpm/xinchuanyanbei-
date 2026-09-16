@@ -53,15 +53,24 @@ body {
   max-width: 393px;
   margin: 0 auto;
   background: var(--card);
-  min-height: 100vh;
   position: relative;
   border: 1px solid var(--paper-line);
   border-radius: 30px;
-  box-sizing: content-box;
-  overflow-x: hidden;
-  overflow-y: auto;
   box-shadow: var(--shadow-lg);
-  height: 852px;
+  /* V5.0 移动端适配：适应真实视口（dvh 优先、vh 兜底），取消固定 852px 效果图高度；
+     App Shell 三段式：顶栏固定 + 中间内容区滚动 + 底部导航固定，容器自身不滚动 */
+  height: 100vh;
+  height: 100dvh;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* V5.0 App Shell：容器直接子元素默认不压缩（状态栏/顶栏/进度条/底部导航固定）；
+   position:fixed 的弹层与悬浮按钮脱离文档流，不参与 flex 布局，不受影响 */
+.container > * {
+  flex-shrink: 0;
 }
 
 .statusbar {
@@ -79,8 +88,7 @@ body {
   justify-content: space-around;
   padding: 8px 16px 16px;
   background: linear-gradient(180deg, var(--card) 0%, var(--paper) 100%);
-  position: sticky;
-  bottom: 0;
+  /* V5.0 App Shell：底部导航为壳层固定行（原 sticky 滚动跟随移除） */
   margin: 0 8px;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   border: 1px solid var(--paper-line);
@@ -146,6 +154,11 @@ body {
 
 .home-body {
   padding: 12px 16px;
+  /* V5.0 App Shell：内容区自身滚动 */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .home-user {
@@ -378,7 +391,11 @@ body {
 
 .app-body {
   padding: 12px 16px;
-  min-height: calc(100vh - 160px);
+  /* V5.0 App Shell：内容区自身滚动（原 min-height: calc(100vh - 160px) 幻影高度移除） */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .searchbar {
@@ -1385,6 +1402,11 @@ body {
 
 .profile-body {
   padding: 12px 16px;
+  /* V5.0 App Shell：内容区自身滚动 */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .profile-hero {
@@ -1521,6 +1543,7 @@ body {
   border-top: 1px solid var(--ink);
   padding: 16px;
   max-height: 70vh;
+  max-height: 70dvh;
   overflow-y: auto;
 }
 
@@ -2608,7 +2631,11 @@ body {
 
 .login-body {
   padding: 40px 24px 24px;
-  min-height: calc(100vh - 40px);
+  /* V5.0 App Shell：内容区自身滚动（原 min-height: calc(100vh - 40px) 移除） */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .login-logo {
@@ -3184,7 +3211,12 @@ body {
 
 /* ===== 考试训练系统样式 ===== */
 .exam-body {
-  padding-bottom: 100px;
+  /* V5.0 App Shell：内容区自身滚动；底部导航改为壳层固定行，
+     原 padding-bottom:100px 滚动补偿移除 */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .exam-hero {
@@ -3336,6 +3368,11 @@ body {
 /* ===== 新闻采访题页面样式 ===== */
 .interview-body {
   padding-bottom: 80px;
+  /* V5.0 App Shell：内容区自身滚动（保留 80px 为 fixed 底部操作栏的避让空间） */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .question-header {
@@ -3950,7 +3987,12 @@ body {
   border-radius: var(--radius);
 }
 
-/* 树状思维导图样式 */
+/* 树状思维导图样式 - V5.1 修复：竖线与横线几何对齐（之前横线 width 过短、竖线 left 不一致导致断线）
+ * 统一几何模型：
+ *   - 所有竖线固定 left:6px（横向对齐）
+ *   - branch/leaves 的 padding-left = 横线宽度 + 14px 偏移
+ *   - ::before 横线 left:-14px 到 right: calc(padding-left - 6px) = 精确接到竖线
+ */
 .tree-mindmap {
   padding: 8px 0;
   overflow-x: auto;
@@ -3962,7 +4004,7 @@ body {
   border-radius: 20px;
   padding: 16px 24px;
   text-align: center;
-  margin: 0 auto 20px;
+  margin: 0 auto 24px;
   max-width: 200px;
   font-size: 16px;
   font-weight: 700;
@@ -3972,36 +4014,40 @@ body {
 .tree-branches {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-left: 20px;
+  gap: 14px;
+  padding-left: 20px;         /* branch 横线左对齐 + leaf 横线左对齐 */
   position: relative;
 }
 
+/* 主干竖线：从 root 下沿延伸到最后一个 branch 中间 */
 .tree-branches::before {
   content: '';
   position: absolute;
-  left: 10px;
-  top: 0;
-  bottom: 0;
+  left: 6px;                 /* ⚠️ 所有层级竖线的统一 x 坐标 */
+  top: -12px;                /* 往上延伸到 root 卡片底部 */
+  bottom: 14px;              /* 最后一条线延伸到最后一个 branch header 的中点 */
   width: 2px;
-  background: var(--seal-light);
-  opacity: 0.3;
+  background: var(--seal);
+  opacity: 0.35;
+  border-radius: 1px;
 }
 
 .tree-branch {
   position: relative;
-  padding-left: 24px;
+  padding-left: 20px;
 }
 
+/* 二级横线：从主干竖线 (left:6px) 接到 branch header 左边缘 */
 .tree-branch::before {
   content: '';
   position: absolute;
   left: -14px;
-  top: 14px;
-  width: 16px;
+  top: 16px;                 /* 与 .tree-branch-header 的垂直中点对齐 */
+  width: 20px;               /* = padding-left(20) + left偏移(-14) → 从 branch 左边到竖线距离 */
   height: 2px;
-  background: var(--seal-light);
-  opacity: 0.3;
+  background: var(--seal);
+  opacity: 0.35;
+  border-radius: 1px;
 }
 
 .tree-branch-header {
@@ -4036,19 +4082,21 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-left: 20px;
+  padding-left: 20px;         /* 与 branch 一致，让 leaf 横线能接到竖线 */
   position: relative;
 }
 
+/* 三级竖线：与父级 branches 竖线完全重合 (left:6px) */
 .tree-leaves::before {
   content: '';
   position: absolute;
-  left: 6px;
+  left: 6px;                 /* ⚠️ 与 .tree-branches::before 完全重合 */
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 2px;
   background: var(--ink-light);
-  opacity: 0.2;
+  opacity: 0.25;
+  border-radius: 1px;
 }
 
 .tree-leaf {
@@ -4061,15 +4109,18 @@ body {
   line-height: 1.5;
 }
 
+/* 三级横线：从 leaves 竖线 (left:6px) 接到 leaf 左边缘 */
 .tree-leaf::before {
   content: '';
   position: absolute;
   left: -14px;
   top: 50%;
-  width: 12px;
+  transform: translateY(-50%);
+  width: 20px;                /* 与 branch 横线一致 */
   height: 1px;
   background: var(--ink-light);
-  opacity: 0.2;
+  opacity: 0.35;
+  border-radius: 1px;
 }
 
 .tree-leaf-title {
@@ -4121,4 +4172,69 @@ body {
 
 .tree-sub-item:last-child {
   border-bottom: none;
+}
+/* ===== V5.1 iOS 风格动画 & 交互体验 ===== */
+
+/* 1. 按钮点击 scale 反馈（模拟 iOS touch） */
+.entry-row:active,
+.tab:active,
+.nav-item:active,
+.lib-row:active,
+.settings-row:active,
+.save-btn:active,
+.option-item:active {
+  transform: scale(0.97);
+  transition: transform 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+.entry-row, .tab, .nav-item, .lib-row, .settings-row, .save-btn, .option-item {
+  transition: transform 0.15s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* 2. Panel/tab 切换淡入过渡 */
+.panel {
+  animation: panelFadeIn 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 3. 空态设计（历史训练/收藏/社群等空列表） */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-light);
+}
+.empty-state .empty-ic {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.35;
+}
+.empty-state .empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.empty-state .empty-hint {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 4. Modal 弹层过渡 */
+.modal-content {
+  animation: modalPop 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* 5. 设置 detail 分区滑入 */
+#settings-detail {
+  animation: slideInRight 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
 }

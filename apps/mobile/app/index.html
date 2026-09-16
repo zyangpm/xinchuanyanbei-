@@ -49,7 +49,7 @@
           </div>
           <div>
             <div class="entry-name">名词解释</div>
-            <div class="entry-sub">328个词条 · 视频+知识框架</div>
+            <div class="entry-sub" id="home-noun-count">名词解释词条加载中…</div>
           </div>
           <div class="entry-chev">›</div>
         </div>
@@ -64,7 +64,7 @@
           </div>
           <div>
             <div class="entry-name">简答题</div>
-            <div class="entry-sub">142道 · 答题框架+关键词</div>
+            <div class="entry-sub" id="home-short-count">简答题加载中…</div>
           </div>
           <div class="entry-chev">›</div>
         </div>
@@ -81,7 +81,7 @@
           </div>
           <div>
             <div class="entry-name">论述题</div>
-            <div class="entry-sub">96道 · 文章结构+观点展开</div>
+            <div class="entry-sub" id="home-essay-count">论述题加载中…</div>
           </div>
           <div class="entry-chev">›</div>
         </div>
@@ -111,6 +111,10 @@
     </div>
   </div>
   
+  <script src="../../../packages/content/noun-data.js"></script>
+  <script src="../../../packages/content/short-data.js"></script>
+  <script src="../../../packages/content/essay-data.js"></script>
+  <script src="xc-sync.js"></script>
   <script src="app.js"></script>
   <script>
     (function() {

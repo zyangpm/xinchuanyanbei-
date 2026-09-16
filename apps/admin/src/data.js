@@ -5,6 +5,36 @@
 // 1. 初始化默认资料、题库、审核内容、发布日志等示例数据
 // 2. 提供增删改查接口：材料、内容、题目、日志
 // 3. 统计各类数据量，用于 Dashboard 和概览页面
+// 4. V5.1：题库的每一次「新增/编辑/删除/发布/下架」都会写入同步层：
+//    - 网页版：写入 localStorage，学生端同源页面直接读取
+//    - 桌面版：通过 window.xcShared 写入双方共享 JSON 文件
+//    注意：初始示例数据不会同步，只有管理员的真实操作才会同步到学生端。
+
+// ===== V5.1 数据同步层 =====
+var XCSyncBridge = {
+  isElectron: function() {
+    return !!(window.xcShared && window.xcShared.mode === 'electron');
+  },
+  getAll: function() {
+    try {
+      return this.isElectron() ? window.xcShared.getAll() : {};
+    } catch (e) {
+      return {};
+    }
+  },
+  setCollection: function(name, value) {
+    try {
+      if (this.isElectron()) window.xcShared.setCollection(name, value);
+    } catch (e) { /* 同步失败不影响后台本机操作 */ }
+  },
+  // 合并两个数组（按 id 去重，b 覆盖 a）
+  unionById: function(a, b) {
+    var map = {};
+    (a || []).forEach(function(x) { if (x && x.id != null) map[String(x.id)] = x; });
+    (b || []).forEach(function(x) { if (x && x.id != null) map[String(x.id)] = x; });
+    return Object.keys(map).map(function(k) { return map[k]; });
+  }
+};
 
 var DB = {
   // 初始化默认数据
@@ -15,22 +45,22 @@ var DB = {
         {
           id: 1, title: '传播学教程（郭庆光）', sourceType: '教材', fileType: 'PDF',
           wordCount: 320000, chapterInfo: '共15章', parseStatus: 'done',
-          uploadedBy: 'admin', createdAt: '2026-01-15 10:30:00'
+          uploadedBy: 'admin', createdAt: '2026-01-15 10:30:00', _seed: true
         },
         {
           id: 2, title: '2025新传考研真题汇总', sourceType: '真题', fileType: 'Word',
           wordCount: 12000, chapterInfo: '共6套真题', parseStatus: 'done',
-          uploadedBy: 'admin', createdAt: '2026-01-10 14:20:00'
+          uploadedBy: 'admin', createdAt: '2026-01-10 14:20:00', _seed: true
         },
         {
           id: 3, title: '新闻学概论（李良荣）', sourceType: '教材', fileType: 'PDF',
           wordCount: 280000, chapterInfo: '共12章', parseStatus: 'done',
-          uploadedBy: 'admin', createdAt: '2026-01-12 09:15:00'
+          uploadedBy: 'admin', createdAt: '2026-01-12 09:15:00', _seed: true
         },
         {
           id: 4, title: '网络传播概论（彭兰）', sourceType: '教材', fileType: 'PDF',
           wordCount: 240000, chapterInfo: '共10章', parseStatus: 'parsing',
-          uploadedBy: 'admin', createdAt: '2026-01-16 11:00:00'
+          uploadedBy: 'admin', createdAt: '2026-01-16 11:00:00', _seed: true
         }
       ];
 
@@ -80,6 +110,74 @@ var DB = {
       localStorage.setItem('xc_question_id', '7');
       localStorage.setItem('xc_log_id', '2');
     }
+
+    // V5.1：桌面版启动时，把共享文件中另一端（学生端上传的资料/反馈、本端历史同步）合并进来
+    var shared = XCSyncBridge.getAll();
+    if (shared && Object.keys(shared).length) {
+      if (Array.isArray(shared.xc_materials) && shared.xc_materials.length) {
+        var mergedMaterials = XCSyncBridge.unionById(this.getMaterials(), shared.xc_materials);
+        localStorage.setItem('xc_materials', JSON.stringify(mergedMaterials));
+        this._reseedId('xc_material_id', mergedMaterials);
+      }
+      if (Array.isArray(shared.xc_questions) && shared.xc_questions.length) {
+        var mergedQuestions = XCSyncBridge.unionById(this.getQuestions(), shared.xc_questions);
+        localStorage.setItem('xc_questions', JSON.stringify(mergedQuestions));
+        this._reseedId('xc_question_id', mergedQuestions);
+      }
+      if (Array.isArray(shared.feedbacks) && shared.feedbacks.length) {
+        var localFeedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+        var sig = {};
+        var fbKey = function(f) { return String(f.id != null ? f.id : (f.timestamp || f.time || '') + '|' + (f.content || f.message || '')); };
+        localFeedbacks.forEach(function(f) { sig[fbKey(f)] = true; });
+        shared.feedbacks.forEach(function(f) {
+          var k = fbKey(f);
+          if (!sig[k]) { localFeedbacks.push(f); sig[k] = true; }
+        });
+        localStorage.setItem('feedbacks', JSON.stringify(localFeedbacks));
+      }
+      if (shared.xc_question_sync && !localStorage.getItem('xc_question_sync')) {
+        localStorage.setItem('xc_question_sync', JSON.stringify(shared.xc_question_sync));
+      }
+    }
+  },
+
+  // 同步自增 id 游标，避免合并进来的数据 id 与新建数据撞号
+  _reseedId: function(key, list) {
+    var max = parseInt(localStorage.getItem(key) || '0', 10);
+    list.forEach(function(x) { if (typeof x.id === 'number' && x.id > max) max = x.id; });
+    localStorage.setItem(key, String(max));
+  },
+
+  // ===== V5.1 题库同步：记录管理员对单题的最新操作快照 =====
+  // overlay: { "<题目id>": {题目完整字段, deleted?:true} }
+  // 学生端只按 overlay 增量合并，初始示例数据不会污染学生端题库
+  _syncQuestion: function(id) {
+    var overlay = {};
+    try { overlay = JSON.parse(localStorage.getItem('xc_question_sync') || '{}'); } catch (e) { overlay = {}; }
+    var row = this.getQuestion(id);
+    if (row) {
+      overlay[String(id)] = row;
+    }
+    localStorage.setItem('xc_question_sync', JSON.stringify(overlay));
+    // 全量题目也同步一份（桌面端后台重开时列表一致）
+    XCSyncBridge.setCollection('xc_question_sync', overlay);
+    XCSyncBridge.setCollection('xc_questions', this.getQuestions());
+  },
+  _syncQuestionDelete: function(row) {
+    var overlay = {};
+    try { overlay = JSON.parse(localStorage.getItem('xc_question_sync') || '{}'); } catch (e) { overlay = {}; }
+    overlay[String(row.id)] = {
+      id: row.id,
+      questionType: row.questionType,
+      title: row.title,
+      category: row.category,
+      tag: row.tag,
+      status: 'deleted',
+      deleted: true
+    };
+    localStorage.setItem('xc_question_sync', JSON.stringify(overlay));
+    XCSyncBridge.setCollection('xc_question_sync', overlay);
+    XCSyncBridge.setCollection('xc_questions', this.getQuestions());
   },
 
   // 资料管理
@@ -98,12 +196,14 @@ var DB = {
     list.unshift(data);
     localStorage.setItem('xc_materials', JSON.stringify(list));
     localStorage.setItem('xc_material_id', id.toString());
+    XCSyncBridge.setCollection('xc_materials', list); // V5.1 同步到学生端
     return data;
   },
   deleteMaterial: function(id) {
     var list = this.getMaterials();
     list = list.filter(function(m) { return m.id !== id; });
     localStorage.setItem('xc_materials', JSON.stringify(list));
+    XCSyncBridge.setCollection('xc_materials', list); // V5.1 同步删除
   },
 
   // 内容管理
@@ -156,6 +256,7 @@ var DB = {
     list.unshift(data);
     localStorage.setItem('xc_questions', JSON.stringify(list));
     localStorage.setItem('xc_question_id', id.toString());
+    this._syncQuestion(id); // V5.1 同步到学生端
     return data;
   },
   updateQuestion: function(id, data) {
@@ -164,12 +265,15 @@ var DB = {
     if (item) {
       Object.keys(data).forEach(function(k) { item[k] = data[k]; });
       localStorage.setItem('xc_questions', JSON.stringify(list));
+      this._syncQuestion(id); // V5.1 同步编辑/发布/下架
     }
   },
   deleteQuestion: function(id) {
     var list = JSON.parse(localStorage.getItem('xc_questions') || '[]');
+    var item = list.find(function(q) { return q.id === id; });
     list = list.filter(function(q) { return q.id !== id; });
     localStorage.setItem('xc_questions', JSON.stringify(list));
+    if (item) this._syncQuestionDelete(item); // V5.1 同步删除
   },
 
   // 发布日志
