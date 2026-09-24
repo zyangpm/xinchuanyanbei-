@@ -926,7 +926,8 @@ function knowledgeCollectArray(storeName, page, idKey) {
   var store = window[storeName];
   if (!store || !Array.isArray(store.items)) return [];
   return store.items.map(function(item) {
-    var id = item[idKey];
+    // 修复：题目数据的标识字段是 item.id（不是 item[idKey]）；idKey 仅用于拼 URL 参数名（short/essay）
+    var id = item.id;
     return {
       id: id,
       title: item.title || id,
