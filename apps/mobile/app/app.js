@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// ===== 学生端通用应用逻辑 =====
+﻿// ===== 学生端通用应用逻辑 =====
 // 这个脚本主要负责：
 // 1. 初始化默认登录状态和用户信息
 // 2. 主题、字体、学习模式等设置
@@ -316,17 +316,17 @@ function fillHomeCounts() {
   var shortEl = document.getElementById('home-short-count');
   var essayEl = document.getElementById('home-essay-count');
   if (nounEl && typeof nounData !== 'undefined') {
-    // nounData 是对象，keys 是词条名
+    // nounData 是对象，keys 是词条名；V5.1 恢复入口描述文案（·视频+知识框架）
     var n = Object.keys(nounData).length;
-    nounEl.textContent = n + ' 个名词词条';
+    nounEl.textContent = n + ' 个名词词条 · 视频+知识框架';
   }
   if (shortEl && typeof shortData !== 'undefined') {
     var s = (shortData.items || []).length;
-    shortEl.textContent = s + ' 道简答题';
+    shortEl.textContent = s + ' 道简答题 · 答题框架+关键词';
   }
   if (essayEl && typeof essayData !== 'undefined') {
     var e = (essayData.items || []).length;
-    essayEl.textContent = e + ' 道论述题';
+    essayEl.textContent = e + ' 道论述题 · 文章结构+观点展开';
   }
 }
 
@@ -2004,12 +2004,34 @@ function renderCollections() {
   var order = ['noun', 'short', 'essay'];
 
   if (!favs.length) {
-    container.innerHTML =
-      '<div class="empty-state">' +
-      '<div class="empty-icon">☆</div>' +
-      '<div class="empty-text">还没有收藏内容<br>去知识库发现值得反复背诵的考点吧</div>' +
-      '<div class="confirm-btn confirm" style="display:inline-block;margin-top:14px;padding:8px 22px;flex:none;" onclick="navigateTo(\'knowledge.html\')">去知识库逛逛</div>' +
-      '</div>';
+    // V5.1：恢复 V4.0 静态示例收藏内容（无真实收藏时展示，点击可进入详情）
+    var demo = [
+      { type: 'noun', title: '沉默的螺旋', tag: '高频', id: '沉默的螺旋' },
+      { type: 'noun', title: '编码解码模型', tag: '高频', id: '编码解码模型' },
+      { type: 'noun', title: '议程设置', tag: '重点', id: '议程设置' },
+      { type: 'short', title: '霍尔编码解码模型', tag: '20分', id: 'short002' },
+      { type: 'short', title: '知沟理论的内涵', tag: '15分', id: 'short003' },
+      { type: 'essay', title: '媒介素养的内涵与演变', tag: '30分', id: 'essay001' },
+      { type: 'essay', title: '网络舆论的形成机制', tag: '25分', id: 'essay002' }
+    ];
+    var demoHtml = '';
+    var isFirst = true;
+    order.forEach(function (type) {
+      var dItems = demo.filter(function (d) { return d.type === type; });
+      if (!dItems.length) return;
+      demoHtml += '<div data-collection-group="' + type + '"><div class="lib-group"' + (isFirst ? '' : ' style="margin-top:10px;"') + '>' + typeLabels[type] + '</div>';
+      dItems.forEach(function (d) {
+        var dUrl;
+        if (type === 'noun') dUrl = 'noun-detail.html?term=' + encodeURIComponent(d.id);
+        else if (type === 'short') dUrl = 'short-detail.html?short=' + encodeURIComponent(d.id);
+        else dUrl = 'essay-detail.html?essay=' + encodeURIComponent(d.id);
+        demoHtml += '<div class="lib-row" data-type="' + type + '" onclick="navigateTo(\'' + dUrl + '\')">' +
+          '<span>' + d.title + '</span><span class="tag">' + d.tag + '</span></div>';
+      });
+      demoHtml += '</div>';
+      isFirst = false;
+    });
+    container.innerHTML = demoHtml;
     return;
   }
 
