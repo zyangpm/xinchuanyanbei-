@@ -143,6 +143,29 @@ async function handleQuestions(req, res, url, id) {
   return sendJson(res, 405, { code: 405, message: '方法不允许', data: null });
 }
 
+/**
+ * 批量同步题库：后台把本地题库全量推送过来，按 id 覆盖写入（upsert）。
+ * @param {http.IncomingMessage} req 请求（body: 数组 或 { items: [...] }）
+ * @param {http.ServerResponse} res 响应
+ * @returns {Promise<void>}
+ */
+async function handleQuestionSync(req, res) {
+  const b = await readJsonBody(req);
+  const items = Array.isArray(b) ? b : (b.items || []);
+  const stmt = db.prepare(
+    "INSERT OR REPLACE INTO questions (id, question_type, title, category, tag, status, content_json, created_at, updated_at) " +
+    "VALUES (?,?,?,?,?,?,?, COALESCE((SELECT created_at FROM questions WHERE id=?), datetime('now','localtime')), datetime('now','localtime'))"
+  );
+  let n = 0;
+  for (const it of items) {
+    if (!it || it.id == null) continue;
+    stmt.run(Number(it.id), it.questionType || 'noun', it.title || '', it.category || null,
+      it.tag || null, it.status || 'draft', it.contentJson || null, Number(it.id));
+    n++;
+  }
+  return sendJson(res, 200, { code: 0, message: 'synced', data: { count: n } });
+}
+
 const server = http.createServer(async (req, res) => {
   // CORS（开发阶段放开；上线可收紧为指定域名）
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -161,6 +184,7 @@ const server = http.createServer(async (req, res) => {
       });
     }
     if (p === '/api/questions') return await handleQuestions(req, res, url, null);
+    if (p === '/api/questions/sync' && req.method === 'POST') return await handleQuestionSync(req, res);
     const m = p.match(/^\/api\/questions\/(\d+)$/);
     if (m) return await handleQuestions(req, res, url, Number(m[1]));
 
