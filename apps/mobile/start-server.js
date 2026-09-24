@@ -1,8 +1,98 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { exec } = require('child_process');
+
+// ===== V5.1 AI 接口同源转发白名单 =====
+// 浏览器（网页/PWA）直接请求讯飞星火、OpenAI 等端点会被 CORS 拦截，
+// 由本服务仅对白名单主机做透明转发；不在白名单内的目标一律拒绝，避免变成开放代理。
+const AI_PROXY_HOSTS = [
+    'api.deepseek.com', 'open.bigmodel.cn', 'api.moonshot.cn',
+    'spark-api-open.xf-yun.com', 'api.openai.com',
+    'generativelanguage.googleapis.com', 'api.anthropic.com',
+    // V5.1 视频生成：火山方舟 doubao-seedream 视频模型
+    'ark.cn-beijing.volces.com'
+];
+
+function isProxyHostAllowed(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    return AI_PROXY_HOSTS.some(function (h) {
+        // 精确匹配，或严格的"子域"后缀匹配；必须先保证主机名比 h 长，
+        // 否则短主机名时 indexOf/slice 会以 -1/错位造成误放行
+        if (host === h) return true;
+        return host.length > h.length + 1 && host.slice(-(h.length + 1)) === ('.' + h);
+    });
+}
+
+function handleAiProxy(req, res) {
+    var targetParam = '';
+    try {
+        targetParam = new URL(req.url, 'http://localhost').searchParams.get('u') || '';
+    } catch (e) { targetParam = ''; }
+    var targetUrl = null;
+    try {
+        targetUrl = new URL(targetParam);
+    } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: { message: 'invalid target url' } }));
+        return;
+    }
+    if (targetUrl.protocol !== 'https:' || !isProxyHostAllowed(targetUrl.hostname)) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: { message: 'target host is not allowed by proxy policy' } }));
+        return;
+    }
+
+    const chunks = [];
+    let bodySize = 0;
+    req.on('data', function (c) {
+        bodySize += c.length;
+        if (bodySize > 2 * 1024 * 1024) { req.destroy(); return; }
+        chunks.push(c);
+    });
+    req.on('end', function () {
+        const body = Buffer.concat(chunks);
+        // V5.1：跟随原请求方法——视频生成 API 提交是 POST，查询任务状态是 GET
+        const method = (req.method === 'GET') ? 'GET' : 'POST';
+        const headers = {
+            'Authorization': req.headers['authorization'] || ''
+        };
+        if (method === 'POST') {
+            headers['Content-Type'] = 'application/json';
+            headers['Content-Length'] = body.length;
+        }
+        const proxyReq = https.request({
+            protocol: 'https:',
+            hostname: targetUrl.hostname,
+            port: targetUrl.port || 443,
+            path: targetUrl.pathname + targetUrl.search,
+            method: method,
+            headers: headers,
+            timeout: 60000
+        }, function (proxyRes) {
+            res.writeHead(proxyRes.statusCode, {
+                'Content-Type': proxyRes.headers['content-type'] || 'application/json; charset=utf-8'
+            });
+            proxyRes.pipe(res);
+        });
+        proxyReq.on('timeout', function () { proxyReq.destroy(new Error('upstream timeout')); });
+        proxyReq.on('error', function (err) {
+            if (!res.headersSent) {
+                res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: { message: 'ai proxy upstream error' } }));
+            }
+        });
+        proxyReq.end(method === 'POST' ? body : undefined);
+    });
+    req.on('error', function () {
+        if (!res.headersSent) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: { message: 'bad request body' } }));
+        }
+    });
+}
 
 const PORT = 8081;
 const mobileDir = __dirname;
@@ -78,7 +168,7 @@ h1{font-size:24px;margin:0 0 10px}
 </style></head>
 <body><div class="box">
 <div class="logo"></div>
-<h1>新传研背 V4.0</h1>
+<h1>新传研背 V5.1</h1>
 <p>手机扫码即可使用</p>
 <div class="url">${url}</div>
 <div class="qr-area">
@@ -105,6 +195,12 @@ h1{font-size:24px;margin:0 0 10px}
 </div></body></html>`;
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(html);
+        return;
+    }
+
+    // V5.1：AI 接口同源转发（POST 提交 + GET 查询都支持，主机白名单见文件头）
+    if (reqPath === '/api/ai-proxy' && (req.method === 'POST' || req.method === 'GET')) {
+        handleAiProxy(req, res);
         return;
     }
 
@@ -162,7 +258,7 @@ server.listen(PORT, '0.0.0.0', () => {
     const qrUrl = 'http://' + ip + ':' + PORT + '/qr';
 
     console.log('==================================================');
-    console.log('    Xinchuan Yanbei V4.0 - Mobile Service Started');
+    console.log('    Xinchuan Yanbei V5.1 - Mobile Service Started');
     console.log('==================================================');
     console.log('');
     console.log('   Mobile URL: ' + url);

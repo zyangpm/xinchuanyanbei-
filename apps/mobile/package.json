@@ -1,7 +1,7 @@
 {
   "name": "@xinchuan/mobile",
   "version": "5.1.0",
-  "description": "新传研背 V4 - 移动端（Electron + PWA）",
+  "description": "新传研背 V5.1 - 移动端（Electron + PWA）",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -12,7 +12,7 @@
   },
   "build": {
     "appId": "com.xinchuan.yanbei.v4",
-    "productName": "新传研背V4",
+    "productName": "新传研背V5",
     "npmRebuild": false,
     "electronDist": "../../node_modules/electron/dist",
     "directories": {
@@ -49,7 +49,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "新传研背V4"
+      "shortcutName": "新传研背V5"
     }
   },
   "devDependencies": {

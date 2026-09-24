@@ -1,7 +1,7 @@
 {
   "name": "@xinchuan/admin",
-  "version": "1.0.0",
-  "description": "新传研背 V4 - 管理后台（Electron + 静态 HTML）",
+  "version": "5.1.0",
+  "description": "新传研背 V5.1 - 管理后台（Electron + 静态 HTML）",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

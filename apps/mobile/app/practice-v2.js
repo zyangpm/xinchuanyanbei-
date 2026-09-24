@@ -134,7 +134,9 @@ function renderPracticeNotes(practice) {
 function submitPracticeNote(practiceId) {
   var input = document.getElementById('practice-note-input');
   if (input && input.value.trim()) {
-    var notes = JSON.parse(localStorage.getItem('practice-notes-' + practiceId) || '[]');
+    var notes = (typeof safeParseStorage === 'function')
+      ? safeParseStorage('practice-notes-' + practiceId, [])
+      : (function () { try { return JSON.parse(localStorage.getItem('practice-notes-' + practiceId) || '[]'); } catch (e) { return []; } })();
     notes.push({
       author: '我',
       content: input.value.trim()

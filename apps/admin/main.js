@@ -54,7 +54,7 @@ function createAdminMenu() {
             const { dialog } = require('electron');
             dialog.showMessageBox(mainWindow, {
               title: '关于',
-              message: '新传研背管理后台 v1.0.0\n管理员内容管理工具',
+              message: '新传研背管理后台 v5.1.0\n管理员内容管理工具',
               type: 'info'
             });
           }
@@ -73,7 +73,7 @@ function createWindow() {
     minHeight: 600,
     center: true,
     title: '新传研背管理后台',
-    icon: path.join(__dirname, 'public', 'favicon.svg'),
+    icon: path.join(__dirname, 'public', 'logo.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

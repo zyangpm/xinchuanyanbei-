@@ -9,7 +9,7 @@ const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
-const store = new Store({ name: '新传研背V4' });
+const store = new Store({ name: '新传研背V5' });
 
 let mainWindow;
 let splashWindow;
@@ -62,7 +62,7 @@ function setupChineseMenu() {
           click: () => {
             dialog.showMessageBox(mainWindow, {
               title: '关于新传研背',
-              message: '新传研背 V4.0.0\n新传考研考试模拟系统',
+              message: '新传研背 V5.1.0\n新传考研考试模拟系统',
               type: 'info'
             });
           }
@@ -107,7 +107,7 @@ function createMainWindow() {
     center: true,
     show: false,
     backgroundColor: '#FBF7EE',
-    icon: path.join(__dirname, 'assets/icon.svg'),
+    icon: path.join(__dirname, 'assets/icon.png'),
     title: '新传研背',
     webPreferences: {
       nodeIntegration: false,

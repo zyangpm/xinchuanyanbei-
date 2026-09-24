@@ -293,32 +293,31 @@
       <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-title">生成AI记忆视频</div>
         <div class="modal-close" onclick="closeModal('video-gen-modal')">×</div>
-        
+
         <div class="form-row">
-          <div class="form-label">选择API</div>
-          <select class="form-select" id="video-api">
-            <option value="deepseek">DeepSeek API</option>
-            <option value="gpt">GPT（OpenAI 兼容接口）</option>
-            <option value="claude">Claude（兼容接口）</option>
-          </select>
+          <div class="form-label">选择视频生成 API</div>
+          <!-- V5.1：下拉由 openVideoGenModal() 动态加载用户在设置中已配置的视频 provider；
+               未配置任何 provider 时显示提示并引导去设置 -->
+          <select class="form-select" id="video-api"></select>
+          <div id="video-api-hint" style="font-size:11px;color:var(--ink-light);margin-top:6px;line-height:1.5;"></div>
         </div>
-        
+
         <div class="form-row">
           <div class="form-label">视频内容描述</div>
           <textarea class="form-input" id="video-prompt" rows="4" placeholder="描述您想要生成的视频内容，例如：用动画讲解沉默的螺旋理论，重点突出孤立恐惧和意见气候..."></textarea>
         </div>
-        
+
         <div class="form-row">
           <div class="form-label">视频时长</div>
-          <select class="form-select">
-            <option>30秒</option>
-            <option>1分钟</option>
-            <option>2分钟</option>
-            <option>3分钟</option>
+          <select class="form-select" id="video-duration">
+            <option value="5">5 秒</option>
+            <option value="10">10 秒</option>
+            <option value="30">30 秒</option>
+            <option value="60">1 分钟</option>
           </select>
         </div>
-        
-        <button class="save-btn" onclick="generateVideo()">开始生成</button>
+
+        <button class="save-btn" id="video-gen-start-btn" onclick="generateVideo()">开始生成</button>
       </div>
     </div>
     

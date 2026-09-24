@@ -36,6 +36,28 @@ var XCSyncBridge = {
   }
 };
 
+// ===== V5.1 管理员账号校验 =====
+// 无后端的本地演示形态：默认 admin / admin123（与登录页提示一致）；
+// 允许通过 localStorage.xc_admin_credential 覆盖为 {username,password}（例如部署方自改密码）。
+function getAdminCredential() {
+  try {
+    var raw = localStorage.getItem('xc_admin_credential');
+    if (raw) {
+      var c = JSON.parse(raw);
+      if (c && typeof c.username === 'string' && typeof c.password === 'string' &&
+          c.username.trim() && c.password) {
+        return { username: c.username.trim(), password: c.password };
+      }
+    }
+  } catch (e) { /* 覆盖数据损坏时回退默认账号 */ }
+  return { username: 'admin', password: 'admin123' };
+}
+
+function verifyAdminCredential(username, password) {
+  var cred = getAdminCredential();
+  return username === cred.username && password === cred.password;
+}
+
 var DB = {
   // 初始化默认数据
   init: function() {
