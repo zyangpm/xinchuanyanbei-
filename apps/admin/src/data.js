@@ -10,6 +10,27 @@
 //    - 桌面版：通过 window.xcShared 写入双方共享 JSON 文件
 //    注意：初始示例数据不会同步，只有管理员的真实操作才会同步到学生端。
 
+// ===== V6.0：后端同步层 =====
+// 后台每次增删改题库后，把本地题库全量推送到后端数据库（fire-and-forget）。
+// 后端不可用时静默降级，完全不影响后台本地操作。
+var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || 'http://localhost:3000/api';
+
+/**
+ * 异步把题库全量推送到后端（不等待结果，失败静默）。
+ * @param {Array} list 题目列表
+ * @returns {void}
+ */
+function syncQuestionsToServer(list) {
+  try {
+    if (typeof fetch !== 'function') return;
+    fetch(XC_API_BASE + '/questions/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: list || [] })
+    }).catch(function () { /* 后端离线：静默 */ });
+  } catch (e) { /* 环境不支持 fetch：静默 */ }
+}
+
 // ===== V5.1 数据同步层 =====
 var XCSyncBridge = {
   isElectron: function() {
@@ -184,6 +205,8 @@ var DB = {
     // 全量题目也同步一份（桌面端后台重开时列表一致）
     XCSyncBridge.setCollection('xc_question_sync', overlay);
     XCSyncBridge.setCollection('xc_questions', this.getQuestions());
+    // V6.0：推送到后端数据库（后台发布的题学生端可见）
+    syncQuestionsToServer(this.getQuestions());
   },
   _syncQuestionDelete: function(row) {
     var overlay = {};
@@ -200,6 +223,13 @@ var DB = {
     localStorage.setItem('xc_question_sync', JSON.stringify(overlay));
     XCSyncBridge.setCollection('xc_question_sync', overlay);
     XCSyncBridge.setCollection('xc_questions', this.getQuestions());
+    // V6.0：同步删除到后端 + 推送最新全量
+    try {
+      if (typeof fetch === 'function') {
+        fetch(XC_API_BASE + '/questions/' + row.id, { method: 'DELETE' }).catch(function () {});
+      }
+    } catch (e) { /* 后端离线：静默 */ }
+    syncQuestionsToServer(this.getQuestions());
   },
 
   // 资料管理

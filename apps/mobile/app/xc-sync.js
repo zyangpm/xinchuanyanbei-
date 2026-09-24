@@ -17,6 +17,9 @@ var XCSync = (function () {
   var LS_MATERIALS = 'xc_materials';
   var LS_FEEDBACKS = 'feedbacks';
   var LS_OVERLAY = 'xc_question_sync';
+  var LS_SRV_HASH = 'xc_srv_hash';
+  // 后端地址（部署到云服务器时把域名写进 window.XC_API_BASE 即可切换）
+  var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || 'http://localhost:3000/api';
 
   function isElectron() {
     return !!(window.xcShared && window.xcShared.mode === 'electron');
@@ -237,6 +240,38 @@ var XCSync = (function () {
     });
   }
 
+  // V6.0：从后端拉取题库 overlay（跨设备共享）。
+  // 异步执行，失败静默；拉到新数据时写入本地 overlay 并刷新一次，使后台发布的题在本机可见。
+  function fetchServerOverlay() {
+    try {
+      if (typeof fetch !== 'function' || isElectron()) return;
+      fetch(XC_API_BASE + '/questions').then(function (r) { return r.json(); }).then(function (res) {
+        if (!res || !Array.isArray(res.data)) return;
+        var remote = {};
+        res.data.forEach(function (q) {
+          if (q && q.id != null) {
+            remote[String(q.id)] = {
+              id: q.id, title: q.title, questionType: q.questionType,
+              category: q.category, tag: q.tag, status: q.status, contentJson: q.contentJson
+            };
+          }
+        });
+        var local = {};
+        try { local = JSON.parse(localStorage.getItem(LS_OVERLAY) || '{}'); } catch (e) { local = {}; }
+        var merged = {};
+        Object.keys(local).forEach(function (k) { merged[k] = local[k]; });
+        Object.keys(remote).forEach(function (k) { merged[k] = remote[k]; });
+        var mergedStr = JSON.stringify(merged);
+        var prevHash = localStorage.getItem(LS_SRV_HASH) || '';
+        if (prevHash !== mergedStr) {
+          localStorage.setItem(LS_OVERLAY, mergedStr);
+          localStorage.setItem(LS_SRV_HASH, mergedStr);
+          location.reload();
+        }
+      }).catch(function () { /* 后端离线：静默降级为本地数据 */ });
+    } catch (e) { /* 静默 */ }
+  }
+
   function init() {
     try {
       mirrorSharedToLocal();
@@ -246,6 +281,7 @@ var XCSync = (function () {
     } catch (e) {
       window.XCSyncReady = true;
     }
+    fetchServerOverlay();
   }
 
   // DOM 可能在本脚本之前已就绪（脚本位于 body 底部），立即初始化
