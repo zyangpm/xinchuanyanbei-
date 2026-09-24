@@ -3902,7 +3902,7 @@ body {
 }
 
 .mindmap-center {
-  background: linear-gradient(135deg, #243A5E 0%, #3A5A8E 100%);
+  background: linear-gradient(135deg, #8C4A3C 0%, #A85A48 100%);
   border-radius: var(--radius-lg);
   padding: 24px 20px;
   text-align: center;
@@ -4000,7 +4000,7 @@ body {
 }
 
 .tree-mindmap-root {
-  background: linear-gradient(135deg, #243A5E 0%, #3A5A8E 100%);
+  background: linear-gradient(135deg, #8C4A3C 0%, #A85A48 100%);
   color: #fff;
   border-radius: 20px;
   padding: 16px 24px;

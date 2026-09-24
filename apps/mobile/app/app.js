@@ -471,7 +471,7 @@ function renderAiProviderList() {
     var active = key === aiModalSelectedKey;
     html += '<div class="ai-provider-item" data-model="' + key + '" onclick="selectAiModel(\'' + key + '\')" ' +
       'style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;margin-bottom:8px;' +
-      'border:1px solid ' + (active ? 'var(--primary,#243A5E)' : 'var(--paper-line,#e6e1d6)') + ';' +
+      'border:1px solid ' + (active ? 'var(--primary,#8C4A3C)' : 'var(--paper-line,#e6e1d6)') + ';' +
       'border-radius:10px;cursor:pointer;background:' + (active ? '#f2f5fa' : 'var(--paper,#fff)') + ';' +
       'transition:border-color .15s,background .15s,transform .12s;" ' +
       'onmousedown="this.style.transform=\'scale(0.98)\'" onmouseup="this.style.transform=\'scale(1)\'" onmouseleave="this.style.transform=\'scale(1)\'">' +
@@ -479,7 +479,7 @@ function renderAiProviderList() {
         '<div style="font-weight:600;font-size:14px;color:var(--ink,#222);">' + escapeHtml(p.label) + '</div>' +
         '<div style="font-size:11px;margin-top:2px;color:' + badgeColor + ';font-weight:600;">' + badge + '</div>' +
       '</div>' +
-      '<div class="check" style="font-size:16px;color:var(--primary,#243A5E);font-weight:700;">' + (active ? '✓' : '') + '</div>' +
+      '<div class="check" style="font-size:16px;color:var(--primary,#8C4A3C);font-weight:700;">' + (active ? '✓' : '') + '</div>' +
     '</div>';
   });
   box.innerHTML = html;
@@ -596,7 +596,7 @@ function showAiLoading(modelLabel) {
   el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999;';
   el.innerHTML =
     '<div style="background:#fff;border-radius:16px;padding:22px 24px;width:min(78vw,300px);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2);">' +
-      '<div style="width:34px;height:34px;border:3px solid #e0e0e0;border-top-color:#243A5E;border-radius:50%;margin:0 auto 12px;animation:aiSpin .8s linear infinite;"></div>' +
+      '<div style="width:34px;height:34px;border:3px solid #e0e0e0;border-top-color:#8C4A3C;border-radius:50%;margin:0 auto 12px;animation:aiSpin .8s linear infinite;"></div>' +
       '<div style="font-size:14px;font-weight:600;color:#222;">AI 思考中…</div>' +
       '<div style="font-size:12px;color:#8a8f99;margin-top:4px;">' + escapeHtml(modelLabel || '') + '</div>' +
     '</div>';
@@ -2476,13 +2476,13 @@ function renderMindMap(definition, title) {
   
   var svg = '<svg id="' + svgId + '" width="' + svgWidth + '" height="' + svgHeight + '" viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '" style="display:block;">';
   svg += '<defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">';
-  svg += '<stop offset="0%" style="stop-color:#243A5E"/><stop offset="100%" style="stop-color:#3A5A8E"/>';
+  svg += '<stop offset="0%" style="stop-color:#8C4A3C"/><stop offset="100%" style="stop-color:#A85A48"/>';
   svg += '</linearGradient></defs>';
   
   svg += '<rect x="' + rootX + '" y="' + (rootY - 22) + '" width="' + rootWidth + '" height="44" rx="22" fill="url(#rg)"/>';
   svg += '<text x="' + (rootX + rootWidth/2) + '" y="' + (rootY + 5) + '" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">' + escapeHtml(title || '核心概念') + '</text>';
   // V5.1 补 root→trunk 横线（原始代码缺失，导致 root 看起来和 trunk 断开）
-  svg += '<line x1="' + rootRightX + '" y1="' + rootY + '" x2="' + trunkX + '" y2="' + rootY + '" stroke="#243A5E" stroke-width="1.2" opacity="0.55"/>';
+  svg += '<line x1="' + rootRightX + '" y1="' + rootY + '" x2="' + trunkX + '" y2="' + rootY + '" stroke="#8C4A3C" stroke-width="1.2" opacity="0.55"/>';
   
   var curY = 0;
   var leafNodes = [];
@@ -2496,14 +2496,14 @@ function renderMindMap(definition, title) {
     var bW = branchWidths[idx];
     var curBranchRight = branchLeftX + bW;
     
-    svg += '<line x1="' + trunkX + '" y1="' + bCY + '" x2="' + (branchLeftX - 10) + '" y2="' + bCY + '" stroke="#243A5E" stroke-width="1.2" opacity="0.5"/>';
+    svg += '<line x1="' + trunkX + '" y1="' + bCY + '" x2="' + (branchLeftX - 10) + '" y2="' + bCY + '" stroke="#8C4A3C" stroke-width="1.2" opacity="0.5"/>';
     // V5.1 删掉循环里分散的 trunk 分段（每个 branch 只画自己内部那一小段，branch 之间 gap 段完全没竖线→看起来断着）
     // 改在循环外画一条完整的 trunk 竖线
     
     var bl = escapeHtml(block.label);
     // V5.1 branch 卡片 width 用 branchWidths[idx] 自适应
-    svg += '<rect x="' + branchLeftX + '" y="' + branchY + '" width="' + bW + '" height="' + branchHeight + '" rx="8" fill="#FFFEF7" stroke="#243A5E" stroke-width="1.2"/>';
-    svg += '<text x="' + (branchLeftX + bW/2) + '" y="' + (bCY + 4) + '" text-anchor="middle" fill="#243A5E" font-size="11" font-weight="600">' + bl + '</text>';
+    svg += '<rect x="' + branchLeftX + '" y="' + branchY + '" width="' + bW + '" height="' + branchHeight + '" rx="8" fill="#FFFEF7" stroke="#8C4A3C" stroke-width="1.2"/>';
+    svg += '<text x="' + (branchLeftX + bW/2) + '" y="' + (bCY + 4) + '" text-anchor="middle" fill="#8C4A3C" font-size="11" font-weight="600">' + bl + '</text>';
     
     if (block.items && block.items.length > 0) {
       block.items.forEach(function(item, li) {
@@ -2515,9 +2515,9 @@ function renderMindMap(definition, title) {
         var nodeId = 'leaf-' + idx + '-' + li;
         svg += '<g id="' + nodeId + '" style="cursor:pointer;">';
         // V5.1 leaf 横线 x1 用 curBranchRight（当前 branch 自己的右边缘），不再用全局固定的 branchRightX
-        svg += '<line x1="' + curBranchRight + '" y1="' + lCY + '" x2="' + leafLeftX + '" y2="' + lCY + '" stroke="#3A5276" stroke-width="1" opacity="0.4"/>';
-        svg += '<line x1="' + curBranchRight + '" y1="' + bCY + '" x2="' + curBranchRight + '" y2="' + lCY + '" stroke="#3A5276" stroke-width="0.8" opacity="0.3"/>';
-        svg += '<rect x="' + leafLeftX + '" y="' + lY + '" width="' + leafW + '" height="' + leafHeight + '" rx="6" fill="#F5F0E8" stroke="#3A5276" stroke-width="0.8" stroke-opacity="0.4"/>';
+        svg += '<line x1="' + curBranchRight + '" y1="' + lCY + '" x2="' + leafLeftX + '" y2="' + lCY + '" stroke="#A85A48" stroke-width="1" opacity="0.4"/>';
+        svg += '<line x1="' + curBranchRight + '" y1="' + bCY + '" x2="' + curBranchRight + '" y2="' + lCY + '" stroke="#A85A48" stroke-width="0.8" opacity="0.3"/>';
+        svg += '<rect x="' + leafLeftX + '" y="' + lY + '" width="' + leafW + '" height="' + leafHeight + '" rx="6" fill="#F5F0E8" stroke="#A85A48" stroke-width="0.8" stroke-opacity="0.4"/>';
         if (lt) {
           svg += '<text x="' + (leafLeftX + 8) + '" y="' + (lCY + 4) + '" fill="#1C1917" font-size="11">' + lt + '</text>';
         }
@@ -2537,7 +2537,7 @@ function renderMindMap(definition, title) {
   // V5.1：trunk 竖线精确接到第一个 branch 卡片中点和最后一个 branch 卡片中点——之前 y1=0 超出顶部，y2=totalHeight 超出底部
   var _firstCY = branchHeights[0] / 2;
   var _lastCY = totalHeight - branchHeights[branchHeights.length - 1] / 2;
-  svg += '<line x1="' + trunkX + '" y1="' + _firstCY + '" x2="' + trunkX + '" y2="' + _lastCY + '" stroke="#243A5E" stroke-width="1" opacity="0.35"/>';
+  svg += '<line x1="' + trunkX + '" y1="' + _firstCY + '" x2="' + trunkX + '" y2="' + _lastCY + '" stroke="#8C4A3C" stroke-width="1" opacity="0.35"/>';
   svg += '</svg>';
   
   var tooltipHtml = '<div id="mm-tooltip" style="display:none;position:absolute;background:rgba(36,58,94,0.95);color:#fff;padding:10px 14px;border-radius:8px;font-size:12px;max-width:240px;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.5;"></div>';
@@ -3901,23 +3901,23 @@ function applyDarkMode() {
 
 function applyLightMode() {
   var root = document.documentElement;
-  root.style.setProperty('--bg', '#FBF7EE');
-  root.style.setProperty('--card', '#FFFEF7');
-  root.style.setProperty('--paper', '#F5F0E8');
-  root.style.setProperty('--paper-line', '#E8E4DF');
-  root.style.setProperty('--ink', '#1C1917');
-  root.style.setProperty('--ink-soft', '#5B5347');
-  root.style.setProperty('--ink-light', '#9A9085');
-  root.style.setProperty('--seal', '#243A5E');
-  root.style.setProperty('--seal-light', '#3A5276');
-  root.style.setProperty('--red', '#B23A2E');
-  root.style.setProperty('--red-light', '#C75548');
-  root.style.setProperty('--gold', '#C99A3E');
-  root.style.setProperty('--gold-light', '#D9B35F');
-  root.style.setProperty('--green', '#3D6B3D');
-  root.style.setProperty('--green-light', '#5A8A5A');
+  root.style.setProperty('--bg', '#FAF6EE');
+  root.style.setProperty('--card', '#FFFDF8');
+  root.style.setProperty('--paper', '#F2EBE0');
+  root.style.setProperty('--paper-line', '#E7DCC8');
+  root.style.setProperty('--ink', '#40342A');
+  root.style.setProperty('--ink-soft', '#6B5D4D');
+  root.style.setProperty('--ink-light', '#948A7C');
+  root.style.setProperty('--seal', '#8C4A3C');
+  root.style.setProperty('--seal-light', '#A85A48');
+  root.style.setProperty('--red', '#9E3D33');
+  root.style.setProperty('--red-light', '#B55648');
+  root.style.setProperty('--gold', '#BFA76A');
+  root.style.setProperty('--gold-light', '#D8C08C');
+  root.style.setProperty('--green', '#6F7A4F');
+  root.style.setProperty('--green-light', '#8A9668');
   
-  document.body.style.backgroundImage = 'linear-gradient(0deg, transparent 23px, #E8E4DF 24px), linear-gradient(90deg, transparent 23px, #E8E4DF 24px)';
+  document.body.style.backgroundImage = 'linear-gradient(0deg, transparent 23px, #E7DCC8 24px), linear-gradient(90deg, transparent 23px, #E7DCC8 24px)';
   document.body.style.backgroundSize = '24px 24px';
 }
 
