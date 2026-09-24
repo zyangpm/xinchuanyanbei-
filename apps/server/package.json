@@ -1,0 +1,14 @@
+{
+  "name": "@xinchuan/server",
+  "version": "6.0.0",
+  "private": true,
+  "description": "新传研背后端服务（Node.js 内置 http + node:sqlite，零第三方依赖）",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "serve": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
