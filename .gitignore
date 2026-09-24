@@ -38,3 +38,6 @@ yarn-error.log*
 test-results/
 coverage/
 scripts/_qa_shots/
+
+# Server database
+apps/server/data/
