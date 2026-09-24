@@ -240,7 +240,7 @@ var healthQuestions = [
 ];
 
 function saveHistoryProgress(pageId, questionNum) {
-  var history = JSON.parse(localStorage.getItem('exam_history') || '{}');
+  var history = safeParseStorage('exam_history', {});
   history[pageId] = {
     question: questionNum,
     timestamp: Date.now()
@@ -249,7 +249,7 @@ function saveHistoryProgress(pageId, questionNum) {
 }
 
 function loadHistoryProgress(pageId) {
-  var history = JSON.parse(localStorage.getItem('exam_history') || '{}');
+  var history = safeParseStorage('exam_history', {});
   return history[pageId] || null;
 }
 
@@ -257,7 +257,7 @@ function renderHistorySection() {
   var container = document.getElementById('history-list');
   if (!container) return;
   
-  var history = JSON.parse(localStorage.getItem('exam_history') || '{}');
+  var history = safeParseStorage('exam_history', {});
   var hasHistory = false;
   
   var html = '';
@@ -406,7 +406,7 @@ function toggleAiHint(id) {
 function saveAnswer(index) {
   var textarea = document.getElementById('ans-' + index);
   if (textarea) {
-    var answers = JSON.parse(localStorage.getItem('exam_answers') || '{}');
+    var answers = safeParseStorage('exam_answers', {});
     var key = 'q' + currentQuestion + '_ans_' + index;
     answers[key] = textarea.value;
     localStorage.setItem('exam_answers', JSON.stringify(answers));
@@ -414,7 +414,7 @@ function saveAnswer(index) {
 }
 
 function loadAnswers() {
-  var answers = JSON.parse(localStorage.getItem('exam_answers') || '{}');
+  var answers = safeParseStorage('exam_answers', {});
   for (var i = 1; i <= 8; i++) {
     var textarea = document.getElementById('ans-' + i);
     if (textarea) {
@@ -432,7 +432,7 @@ function showFullAnswer() {
 }
 
 function showMyAnswers() {
-  var answers = JSON.parse(localStorage.getItem('exam_answers') || '{}');
+  var answers = safeParseStorage('exam_answers', {});
   var container = document.getElementById('my-answers-content');
   
   var sectionTitles = [
@@ -578,7 +578,7 @@ function submitAnalysis() {
     timestamp: Date.now()
   };
   
-  var analyses = JSON.parse(localStorage.getItem('exam_analyses') || '[]');
+  var analyses = safeParseStorage('exam_analyses', []);
   analyses.unshift(analysis);
   localStorage.setItem('exam_analyses', JSON.stringify(analyses));
   
@@ -590,7 +590,7 @@ function submitAnalysis() {
 }
 
 function renderAnalyses() {
-  var analyses = JSON.parse(localStorage.getItem('exam_analyses') || '[]');
+  var analyses = safeParseStorage('exam_analyses', []);
   var filtered = analyses.filter(function(a) { return a.questionId === currentQuestion; });
   
   var container = document.querySelector('#tab-analysis .analysis-section');
@@ -687,7 +687,7 @@ function initCommentPage() {
 function saveCommentAnswer(field) {
   var input = document.getElementById('ans-' + field);
   if (input) {
-    var answers = JSON.parse(localStorage.getItem('comment_answers') || '{}');
+    var answers = safeParseStorage('comment_answers', {});
     var key = 'cq' + currentQuestion + '_ans_' + field;
     answers[key] = input.value;
     localStorage.setItem('comment_answers', JSON.stringify(answers));
@@ -695,7 +695,7 @@ function saveCommentAnswer(field) {
 }
 
 function loadCommentAnswers() {
-  var answers = JSON.parse(localStorage.getItem('comment_answers') || '{}');
+  var answers = safeParseStorage('comment_answers', {});
   var fields = ['title', 'intro', 'what', 'why', 'how', 'conclusion'];
   fields.forEach(function(field) {
     var input = document.getElementById('ans-' + field);
@@ -714,7 +714,7 @@ function showCommentFullAnswer() {
 }
 
 function showMyCommentAnswers() {
-  var answers = JSON.parse(localStorage.getItem('comment_answers') || '{}');
+  var answers = safeParseStorage('comment_answers', {});
   var container = document.getElementById('my-comment-answers-content');
   
   var sectionTitles = {
@@ -888,7 +888,7 @@ function initNewsPage() {
 function saveNewsAnswer(field) {
   var input = document.getElementById('ans-' + field);
   if (input) {
-    var answers = JSON.parse(localStorage.getItem('news_answers') || '{}');
+    var answers = safeParseStorage('news_answers', {});
     var key = 'nq' + currentQuestion + '_ans_' + field;
     answers[key] = input.value;
     localStorage.setItem('news_answers', JSON.stringify(answers));
@@ -896,7 +896,7 @@ function saveNewsAnswer(field) {
 }
 
 function loadNewsAnswers() {
-  var answers = JSON.parse(localStorage.getItem('news_answers') || '{}');
+  var answers = safeParseStorage('news_answers', {});
   var fields = ['title', 'head', 'intro', 'body', 'end'];
   fields.forEach(function(field) {
     var input = document.getElementById('ans-' + field);
@@ -915,7 +915,7 @@ function showNewsFullAnswer() {
 }
 
 function showMyNewsAnswers() {
-  var answers = JSON.parse(localStorage.getItem('news_answers') || '{}');
+  var answers = safeParseStorage('news_answers', {});
   var container = document.getElementById('my-news-answers-content');
   
   var sectionTitles = {
@@ -1191,7 +1191,7 @@ function renderHealthAnswer() {
 function saveHealthAnswer(field) {
   var input = document.getElementById('ans-' + field);
   if (input) {
-    var answers = JSON.parse(localStorage.getItem('health_answers') || '{}');
+    var answers = safeParseStorage('health_answers', {});
     var key = 'hq' + currentQuestion + '_ans_' + field;
     answers[key] = input.value;
     localStorage.setItem('health_answers', JSON.stringify(answers));
@@ -1199,7 +1199,7 @@ function saveHealthAnswer(field) {
 }
 
 function loadHealthAnswers() {
-  var answers = JSON.parse(localStorage.getItem('health_answers') || '{}');
+  var answers = safeParseStorage('health_answers', {});
   var q = healthQuestions[currentQuestion - 1];
   
   q.framework.forEach(function(section) {
@@ -1255,7 +1255,7 @@ function selectAnalysisType(type) {
 }
 
 function showMyHealthAnswers() {
-  var answers = JSON.parse(localStorage.getItem('health_answers') || '{}');
+  var answers = safeParseStorage('health_answers', {});
   var q = healthQuestions[currentQuestion - 1];
   
   var html = '<div style="padding:20px;">';
@@ -1684,7 +1684,7 @@ function renderMarketingAnswer() {
 function saveMarketingAnswer(field) {
   var input = document.getElementById('ans-' + field);
   if (input) {
-    var answers = JSON.parse(localStorage.getItem('marketing_answers') || '{}');
+    var answers = safeParseStorage('marketing_answers', {});
     var key = 'mq' + currentQuestion + '_ans_' + field;
     answers[key] = input.value;
     localStorage.setItem('marketing_answers', JSON.stringify(answers));
@@ -1692,7 +1692,7 @@ function saveMarketingAnswer(field) {
 }
 
 function loadMarketingAnswers() {
-  var answers = JSON.parse(localStorage.getItem('marketing_answers') || '{}');
+  var answers = safeParseStorage('marketing_answers', {});
   var q = marketingQuestions[currentQuestion - 1];
   
   q.framework.forEach(function(section) {
@@ -1736,7 +1736,7 @@ function selectMarketingAnalysisType(type) {
 }
 
 function showMyMarketingAnswers() {
-  var answers = JSON.parse(localStorage.getItem('marketing_answers') || '{}');
+  var answers = safeParseStorage('marketing_answers', {});
   var q = marketingQuestions[currentQuestion - 1];
   
   var html = '<div style="padding:20px;">';
@@ -1937,7 +1937,7 @@ function renderCopywritingAnswer() {
 function saveCopywritingAnswer(field) {
   var input = document.getElementById('ans-' + field);
   if (input) {
-    var answers = JSON.parse(localStorage.getItem('copywriting_answers') || '{}');
+    var answers = safeParseStorage('copywriting_answers', {});
     var key = 'cq' + currentQuestion + '_ans_' + field;
     answers[key] = input.value;
     localStorage.setItem('copywriting_answers', JSON.stringify(answers));
@@ -1945,7 +1945,7 @@ function saveCopywritingAnswer(field) {
 }
 
 function loadCopywritingAnswers() {
-  var answers = JSON.parse(localStorage.getItem('copywriting_answers') || '{}');
+  var answers = safeParseStorage('copywriting_answers', {});
   var q = copywritingQuestions[currentQuestion - 1];
   
   q.framework.forEach(function(section) {
@@ -1979,7 +1979,7 @@ function selectCopywritingAnalysisType(type) {
 }
 
 function showMyCopywritingAnswers() {
-  var answers = JSON.parse(localStorage.getItem('copywriting_answers') || '{}');
+  var answers = safeParseStorage('copywriting_answers', {});
   var q = copywritingQuestions[currentQuestion - 1];
   
   var html = '<div style="padding:20px;">';

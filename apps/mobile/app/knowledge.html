@@ -198,6 +198,9 @@
           }
         }
       }
+      if (typeof renderKnowledgeDynamicRows === 'function') {
+        renderKnowledgeDynamicRows();
+      }
       if (typeof renderUploadedMaterials === 'function') {
         renderUploadedMaterials();
       }

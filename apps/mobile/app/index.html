@@ -125,17 +125,7 @@
       if (daysEl) daysEl.textContent = '已登录 · 连续背诵 ' + info.days + ' 天';
     })();
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then((registration) => {
-            console.log('Service Worker registered: ', registration);
-          })
-          .catch((registrationError) => {
-            console.log('Service Worker registration failed: ', registrationError);
-          });
-      });
-    }
+    // V5.1：Service Worker 注册已统一收敛到 app.js，所有页面生效（file:// 下自动跳过）
   </script>
 </body>
 </html>

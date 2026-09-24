@@ -27,6 +27,14 @@ function handleLogin(event) {
   if (!username) { showHint('请输入管理员账号'); return false; }
   if (!password) { showHint('请输入密码'); return false; }
 
+  // V5.1：必须通过账号密码校验（默认 admin/admin123），任意非空凭据不再放行
+  if (typeof verifyAdminCredential !== 'function' || !verifyAdminCredential(username, password)) {
+    showHint('账号或密码错误，请重试（默认账号 admin，密码 admin123）');
+    var errBtn = document.querySelector('.login-btn');
+    if (errBtn) { errBtn.textContent = '登 录'; errBtn.style.opacity = '1'; }
+    return false;
+  }
+
   var btn = document.querySelector('.login-btn');
   btn.textContent = '登录中...';
   btn.style.opacity = '0.7';
@@ -250,10 +258,13 @@ function handleUpload() {
 
   if (type === 'PDF') {
     parsePDF(file, function(content) {
+      // 解析失败（含组件缺失/损坏文件）时不入库，错误提示与按钮恢复已在 parsePDF 内完成
+      if (content === null || content === undefined) return;
       saveMaterialData(title, source, type, chapter, file, content);
     });
   } else if (type === 'Word') {
     parseWord(file, function(content) {
+      if (content === null || content === undefined) return;
       saveMaterialData(title, source, type, chapter, file, content);
     });
   } else if (type === 'TXT') {
@@ -269,14 +280,41 @@ function handleUpload() {
   }
 }
 
+function resetUploadBtn() {
+  var b = document.querySelector('#upload-modal .btn-primary');
+  if (b) { b.textContent = '确认上传'; b.disabled = false; }
+}
+
 function parsePDF(file, callback) {
+  // V5.1：pdf.js 未能加载（CDN 被拦截等）时明确报错并恢复按钮，绝不静默挂死
+  if (typeof pdfjsLib === 'undefined') {
+    showHint('PDF 解析组件加载失败（网络无法访问 CDN），请检查网络后重试，或改用 TXT/Word 上传');
+    resetUploadBtn();
+    callback(null);
+    return;
+  }
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  } catch (e) { /* 忽略 worker 配置异常，必要时走 fake worker */ }
+
   var fileReader = new FileReader();
   fileReader.onload = function() {
     var typedArray = new Uint8Array(this.result);
-    pdfjsLib.getDocument({ data: typedArray }).promise.then(function(pdf) {
+    var pdfTask;
+    try {
+      pdfTask = pdfjsLib.getDocument({ data: typedArray });
+    } catch (e) {
+      console.error('PDF初始化错误:', e);
+      showHint('PDF 文件无法打开，请确认文件未损坏且为有效 PDF');
+      resetUploadBtn();
+      callback(null);
+      return;
+    }
+    pdfTask.promise.then(function(pdf) {
       var totalPages = pdf.numPages;
       var textContent = '';
-      
+
       function extractPage(pageNum) {
         pdf.getPage(pageNum).then(function(page) {
           return page.getTextContent();
@@ -285,7 +323,7 @@ function parsePDF(file, callback) {
             return item.str;
           }).join('\n');
           textContent += pageText + '\n\n';
-          
+
           if (pageNum < totalPages) {
             extractPage(pageNum + 1);
           } else {
@@ -293,30 +331,41 @@ function parsePDF(file, callback) {
           }
         }).catch(function(error) {
           console.error('PDF解析错误:', error);
+          showHint('PDF 第 ' + pageNum + ' 页解析失败，请尝试其他文件');
+          resetUploadBtn();
           callback(null);
         });
       }
-      
+
       extractPage(1);
     }).catch(function(error) {
       console.error('PDF加载错误:', error);
-      showHint('PDF解析失败，请尝试其他文件');
-      var btn = document.querySelector('#upload-modal .btn-primary');
-      if (btn) { btn.textContent = '确认上传'; btn.disabled = false; }
+      showHint('PDF解析失败（文件可能已损坏或已加密），请尝试其他文件');
+      resetUploadBtn();
       callback(null);
     });
+  };
+  fileReader.onerror = function() {
+    showHint('文件读取失败，请重试');
+    resetUploadBtn();
+    callback(null);
   };
   fileReader.readAsArrayBuffer(file);
 }
 
 function parseWord(file, callback) {
+  if (typeof mammoth === 'undefined') {
+    showHint('Word 解析组件加载失败（网络无法访问 CDN），请检查网络后重试，或改用 TXT/PDF 上传');
+    resetUploadBtn();
+    callback(null);
+    return;
+  }
   mammoth.extractRawText({ arrayBuffer: file }).then(function(result) {
     callback(result.value);
   }).catch(function(error) {
     console.error('Word解析错误:', error);
-    showHint('Word解析失败，请尝试其他文件');
-    var btn = document.querySelector('#upload-modal .btn-primary');
-    if (btn) { btn.textContent = '确认上传'; btn.disabled = false; }
+    showHint('Word解析失败（文件可能已损坏或非 .docx 格式），请尝试其他文件');
+    resetUploadBtn();
     callback(null);
   });
 }

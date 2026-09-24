@@ -97,9 +97,15 @@
         var aiName = localStorage.getItem('aiModelName') || 'DeepSeek';
         var hasKey = !!localStorage.getItem('apiKey');
         var hasTpl = !!localStorage.getItem('aiPromptTemplate');
+        // V5.1：视频生成 API 配置入口（即梦/火山方舟等异步任务协议）
+        var videoKey = localStorage.getItem('aiVideoProvider') || 'jimeng';
+        var videoConf = (typeof AiService !== 'undefined' && AiService.getVideoProvider) ? AiService.getVideoProvider(videoKey) : null;
+        var videoReady = videoConf && AiService.isVideoConfigured(videoKey);
+        var videoLabel = videoConf ? videoConf.label : '未选择';
         html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openAiModelSetting()"><span>AI模型</span><span class="val">' + escapeHtml(aiName) + ' ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openAiKeySetting()"><span>API Key</span><span class="val">' + (hasKey ? '已配置' : '未配置') + ' ›</span></div>' +
-               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="openPromptTemplateModal()"><span>自定义提示词模板</span><span class="val">' + (hasTpl ? '已设置' : '未设置') + ' ›</span></div>';
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openPromptTemplateModal()"><span>自定义提示词模板</span><span class="val">' + (hasTpl ? '已设置' : '未设置') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="openVideoApiSetting()"><span>视频生成 API</span><span class="val">' + (videoReady ? '已配置 · ' + escapeHtml(videoLabel) : '未配置') + ' ›</span></div>';
       } else if (section === 'general') {
         var fontSize = localStorage.getItem('fontSize') || 'normal';
         var sizeNames = { small: '小号', normal: '标准', large: '大号', xlarge: '特大' };

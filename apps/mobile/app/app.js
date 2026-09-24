@@ -1,22 +1,73 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// ===== 学生端通用应用逻辑 =====
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// ===== 学生端通用应用逻辑 =====
 // 这个脚本主要负责：
 // 1. 初始化默认登录状态和用户信息
 // 2. 主题、字体、学习模式等设置
 // 3. 统一的页面导航、弹窗与页面交互辅助函数
 // 4. 共享给多个 HTML 页面使用的通用能力
 
-// 公网测试环境：确保外部访问者有默认登录状态
-if (!localStorage.getItem('isLoggedIn')) {
-  localStorage.setItem('isLoggedIn', 'true');
-  localStorage.setItem('loginType', 'password');
-  localStorage.setItem('userPhone', '13800000000');
-  if (!localStorage.getItem('userNickname')) {
-    localStorage.setItem('userNickname', '林同学');
-  }
-  if (!localStorage.getItem('studyDays')) {
-    localStorage.setItem('studyDays', '42');
+// ===== V5.1 本地存储安全读写 =====
+// 脏数据容错：任一集合 JSON 损坏时回退到 fallback，绝不让单条坏数据中断整页初始化
+function safeParseStorage(key, fallback) {
+  try {
+    var raw = localStorage.getItem(key);
+    if (raw === null || raw === '') return fallback;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.warn('本地数据损坏，已回退默认值：' + key);
+    return fallback;
   }
 }
+
+// 配额容错：写入失败（如 QuotaExceededError）返回 false，由调用方给用户明确提示
+function safeSetStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    console.warn('本地存储写入失败：' + key, e);
+    return false;
+  }
+}
+
+// ===== V5.1 登录态与路由守卫 =====
+// 不再"访问即自动登录"；除登录页/闪屏页外，未登录一律跳转登录页，退出登录立即生效
+(function setupAuthGuard() {
+  try {
+    var pageFile = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    if (pageFile === 'login.html' || pageFile === 'splash.html') {
+      // 已登录用户再打开登录页，直接回首页
+      if (pageFile === 'login.html' && localStorage.getItem('isLoggedIn') === 'true') {
+        window.location.replace('index.html');
+      }
+      return;
+    }
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.replace('login.html');
+    }
+  } catch (e) { /* 守卫自身异常不阻断页面 */ }
+})();
+
+// 登录成功后补齐演示用户的默认资料（替代旧的"访问即写默认登录态"）
+function ensureDefaultProfile() {
+  if (!localStorage.getItem('loginType')) localStorage.setItem('loginType', 'password');
+  if (!localStorage.getItem('userNickname')) localStorage.setItem('userNickname', '新传研友');
+  if (!localStorage.getItem('studyDays')) localStorage.setItem('studyDays', '1');
+}
+
+// ===== V5.1 PWA Service Worker 统一注册 =====
+// 所有页面都会加载 app.js，在此注册一次即可覆盖全部页面；
+// 仅 http(s) 网页/PWA 环境注册（Electron file:// 与不支持 SW 的环境自动跳过）
+(function setupServiceWorker() {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    if (window.location.protocol.indexOf('http') !== 0) return;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js').catch(function (e) {
+        console.warn('Service Worker 注册失败：', e);
+      });
+    });
+  } catch (e) { /* 注册失败不影响页面 */ }
+})();
 
 function getUserInfo() {
   return {
@@ -83,7 +134,7 @@ function getCurrentRatingKey() {
 function rateWord(rating) {
   var key = getCurrentRatingKey();
   if (!key) return false;
-  var ratings = JSON.parse(localStorage.getItem('wordRatings') || '{}');
+  var ratings = safeParseStorage('wordRatings', {});
   var isFirst = !ratings[key];
   ratings[key] = { rating: rating, ts: new Date().toISOString() };
   localStorage.setItem('wordRatings', JSON.stringify(ratings));
@@ -230,13 +281,13 @@ function initThemeAndFont() {
     if (homeAvatar) homeAvatar.textContent = displayText;
   }
 
-  var notes = JSON.parse(localStorage.getItem('notes') || '[]');
+  var notes = safeParseStorage('notes', []);
   var noteCountEl = document.querySelector('.settings-row[onclick="openNoteList()"] .val');
   if (noteCountEl) {
     noteCountEl.textContent = notes.length + '条 ›';
   }
 
-  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+  var materials = safeParseStorage('xc_materials', []);
   var materialCountEl = document.querySelector('.settings-row[onclick="openUploadLibrary()"] .val');
   if (materialCountEl) {
     materialCountEl.textContent = materials.length + '份 ›';
@@ -289,16 +340,32 @@ function fillProfileStats() {
     statM.textContent = v || '0';
   }
   if (statF) {
-    var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    var favs = safeParseStorage('favorites', []);
     statF.textContent = favs.length || '0';
   }
   if (statN) {
-    var notes = JSON.parse(localStorage.getItem('notes') || '[]');
+    var notes = safeParseStorage('notes', []);
     statN.textContent = notes.length || '0';
   }
 }
 
+// V5.1：详情页（名词/简答/论述/实训）顶部 breadcrumb 的"返回"统一跳知识库 knowledge.html，
+// 而不是 history.back() 回到上一个名词——切上一个名词是底部 prevTerm/prevShort/prevEssay 的职责。
+// 其他页面（如 settings 子区）保持 history.back()，避免破坏既有导航链。
 function goBack() {
+  var page = '';
+  try {
+    var p = window.location.pathname;
+    page = p.substring(p.lastIndexOf('/') + 1).toLowerCase();
+  } catch (e) {}
+  var isDetailPage = page === 'noun-detail.html'
+    || page === 'short-detail.html'
+    || page === 'essay-detail.html'
+    || page === 'training-detail.html';
+  if (isDetailPage) {
+    navigateTo('knowledge.html');
+    return;
+  }
   if (history.length > 1) {
     history.back();
   } else {
@@ -631,11 +698,91 @@ function openUploadModal() {
   }
 }
 
+// ===== V5.1 学生端资料解析：PDF / Word 动态加载真实解析库 =====
+var PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+var PDFJS_WORKER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+var MAMMOTH_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+
+function loadExternalLib(globalName, src) {
+  return new Promise(function (resolve, reject) {
+    if (window[globalName]) { resolve(window[globalName]); return; }
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onload = function () {
+      if (window[globalName]) resolve(window[globalName]);
+      else reject(new Error('lib loaded but global missing'));
+    };
+    s.onerror = function () { reject(new Error('network')); };
+    document.head.appendChild(s);
+  });
+}
+
+function extractPdfText(file) {
+  return loadExternalLib('pdfjsLib', PDFJS_CDN).then(function (pdfjsLib) {
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
+    } catch (e) { /* fake worker 兜底 */ }
+    return file.arrayBuffer().then(function (buf) {
+      return pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    }).then(function (pdf) {
+      var pages = [];
+      for (var p = 1; p <= pdf.numPages; p++) pages.push(p);
+      return pages.reduce(function (chain, pageNum) {
+        return chain.then(function (all) {
+          return pdf.getPage(pageNum).then(function (page) {
+            return page.getTextContent();
+          }).then(function (content) {
+            all.push(content.items.map(function (it) { return it.str; }).join('\n'));
+            return all;
+          });
+        });
+      }, Promise.resolve([])).then(function (pageTexts) {
+        return pageTexts.join('\n\n');
+      });
+    });
+  });
+}
+
+function extractWordText(file) {
+  return loadExternalLib('mammoth', MAMMOTH_CDN).then(function (mammoth) {
+    return file.arrayBuffer().then(function (buf) {
+      return mammoth.extractRawText({ arrayBuffer: buf });
+    }).then(function (result) {
+      return result.value || '';
+    });
+  });
+}
+
+function saveKnowledgeMaterial(title, book, file, content) {
+  var materials = safeParseStorage('xc_materials', []);
+  var material = {
+    id: Date.now(),
+    title: title,
+    sourceType: book,
+    fileType: file.name.split('.').pop().toUpperCase(),
+    wordCount: content.length,
+    chapterInfo: '-',
+    parseStatus: 'done',
+    uploadedBy: 'user',
+    createdAt: new Date().toLocaleString('zh-CN'),
+    fileContent: content
+  };
+  materials.push(material);
+  // 配额保护：写入失败（空间满/隐私模式）明确告知，绝不假装成功
+  if (!safeSetStorage('xc_materials', JSON.stringify(materials))) {
+    return false;
+  }
+  renderUploadedMaterials();
+  return true;
+}
+
 function handleKnowledgeUpload() {
   var modal = document.getElementById('upload-modal');
   var fileInput = document.getElementById('file-input');
   var titleInput = modal.querySelector('.form-input[type="text"]');
   var select = modal.querySelector('.form-select');
+  var saveBtn = modal.querySelector('.save-btn');
 
   var title = titleInput ? titleInput.value.trim() : '';
   var book = select ? select.value : '';
@@ -650,44 +797,62 @@ function handleKnowledgeUpload() {
   }
 
   var file = fileInput.files[0];
-  var reader = new FileReader();
+  var ext = (file.name.split('.').pop() || '').toLowerCase();
+  var originalBtnText = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) { saveBtn.textContent = '解析中...'; saveBtn.disabled = true; }
 
-  reader.onload = function(e) {
-    var content = e.target.result;
-    var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
-    var materialId = Date.now();
-    materials.push({
-      id: materialId,
-      title: title,
-      sourceType: book,
-      fileType: file.name.split('.').pop().toUpperCase(),
-      wordCount: content.length,
-      chapterInfo: '-',
-      parseStatus: 'done',
-      uploadedBy: 'user',
-      createdAt: new Date().toLocaleString('zh-CN'),
-      fileContent: content
-    });
-    localStorage.setItem('xc_materials', JSON.stringify(materials));
-
-    renderUploadedMaterials();
-
+  function restoreBtn() {
+    if (saveBtn) { saveBtn.textContent = originalBtnText; saveBtn.disabled = false; }
+  }
+  function fail(msg) {
+    restoreBtn();
+    showConfirm('解析失败', msg, 'warning');
+  }
+  function finish(content) {
+    // V5.1：空文本视为解析失败（常见于纯扫描图片 PDF），不得提示成功
+    if (!content || !content.replace(/\s/g, '')) {
+      fail('未能从文件中提取到文字（该 PDF 可能是扫描图片版），请改用含可选中文本的文件或 TXT/Word。');
+      return;
+    }
+    var ok = saveKnowledgeMaterial(title, book, file, content);
+    restoreBtn();
+    if (!ok) {
+      showConfirm('存储空间不足', '本地存储空间已满，资料未保存。请先在「我的收藏/笔记」中清理部分内容后重试。', 'warning');
+      return;
+    }
     closeModal('upload-modal');
-    showConfirm('上传成功', '资料已保存到「' + book + '」分类', 'success');
-
+    showConfirm('上传成功', '资料已解析并保存到「' + book + '」分类（共 ' + content.length + ' 字）', 'success');
     if (titleInput) titleInput.value = '';
     if (fileInput) fileInput.value = '';
-  };
+  }
 
-  reader.onerror = function() {
-    showConfirm('提示', '文件读取失败', 'warning');
-  };
-
-  reader.readAsText(file, 'UTF-8');
+  if (ext === 'txt') {
+    var reader = new FileReader();
+    reader.onload = function (e) { finish(e.target.result); };
+    reader.onerror = function () { fail('文件读取失败，请重试。'); };
+    reader.readAsText(file, 'UTF-8');
+  } else if (ext === 'pdf') {
+    extractPdfText(file).then(finish).catch(function (err) {
+      console.error('PDF 解析失败：', err);
+      fail('PDF 解析失败：文件可能已损坏/加密，或当前网络无法加载解析组件。请联网后重试，或改用 TXT/Word。');
+    });
+  } else if (ext === 'doc' || ext === 'docx') {
+    if (ext === 'doc') {
+      fail('暂不支持旧版 .doc 格式，请用 Word 另存为 .docx 后再上传。');
+      return;
+    }
+    extractWordText(file).then(finish).catch(function (err) {
+      console.error('Word 解析失败：', err);
+      fail('Word 解析失败：文件可能已损坏，或当前网络无法加载解析组件。请联网后重试，或改用 TXT/PDF。');
+    });
+  } else {
+    restoreBtn();
+    showConfirm('提示', '仅支持 TXT、PDF、DOCX 格式文件', 'warning');
+  }
 }
 
 function renderUploadedMaterials() {
-  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+  var materials = safeParseStorage('xc_materials', []);
   if (materials.length === 0) return;
 
   var existingIds = {};
@@ -738,6 +903,141 @@ function renderUploadedMaterials() {
   initMaterialDragToFolder();
 }
 
+// ===== V5.1 知识库列表与题库同步数据对齐 =====
+// knowledge.html 的名词/简答/论述行原为写死的静态 HTML，后台发布的新题不显示、
+// 下架的题入口残留。页面加载时依据 XCSync 合并后的 nounData/shortData/essayData 校正：
+// 1) 给静态题行打 data-kb-type/data-kb-id 标记；2) 删除数据中已不存在（下架/删除）的行；
+// 3) 追加数据中存在但列表缺失的题（含后台新发布题）；4) 移除变空的分组。
+function knowledgeCollectNoun() {
+  if (typeof nounData !== 'object' || nounData === null) return [];
+  return Object.keys(nounData).map(function(title) {
+    var item = nounData[title];
+    return {
+      id: title,
+      title: item.title || title,
+      category: item.category || '传播学原理',
+      tag: item.tag || '新增',
+      url: 'noun-detail.html?term=' + encodeURIComponent(title)
+    };
+  });
+}
+
+function knowledgeCollectArray(storeName, page, idKey) {
+  var store = window[storeName];
+  if (!store || !Array.isArray(store.items)) return [];
+  return store.items.map(function(item) {
+    var id = item[idKey];
+    return {
+      id: id,
+      title: item.title || id,
+      category: item.category || '传播学原理',
+      tag: item.tag || '新增',
+      url: page + '?' + idKey + '=' + encodeURIComponent(id)
+    };
+  });
+}
+
+function parseKnowledgeRowTarget(row) {
+  var oc = row.getAttribute('onclick') || '';
+  var m = oc.match(/'(noun-detail|short-detail|essay-detail)\.html\?(term|short|essay)=([^']+)'/);
+  if (!m) return null;
+  var type = m[1] === 'noun-detail' ? 'noun' : (m[1] === 'short-detail' ? 'short' : 'essay');
+  var id;
+  try { id = decodeURIComponent(m[3]); } catch (e) { id = m[3]; }
+  return { type: type, id: id };
+}
+
+function knowledgeTypeLabel(type) {
+  return { noun: '名词解释', short: '简答题', essay: '论述题' }[type] || '题目';
+}
+
+function findKnowledgeGroup(type, category) {
+  var groups = document.querySelectorAll('[data-book-group]');
+  var sameCat = null, sameType = null;
+  for (var i = 0; i < groups.length; i++) {
+    var g = groups[i];
+    var rows = g.querySelectorAll('.lib-row[data-kb-type]');
+    var typeMatch = false;
+    for (var j = 0; j < rows.length; j++) {
+      if (rows[j].getAttribute('data-kb-type') === type) { typeMatch = true; break; }
+    }
+    if (!typeMatch) continue;
+    if (g.getAttribute('data-book-group') === category) { sameCat = g; break; }
+    if (!sameType) sameType = g;
+  }
+  return sameCat || sameType;
+}
+
+function createKnowledgeGroup(type, category) {
+  var appBody = document.querySelector('.app-body');
+  if (!appBody) return null;
+  var wrapper = document.createElement('div');
+  wrapper.setAttribute('data-book-group', category);
+  wrapper.setAttribute('data-kb-dynamic', type);
+  var head = document.createElement('div');
+  head.className = 'lib-group';
+  head.style.marginTop = '10px';
+  head.textContent = category + ' · ' + knowledgeTypeLabel(type) + '（后台同步）';
+  wrapper.appendChild(head);
+  appBody.appendChild(wrapper);
+  return wrapper;
+}
+
+function createKnowledgeRow(type, item) {
+  var row = document.createElement('div');
+  row.className = 'lib-row';
+  row.setAttribute('data-type', type);
+  row.setAttribute('data-book', item.category);
+  row.setAttribute('data-kb-type', type);
+  row.setAttribute('data-kb-id', item.id);
+  var name = document.createElement('span');
+  name.textContent = item.title;
+  var tag = document.createElement('span');
+  tag.className = 'tag';
+  tag.textContent = item.tag;
+  row.appendChild(name);
+  row.appendChild(tag);
+  row.addEventListener('click', function() { navigateTo(item.url); });
+  return row;
+}
+
+function renderKnowledgeDynamicRows() {
+  if (!document.querySelector('.lib-row')) return;
+
+  var sources = {
+    noun: knowledgeCollectNoun(),
+    short: knowledgeCollectArray('shortData', 'short-detail.html', 'short'),
+    essay: knowledgeCollectArray('essayData', 'essay-detail.html', 'essay')
+  };
+
+  // 1) 标记静态题行，并删除数据中已不存在的行（下架/删除）
+  var rows = document.querySelectorAll('.lib-row[data-type]');
+  Array.prototype.forEach.call(rows, function(row) {
+    var target = parseKnowledgeRowTarget(row);
+    if (!target) return; // 非题目行（如用户上传资料行）不动
+    row.setAttribute('data-kb-type', target.type);
+    row.setAttribute('data-kb-id', target.id);
+    var exists = sources[target.type].some(function(it) { return String(it.id) === String(target.id); });
+    if (!exists) row.remove();
+  });
+
+  // 2) 清理没有任何题行/资料行的空分组
+  var groups = document.querySelectorAll('[data-book-group]');
+  Array.prototype.forEach.call(groups, function(g) {
+    if (!g.querySelector('.lib-row')) g.remove();
+  });
+
+  // 3) 追加数据中存在但列表缺失的题
+  Object.keys(sources).forEach(function(type) {
+    sources[type].forEach(function(item) {
+      var selector = '.lib-row[data-kb-type="' + type + '"][data-kb-id="' + String(item.id).replace(/"/g, '\\"') + '"]';
+      if (document.querySelector(selector)) return;
+      var group = findKnowledgeGroup(type, item.category) || createKnowledgeGroup(type, item.category);
+      if (group) group.appendChild(createKnowledgeRow(type, item));
+    });
+  });
+}
+
 function initMaterialDragToFolder() {
   var chips = document.querySelectorAll('.textbook-chip');
   chips.forEach(function(chip) {
@@ -764,7 +1064,7 @@ function initMaterialDragToFolder() {
       var newBook = match[1];
       if (newBook === 'all') return;
 
-      var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+      var materials = safeParseStorage('xc_materials', []);
       var material = materials.find(function(m) { return m.id == materialId; });
       if (!material) return;
 
@@ -1172,14 +1472,7 @@ function doLogin(phone, type) {
   localStorage.setItem('isLoggedIn', 'true');
   localStorage.setItem('loginType', type);
   localStorage.setItem('userPhone', phone);
-  
-  if (!localStorage.getItem('userNickname')) {
-    localStorage.setItem('userNickname', '新传研友');
-  }
-  
-  if (!localStorage.getItem('studyDays')) {
-    localStorage.setItem('studyDays', '1');
-  }
+  ensureDefaultProfile();
   
   showConfirm('登录成功', '欢迎回来！', 'success', function() {
     navigateTo('index.html');
@@ -1373,53 +1666,106 @@ function handleSearch(query) {
 
 function openVideoGenModal() {
   var modal = document.getElementById('video-gen-modal');
-  if (modal) {
-    var promptInput = document.getElementById('video-prompt');
-    if (promptInput && currentTerm === '沉默的螺旋') {
-      promptInput.value = '用动画讲解沉默的螺旋理论，重点突出诺依曼提出的孤立恐惧和意见气候概念，展示少数意见如何趋于沉默，多数意见如何愈发强势的螺旋过程';
-    }
-    modal.style.display = 'flex';
+  if (!modal) return;
+  var promptInput = document.getElementById('video-prompt');
+  if (promptInput && currentTerm === '沉默的螺旋') {
+    promptInput.value = '用动画讲解沉默的螺旋理论，重点突出诺依曼提出的孤立恐惧和意见气候概念，展示少数意见如何趋于沉默，多数意见如何愈发强势的螺旋过程';
   }
+  renderVideoApiOptions();
+  modal.style.display = 'flex';
 }
 
-function generateVideo() {
-  var prompt = document.getElementById('video-prompt').value;
-  var apiSelect = document.getElementById('video-api');
-  var api = apiSelect.options[apiSelect.selectedIndex].value;
-  
-  if (!prompt) {
-    alert('请输入视频内容描述');
+// V5.1：动态填充视频生成 API 下拉，只列出用户已配置的视频 provider；
+// 未配置任何 provider 时，下拉只放占位项并引导去设置。
+function renderVideoApiOptions() {
+  var sel = document.getElementById('video-api');
+  var hint = document.getElementById('video-api-hint');
+  if (!sel) return;
+  sel.innerHTML = '';
+  var selectedKey = localStorage.getItem('aiVideoProvider') || 'jimeng';
+  var configuredKeys = (AiService.videoProviderKeys || []).filter(function (k) {
+    return AiService.isVideoConfigured(k);
+  });
+  if (configuredKeys.length === 0) {
+    sel.innerHTML = '<option value="">未配置任何视频生成 API</option>';
+    if (hint) hint.innerHTML = '请先到「我的 → 设置 → AI模型自定义管理 → 视频生成 API」填写接口地址与 Key。<br><a href="settings.html#ai" style="color:var(--blue);">去配置 ›</a>';
     return;
   }
-  
-  var btn = document.querySelector('#video-gen-modal .save-btn');
-  var originalText = btn.textContent;
-  btn.textContent = '生成中...';
-  btn.disabled = true;
-  
-  setTimeout(function() {
-    btn.textContent = originalText;
-    btn.disabled = false;
+  configuredKeys.forEach(function (k) {
+    var p = AiService.getVideoProvider(k);
+    if (!p) return;
+    var opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = p.label + ' · ' + (p.model || '默认模型');
+    if (k === selectedKey) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (hint) hint.textContent = '已配置 ' + configuredKeys.length + ' 个视频 API。可在「设置」中继续添加。';
+}
+
+// V5.1：当前已生成的视频 URL（由 generateVideo 成功后写入；playVideo 真实播放）
+var currentVideoUrl = null;
+var videoAbortController = null;
+
+function generateVideo() {
+  var promptEl = document.getElementById('video-prompt');
+  var apiSelect = document.getElementById('video-api');
+  var durEl = document.getElementById('video-duration');
+  var prompt = promptEl ? promptEl.value.trim() : '';
+  var providerKey = apiSelect ? (apiSelect.value || '') : '';
+  var duration = durEl ? parseInt(durEl.value, 10) || 5 : 5;
+
+  if (!prompt) { alert('请输入视频内容描述'); return; }
+  if (!providerKey || !AiService.isVideoConfigured(providerKey)) {
+    alert('未配置可用的视频生成 API。请到「我的 → 设置 → 视频生成 API」填写接口地址与 Key 后再试。');
+    return;
+  }
+
+  var btn = document.getElementById('video-gen-start-btn') || document.querySelector('#video-gen-modal .save-btn');
+  var originalText = btn ? btn.textContent : '开始生成';
+  if (btn) { btn.textContent = '提交任务中...'; btn.disabled = true; }
+
+  if (videoAbortController) { try { videoAbortController.abort(); } catch (e) {} }
+  videoAbortController = new AbortController();
+
+  var attemptCount = 0;
+
+  AiService.generateVideo({
+    providerKey: providerKey,
+    prompt: prompt,
+    duration: duration,
+    signal: videoAbortController.signal,
+    onProgress: function (status, attempt) {
+      attemptCount = attempt;
+      if (btn) btn.textContent = '生成中... 已查询 ' + attempt + ' 次';
+    }
+  }).then(function (result) {
+    if (btn) { btn.textContent = originalText; btn.disabled = false; }
     closeModal('video-gen-modal');
-    
+    currentVideoUrl = result.videoUrl;
+    try { localStorage.setItem('lastGeneratedVideoUrl', result.videoUrl); } catch (e) {}
+
     var videoGenBtn = document.getElementById('video-gen-btn');
     if (videoGenBtn) {
-      videoGenBtn.textContent = '视频生成成功 ✓';
-      videoGenBtn.style.backgroundColor = '#4CAF50';
+      videoGenBtn.textContent = '视频已就绪，点击播放 ▶';
+      videoGenBtn.style.backgroundColor = '#1e7d4f';
     }
-    
     var videoCaption = document.getElementById('video-caption');
     if (videoCaption) {
-      videoCaption.textContent = '【AI生成】沉默的螺旋动画讲解视频已就绪——点击播放按钮观看';
+      videoCaption.textContent = '【AI生成】已生成「' + currentTerm + '」专属记忆视频，点击播放按钮观看。';
     }
-    
-    showConfirm('视频生成', '已为"沉默的螺旋"生成专属记忆视频，现在可以点击播放按钮观看。', 'success');
-  }, 2000);
+    showConfirm('视频生成', '已为「' + currentTerm + '」生成专属记忆视频，现在可以点击播放按钮观看。', 'success');
+  }).catch(function (err) {
+    if (btn) { btn.textContent = originalText; btn.disabled = false; }
+    showConfirm('视频生成失败', AiService.friendlyError(err), 'error');
+  });
 }
 
 var videoTimer = null;
 var videoCurrentTime = 0;
 var videoDuration = 5;
+// V5.1：当前页面挂载的真实 <video> 元素（如有）
+var liveVideoEl = null;
 
 function playVideo() {
   var playBtn = document.getElementById('play-btn');
@@ -1427,65 +1773,112 @@ function playVideo() {
   var progressBar = document.getElementById('video-progress-bar');
   var timeDisplay = document.getElementById('video-time');
   var placeholder = document.getElementById('video-placeholder');
-  
   if (!playBtn || !videoBox) return;
-  
+
+  // 优先走真实 video URL 播放路径
+  var videoUrl = currentVideoUrl;
+  if (!videoUrl) {
+    try { videoUrl = localStorage.getItem('lastGeneratedVideoUrl') || null; } catch (e) {}
+  }
+
+  if (videoUrl) {
+    // 复用已挂载的 <video>；首次播放时挂载一个真实 video 元素到 video-box
+    if (!liveVideoEl || !videoBox.contains(liveVideoEl)) {
+      // 清掉旧的模拟 placeholder/bg
+      videoBox.innerHTML = '';
+      liveVideoEl = document.createElement('video');
+      liveVideoEl.src = videoUrl;
+      liveVideoEl.controls = true;
+      liveVideoEl.playsInline = true;
+      liveVideoEl.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000;border-radius:10px;display:block;';
+      videoBox.appendChild(liveVideoEl);
+      // 真实进度/时长驱动 UI
+      liveVideoEl.addEventListener('timeupdate', function () {
+        videoCurrentTime = Math.floor(liveVideoEl.currentTime || 0);
+        var dur = liveVideoEl.duration || 0;
+        if (dur > 0) videoDuration = Math.floor(dur);
+        if (progressBar) progressBar.style.width = (dur > 0 ? (videoCurrentTime / dur) * 100 : 0) + '%';
+        if (timeDisplay) timeDisplay.textContent = formatTime(videoCurrentTime) + ' / ' + formatTime(videoDuration);
+      });
+      liveVideoEl.addEventListener('ended', function () {
+        if (playBtn) playBtn.textContent = '▶';
+        videoBox.classList.remove('playing');
+      });
+    }
+    if (playBtn.textContent === '▶') {
+      liveVideoEl.play().then(function () {
+        playBtn.textContent = '⏸';
+        videoBox.classList.add('playing');
+      }).catch(function () {
+        // 自动播放被阻止或地址不可访问——回退到原模拟流程
+        runFakePlayback(playBtn, videoBox, progressBar, timeDisplay, placeholder);
+      });
+    } else {
+      liveVideoEl.pause();
+      playBtn.textContent = '▶';
+      videoBox.classList.remove('playing');
+    }
+    return;
+  }
+
+  // 无真实 URL 时：保留原模拟播放，至少有视觉反馈
+  runFakePlayback(playBtn, videoBox, progressBar, timeDisplay, placeholder);
+}
+
+function runFakePlayback(playBtn, videoBox, progressBar, timeDisplay, placeholder) {
   if (playBtn.textContent === '▶') {
     playBtn.textContent = '⏸';
     videoBox.classList.add('playing');
     if (placeholder) placeholder.style.display = 'none';
-    
-    videoTimer = setInterval(function() {
+    if (videoTimer) clearInterval(videoTimer);
+    videoTimer = setInterval(function () {
       videoCurrentTime++;
       var progress = (videoCurrentTime / videoDuration) * 100;
       if (progressBar) progressBar.style.width = progress + '%';
-      
-      var currentMin = Math.floor(videoCurrentTime / 60);
-      var currentSec = videoCurrentTime % 60;
-      if (timeDisplay) {
-        timeDisplay.textContent = 
-          (currentMin < 10 ? '0' : '') + currentMin + ':' + 
-          (currentSec < 10 ? '0' : '') + currentSec + 
-          ' / 00:0' + videoDuration;
-      }
-      
-      if (videoCurrentTime >= videoDuration) {
-        stopVideo();
-      }
+      if (timeDisplay) timeDisplay.textContent = formatTime(videoCurrentTime) + ' / ' + formatTime(videoDuration);
+      if (videoCurrentTime >= videoDuration) stopVideo();
     }, 1000);
   } else {
     pauseVideo();
   }
 }
 
+function formatTime(sec) {
+  var s = Math.max(0, Math.floor(sec || 0));
+  var m = Math.floor(s / 60);
+  var r = s % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+}
+
 function seekVideo(event) {
   var progressBar = document.getElementById('video-progress-bar');
   var barBg = event.currentTarget;
   if (!progressBar || !barBg) return;
-  
+
   var rect = barBg.getBoundingClientRect();
   var clickX = event.clientX - rect.left;
   var percent = clickX / rect.width;
+
+  // 真实 video 优先
+  if (liveVideoEl && liveVideoEl.duration) {
+    liveVideoEl.currentTime = percent * liveVideoEl.duration;
+    return;
+  }
+
   videoCurrentTime = Math.floor(percent * videoDuration);
-  
-  var progress = (videoCurrentTime / videoDuration) * 100;
-  progressBar.style.width = progress + '%';
-  
+  progressBar.style.width = (videoCurrentTime / videoDuration * 100) + '%';
+
   var timeDisplay = document.getElementById('video-time');
   if (timeDisplay) {
-    var currentMin = Math.floor(videoCurrentTime / 60);
-    var currentSec = videoCurrentTime % 60;
-    timeDisplay.textContent = 
-      (currentMin < 10 ? '0' : '') + currentMin + ':' + 
-      (currentSec < 10 ? '0' : '') + currentSec + 
-      ' / 00:0' + videoDuration;
+    timeDisplay.textContent = formatTime(videoCurrentTime) + ' / ' + formatTime(videoDuration);
   }
 }
 
 function pauseVideo() {
   var playBtn = document.getElementById('play-btn');
   var videoBox = document.getElementById('video-box');
-  
+  // 真实 video 优先暂停
+  if (liveVideoEl) { try { liveVideoEl.pause(); } catch (e) {} }
   if (playBtn && videoBox) {
     playBtn.textContent = '▶';
     videoBox.classList.remove('playing');
@@ -1585,7 +1978,7 @@ function getFavoriteEntry() {
 function initFavoriteStar() {
   var entry = getFavoriteEntry();
   if (!entry) return;
-  var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+  var favs = safeParseStorage('favorites', []);
   var exists = favs.some(function(f) { return f.type === entry.type && f.id === entry.id; });
   if (exists) {
     var btn = document.querySelector('.icon-btn');
@@ -1606,7 +1999,7 @@ function escapeHtml(s) {
 function renderCollections() {
   var container = document.getElementById('collection-list');
   if (!container) return;
-  var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+  var favs = safeParseStorage('favorites', []);
   var typeLabels = { noun: '名词解释', short: '简答题', essay: '论述题' };
   var order = ['noun', 'short', 'essay'];
 
@@ -1669,7 +2062,7 @@ function renderCollections() {
 function unfavoriteItem(e, type, id) {
   if (e && e.stopPropagation) e.stopPropagation();
   showConfirm('取消收藏', '确定取消收藏该内容吗？', 'warning', function() {
-    var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    var favs = safeParseStorage('favorites', []);
     var before = favs.length;
     favs = favs.filter(function(f) { return !(f.type === type && f.id === id); });
     if (favs.length === before) return;
@@ -1687,7 +2080,7 @@ function toggleFavorite(e) {
   }
   if (!btn) return;
   var entry = getFavoriteEntry();
-  var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+  var favs = safeParseStorage('favorites', []);
   var existIdx = entry ? favs.findIndex(function(f) { return f.type === entry.type && f.id === entry.id; }) : -1;
 
   if (btn.textContent.trim() === '☆') {
@@ -1729,7 +2122,7 @@ function saveNote() {
     return;
   }
   
-  var notes = JSON.parse(localStorage.getItem('notes') || '[]');
+  var notes = safeParseStorage('notes', []);
   notes.push({
     content: content,
     timestamp: new Date().toISOString()
@@ -1752,7 +2145,7 @@ function publishPost() {
     return;
   }
   
-  var posts = JSON.parse(localStorage.getItem('posts') || '[]');
+  var posts = safeParseStorage('posts', []);
   posts.unshift({
     user: '我',
     avatar: '我',
@@ -1770,7 +2163,7 @@ function publishPost() {
 }
 
 function renderPosts() {
-  var posts = JSON.parse(localStorage.getItem('posts') || '[]');
+  var posts = safeParseStorage('posts', []);
   var container = document.querySelector('.community-section');
   
   if (!container) return;
@@ -1864,12 +2257,35 @@ var ttsPlaying = false;
 
 var currentTerm = '沉默的螺旋';
 
+// V5.1：词条/题目已下架或不存在时，明确展示空态并引导返回，禁止回落到默认词条造成"串题"
+function showDetailNotFound(descText) {
+  var body = document.querySelector('.app-body');
+  if (body) {
+    body.innerHTML = '<div style="padding:72px 24px;text-align:center;">' +
+      '<div style="font-size:44px;margin-bottom:16px;line-height:1;">📭</div>' +
+      '<div style="font-size:17px;font-weight:600;margin-bottom:8px;">内容不存在或已下架</div>' +
+      '<div style="font-size:13px;color:var(--ink-light);margin-bottom:28px;word-break:break-all;">' + escapeHtml(descText || '') + '</div>' +
+      '<button class="save-btn" type="button" onclick="goBack()" style="max-width:220px;margin:0 auto;">返回上一页</button>' +
+      '</div>';
+  }
+}
+
 function loadNounDetail() {
   var urlParams = new URLSearchParams(window.location.search);
   var term = urlParams.get('term') || '沉默的螺旋';
-  currentTerm = term;
-  
-  var data = getNounData(term);
+
+  // 严格按 URL 词条取数据：取不到说明已被后台下架/删除，展示空态而不是回落"沉默的螺旋"
+  var data = (typeof nounData === 'object' && nounData !== null) ? nounData[term] : null;
+  if (!data) {
+    currentTerm = term;
+    var missTitle = document.getElementById('noun-title');
+    if (missTitle) missTitle.textContent = '词条不存在';
+    var missTag = document.getElementById('noun-tag');
+    if (missTag) missTag.style.display = 'none';
+    showDetailNotFound('名词解释「' + term + '」可能已被下架，或链接有误。');
+    return;
+  }
+  currentTerm = data.title;
   
   var titleEl = document.getElementById('noun-title');
   if (titleEl) titleEl.textContent = data.title;
@@ -2310,7 +2726,7 @@ function submitMemoryMethod() {
     return;
   }
   
-  var memMethods = JSON.parse(localStorage.getItem('memMethods') || '[]');
+  var memMethods = safeParseStorage('memMethods', []);
   memMethods.push({
     content: content,
     timestamp: new Date().toISOString(),
@@ -2860,6 +3276,119 @@ function savePromptTemplate() {
   showConfirm('提示词模板', val ? '模板已保存，AI助记回复将参考该模板' : '已清空自定义模板', 'success');
 }
 
+// ===== V5.1 视频生成 API 配置（即梦/火山方舟等异步任务协议） =====
+var videoSetSelectedKey = 'jimeng';
+
+function openVideoApiSetting() {
+  videoSetSelectedKey = localStorage.getItem('aiVideoProvider') || 'jimeng';
+  if (!AiService.isVideoModelSupported(videoSetSelectedKey)) videoSetSelectedKey = 'jimeng';
+
+  var inputStyle = 'width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-top:8px;outline:none;background:var(--paper);color:var(--ink);';
+  var html = '<div class="modal-overlay" style="display:flex;" id="video-set-modal" onclick="closeModal(\'video-set-modal\')">' +
+    '<div class="modal-content" style="max-width:460px;" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">视频生成 API 设置</div>' +
+      '<div class="modal-close" onclick="closeModal(\'video-set-modal\')">×</div>' +
+      '<div style="padding:12px 0 4px;">' +
+        '<div id="video-set-provider-list"></div>' +
+        '<div style="margin-top:10px;">' +
+          '<div id="video-set-cfg-label" style="font-size:13px;font-weight:600;color:var(--ink);"></div>' +
+          '<div id="video-set-cfg-hint" style="font-size:11px;color:var(--ink-light);margin:3px 0 2px;line-height:1.5;"></div>' +
+          '<input type="text" id="video-set-submit" placeholder="提交任务地址（POST）" style="' + inputStyle + '">' +
+          '<input type="text" id="video-set-query" placeholder="查询状态地址模板（含 {taskId}）" style="' + inputStyle + '">' +
+          '<input type="text" id="video-set-model" placeholder="模型名称" style="' + inputStyle + '">' +
+          '<input type="password" id="video-set-key" placeholder="API Key（仅保存在本机）" style="' + inputStyle + '">' +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--ink-light);margin-top:10px;line-height:1.5;">协议：POST 提交 → 返回 task_id → 轮询 GET 查询 → 完成后取 video_url。Key 仅本机 localStorage 保存。</div>' +
+        '<div class="save-btn" style="text-align:center;margin-top:14px;" onclick="saveVideoApiSettings()">保存设置</div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('video-set-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  renderVideoSettingProviderList();
+  fillVideoSettingConfigPanel();
+}
+
+function renderVideoSettingProviderList() {
+  var box = document.getElementById('video-set-provider-list');
+  if (!box) return;
+  var html = '';
+  AiService.videoProviderKeys.forEach(function (key) {
+    var p = AiService.getVideoProvider(key);
+    var configured = AiService.isVideoConfigured(key);
+    var badge = configured ? '已配置' : '需自行配置';
+    var badgeColor = configured ? '#1e7d4f' : '#8a8f99';
+    var active = key === videoSetSelectedKey;
+    html += '<div class="fontsize-option ai-provider-item' + (active ? ' active' : '') + '" data-video-key="' + key + '" onclick="selectVideoSettingModel(this)" style="cursor:pointer;">' +
+      '<div class="fontsize-label">' + escapeHtml(p.label) +
+        '<span style="font-size:11px;font-weight:600;color:' + badgeColor + ';margin-left:8px;">' + badge + '</span>' +
+      '</div>' +
+      '<div class="fontsize-preview" style="font-size:11px;color:var(--ink-light);">' + escapeHtml(p.hint || '') + '</div>' +
+    '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function fillVideoSettingConfigPanel() {
+  var p = AiService.getVideoProvider(videoSetSelectedKey);
+  if (!p) return;
+  var label = document.getElementById('video-set-cfg-label');
+  var hint = document.getElementById('video-set-cfg-hint');
+  var sp = document.getElementById('video-set-submit');
+  var qp = document.getElementById('video-set-query');
+  var md = document.getElementById('video-set-model');
+  var ky = document.getElementById('video-set-key');
+  if (label) label.textContent = '接口配置 · ' + p.label;
+  if (hint) hint.textContent = p.hint || '';
+  if (sp) sp.value = p.submitEndpoint || '';
+  if (qp) qp.value = p.queryTemplate || '';
+  if (md) md.value = p.model || '';
+  if (ky) ky.value = p.keyVal || '';
+}
+
+function selectVideoSettingModel(el) {
+  var key = el.getAttribute('data-video-key');
+  if (!key || !AiService.isVideoModelSupported(key)) return;
+  videoSetSelectedKey = key;
+  var options = document.querySelectorAll('#video-set-modal .fontsize-option');
+  options.forEach(function (o) { o.classList.remove('active'); });
+  el.classList.add('active');
+  fillVideoSettingConfigPanel();
+}
+
+function saveVideoApiSettings() {
+  var key = videoSetSelectedKey || 'jimeng';
+  var p = AiService.getVideoProvider(key);
+  var sp = document.getElementById('video-set-submit');
+  var qp = document.getElementById('video-set-query');
+  var md = document.getElementById('video-set-model');
+  var ky = document.getElementById('video-set-key');
+  var submitEp = sp ? sp.value.trim() : '';
+  var queryTpl = qp ? qp.value.trim() : '';
+  var model = md ? md.value.trim() : '';
+  var keyVal = ky ? ky.value.trim() : '';
+
+  AiService.saveVideoProviderConfig(key, {
+    submitEndpoint: submitEp,
+    queryTemplate: queryTpl,
+    model: model,
+    key: keyVal
+  });
+
+  localStorage.setItem('aiVideoProvider', key);
+
+  closeModal('video-set-modal');
+  updateSettingsRowVal('openVideoApiSetting()',
+    (AiService.isVideoConfigured(key) ? '已配置 · ' + p.label : '未配置') + ' ›');
+
+  if (AiService.isVideoConfigured(key)) {
+    showConfirm('视频API', '已保存「' + p.label + '」配置。在词条页视频模态框中选择该模型即可生成视频。', 'success');
+  } else {
+    showConfirm('视频API', '已选择「' + p.label + '」，但提交地址/查询地址/Key 未填写完整。', 'warning');
+  }
+}
+
 // —— 意见反馈 / 关于 ——
 
 var feedbackSelectedType = 'bug';
@@ -2904,7 +3433,7 @@ function submitFeedback() {
     return;
   }
   var type = typeSelectEl ? typeSelectEl.value : (feedbackSelectedType || 'bug');
-  var feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+  var feedbacks = safeParseStorage('feedbacks', []);
   feedbacks.unshift({
     type: type,
     content: content,
@@ -2958,7 +3487,7 @@ function handleBackNav() {
 }
 
 function openNoteList() {
-  var notes = JSON.parse(localStorage.getItem('notes') || '[]');
+  var notes = safeParseStorage('notes', []);
   
   var html = '<div class="modal-overlay" style="display:flex;" id="notelist-modal" onclick="closeModal(\'notelist-modal\')">' +
     '<div class="modal-content" style="max-height:80vh;overflow:hidden;" onclick="event.stopPropagation()">' +
@@ -2996,7 +3525,7 @@ function openNoteList() {
 
 function openUploadLibrary() {
   // V5.1：资料库弹窗过滤后台种子资料（_seed:true），只保留真实上传/同步的资料
-  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]')
+  var materials = safeParseStorage('xc_materials', [])
     .filter(function(m) { return !m._seed; });
 
   var adminMats = [];
@@ -3071,7 +3600,7 @@ function openUploadLibrary() {
 }
 
 function viewMaterialDetail(index) {
-  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+  var materials = safeParseStorage('xc_materials', []);
   var m = materials[index];
   if (!m) return;
 
@@ -3100,7 +3629,7 @@ function viewMaterialDetail(index) {
 }
 
 function downloadMaterial(index) {
-  var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+  var materials = safeParseStorage('xc_materials', []);
   var m = materials[index];
   if (!m) return;
 
@@ -3124,7 +3653,7 @@ function downloadMaterial(index) {
 
 function deleteMaterial(index) {
   showConfirm('删除确认', '确定要删除该资料吗？删除后无法恢复。', 'warning', function() {
-    var materials = JSON.parse(localStorage.getItem('xc_materials') || '[]');
+    var materials = safeParseStorage('xc_materials', []);
     materials.splice(index, 1);
     localStorage.setItem('xc_materials', JSON.stringify(materials));
     
@@ -3455,18 +3984,12 @@ function openAbout() {
 
 document.addEventListener('DOMContentLoaded', function() {
   initDragAndDrop();
-  
-  if (typeof loadNounDetail === 'function' && typeof getNounData === 'function') {
-    loadNounDetail();
-  }
-  
-  if (typeof loadShortDetail === 'function') {
-    loadShortDetail();
-  }
-  
-  if (typeof loadEssayDetail === 'function') {
-    loadEssayDetail();
-  }
+
+  // V5.1 修复：详情页的 load*Detail 必须由各详情页 HTML 自己的 window.load 监听器调用，
+  // 不能在这里无差别全调——否则在 noun-detail.html 上会同时触发 loadShortDetail/loadEssayDetail，
+  // 而这两个页面未加载 short-data.js / essay-data.js，typeof shortData/essayData === 'undefined'，
+  // getCurrentShort/getCurrentEssay 返回 null 后 showDetailNotFound 会把 .app-body 替换成空态，
+  // 造成"头部正确但正文显示论述题空态"的串页 bug。
   
   var savedAvatar = localStorage.getItem('userAvatar');
   var savedNickname = localStorage.getItem('userNickname');
@@ -3611,7 +4134,11 @@ function nextShort() {
 
 function loadShortDetail() {
   var short = getCurrentShort();
-  if (!short) return;
+  if (!short) {
+    var missShortId = new URLSearchParams(window.location.search).get('short') || '';
+    showDetailNotFound('简答题「' + missShortId + '」可能已被下架，或链接有误。');
+    return;
+  }
   currentTerm = short.title; // V5.0：AI助记/模板随当前简答题动态化
 
   var catEl = document.getElementById('short-category');
@@ -3812,7 +4339,11 @@ function nextEssay() {
 function loadEssayDetail() {
   try {
     var essay = getCurrentEssay();
-    if (!essay) return;
+    if (!essay) {
+      var missEssayId = new URLSearchParams(window.location.search).get('essay') || '';
+      showDetailNotFound('论述题「' + missEssayId + '」可能已被下架，或链接有误。');
+      return;
+    }
     currentTerm = essay.title; // V5.0：AI助记/模板随当前论述题动态化
 
     var catEl = document.getElementById('essay-category');

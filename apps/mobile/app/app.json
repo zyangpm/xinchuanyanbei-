@@ -2,7 +2,7 @@
   "name": "新传研背",
   "short_name": "新传研背",
   "description": "新传考研学习辅助系统",
-  "version": "1.0.0",
+  "version": "5.1.0",
   "manifest_version": 3,
   "start_url": "/index.html",
   "display": "standalone",
@@ -11,14 +11,16 @@
   "theme_color": "#243A5E",
   "icons": [
     {
-      "src": "assets/app-icon-192.png",
+      "src": "assets/icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "assets/app-icon-512.png",
+      "src": "assets/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "prefer_related_applications": false

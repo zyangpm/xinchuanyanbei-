@@ -85,19 +85,12 @@
   <div class="version">v5.1.0</div>
   <script>
     setTimeout(function() {
-      // 公网测试环境：自动设置默认登录状态，外部访问者无需手动登录
-      if (!localStorage.getItem('isLoggedIn')) {
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('loginType', 'password');
-        localStorage.setItem('userPhone', '13800000000');
-        if (!localStorage.getItem('userNickname')) {
-          localStorage.setItem('userNickname', '林同学');
-        }
-        if (!localStorage.getItem('studyDays')) {
-          localStorage.setItem('studyDays', '42');
-        }
+      // V5.1：闪屏页不再自动写入登录态，按真实登录状态决定落地页
+      if (localStorage.getItem('isLoggedIn') === 'true') {
+        window.location.href = 'index.html';
+      } else {
+        window.location.href = 'login.html';
       }
-      window.location.href = 'index.html';
     }, 1500);
   </script>
 </body>
