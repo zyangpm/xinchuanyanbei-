@@ -13,7 +13,21 @@
 // ===== V6.0：后端同步层 =====
 // 后台每次增删改题库后，把本地题库全量推送到后端数据库（fire-and-forget）。
 // 后端不可用时静默降级，完全不影响后台本地操作。
-var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || 'http://localhost:3000/api';
+// V5.1.1：网页版走 8081 同源代理 /api/backend（手机/局域网零配置，代理自动附带令牌）；
+//         Electron（file://）直连本机后端并携带令牌。
+var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || '';
+if (!XC_API_BASE) {
+  var _isFileProtocol = typeof location !== 'undefined' && location.protocol === 'file:';
+  XC_API_BASE = _isFileProtocol ? 'http://localhost:3000/api' : '/api/backend';
+}
+
+// 管理端 API 令牌（Electron 直连后端时使用；网页版经代理无需填写）
+function _adminAuthHeaders() {
+  try {
+    var t = localStorage.getItem('xc_admin_token') || '';
+    return t ? { 'Authorization': 'Bearer ' + t } : {};
+  } catch (e) { return {}; }
+}
 
 /**
  * 异步把题库全量推送到后端（不等待结果，失败静默）。
@@ -25,7 +39,7 @@ function syncQuestionsToServer(list) {
     if (typeof fetch !== 'function') return;
     fetch(XC_API_BASE + '/questions/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Object.assign({ 'Content-Type': 'application/json' }, _adminAuthHeaders()),
       body: JSON.stringify({ items: list || [] })
     }).catch(function () { /* 后端离线：静默 */ });
   } catch (e) { /* 环境不支持 fetch：静默 */ }
@@ -226,7 +240,7 @@ var DB = {
     // V6.0：同步删除到后端 + 推送最新全量
     try {
       if (typeof fetch === 'function') {
-        fetch(XC_API_BASE + '/questions/' + row.id, { method: 'DELETE' }).catch(function () {});
+        fetch(XC_API_BASE + '/questions/' + row.id, Object.assign({ method: 'DELETE' }, { headers: _adminAuthHeaders() })).catch(function () {});
       }
     } catch (e) { /* 后端离线：静默 */ }
     syncQuestionsToServer(this.getQuestions());

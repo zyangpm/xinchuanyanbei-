@@ -2,11 +2,43 @@
 // 使用 Node.js 内置 http + node:sqlite，零第三方依赖。
 // 启动：node src/server.js   （默认端口 3000，可用环境变量 PORT 覆盖）
 const http = require('http');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { db, initSchema } = require('./db');
 
 initSchema();
 
 const PORT = Number(process.env.PORT) || 3000;
+
+// ===== V5.1.1 API 令牌鉴权 =====
+// 写操作（POST/PUT/PATCH/DELETE）必须携带 Authorization: Bearer <token>。
+// 令牌来源：环境变量 XC_API_TOKEN > data/.api_token 文件 > 自动生成（写入文件并打印）。
+// data/ 已被 .gitignore 忽略，令牌不会进仓库。
+const TOKEN_FILE = path.join(__dirname, '..', 'data', '.api_token');
+let API_TOKEN = process.env.XC_API_TOKEN || '';
+if (!API_TOKEN) {
+  try { API_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf8').trim(); } catch (e) { API_TOKEN = ''; }
+}
+if (!API_TOKEN) {
+  API_TOKEN = crypto.randomBytes(24).toString('hex');
+  try {
+    fs.mkdirSync(path.dirname(TOKEN_FILE), { recursive: true });
+    fs.writeFileSync(TOKEN_FILE, API_TOKEN, 'utf8');
+  } catch (e) { /* 写文件失败不阻塞启动 */ }
+  console.log('   [auth] API Token (auto-generated): ' + API_TOKEN);
+} else if (!process.env.XC_API_TOKEN) {
+  console.log('   [auth] API Token (from file): ' + API_TOKEN);
+} else {
+  console.log('   [auth] API Token (from env XC_API_TOKEN)');
+}
+
+function isAuthorized(req) {
+  const h = req.headers['authorization'] || '';
+  return h === 'Bearer ' + API_TOKEN;
+}
+
+const WRITE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
 /**
  * 统一 JSON 响应。
@@ -172,6 +204,11 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+
+  // 写操作鉴权：无有效令牌一律 401（GET 只读保持公开，供学生端拉取）
+  if (WRITE_METHODS.indexOf(req.method) >= 0 && !isAuthorized(req)) {
+    return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
+  }
 
   const url = new URL(req.url, 'http://localhost');
   const p = url.pathname;

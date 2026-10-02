@@ -102,6 +102,78 @@ const assetsDir = path.join(mobileDir, 'assets');
 const contentDir = path.join(monorepoRoot, 'packages', 'content');
 const adminDir = path.join(monorepoRoot, 'apps', 'admin');
 
+// ===== V5.1.1 后端同源代理 =====
+// 学生端/管理端网页版统一通过 /api/backend/* 访问本机后端 :3000，
+// 手机经局域网 IP 访问时不再指向自身 localhost，修复云同步失效问题。
+const BACKEND_BASE = 'http://127.0.0.1:3000/api';
+const TOKEN_FILE = path.join(monorepoRoot, 'apps', 'server', 'data', '.api_token');
+
+function getBackendToken() {
+  try { return fs.readFileSync(TOKEN_FILE, 'utf8').trim(); } catch (e) { return ''; }
+}
+
+// 安全路径解析：把相对路径解析到指定根目录内，越界（../ 或编码绕过）返回 null
+function safeJoin(rootDir, relPath) {
+  try {
+    const root = path.resolve(rootDir);
+    // 去掉前导 / 或 \\，避免 path.resolve 将相对路径误判为绝对路径（如 /index.html → 盘符根）
+    const clean = String(relPath == null ? '' : relPath).replace(/^[\\/]+/, '');
+    const target = path.resolve(root, clean);
+    if (target !== root && !target.startsWith(root + path.sep)) return null;
+    return target;
+  } catch (e) { return null; }
+}
+
+// 转发 /api/backend/* 到本机后端，并附加 Bearer 令牌
+function handleBackendProxy(req, res, backendPath) {
+  const chunks = [];
+  let size = 0;
+  req.on('data', function (c) {
+    size += c.length;
+    if (size > 5 * 1024 * 1024) { req.destroy(); return; }
+    chunks.push(c);
+  });
+  req.on('end', function () {
+    const body = Buffer.concat(chunks);
+    const token = getBackendToken();
+    const headers = {
+      'Content-Type': req.headers['content-type'] || 'application/json'
+    };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].indexOf(req.method) >= 0) {
+      headers['Content-Length'] = body.length;
+    }
+    const upstream = http.request({
+      hostname: '127.0.0.1',
+      port: 3000,
+      path: backendPath,
+      method: req.method,
+      headers: headers,
+      timeout: 30000
+    }, function (upRes) {
+      res.writeHead(upRes.statusCode, {
+        'Content-Type': upRes.headers['content-type'] || 'application/json; charset=utf-8'
+      });
+      upRes.pipe(res);
+    });
+    upstream.on('timeout', function () { upstream.destroy(new Error('backend timeout')); });
+    upstream.on('error', function () {
+      if (!res.headersSent) {
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: { message: 'backend unavailable, is server :3000 running?' } }));
+      }
+    });
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].indexOf(req.method) >= 0) upstream.end(body);
+    else upstream.end();
+  });
+  req.on('error', function () {
+    if (!res.headersSent) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: { message: 'bad request' } }));
+    }
+  });
+}
+
 function getLocalIP() {
     const interfaces = os.networkInterfaces();
     let candidates = [];
@@ -143,7 +215,15 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-    let reqPath = decodeURIComponent(req.url.split('?')[0]);
+    let reqPath;
+    try {
+        reqPath = decodeURIComponent(req.url.split('?')[0]);
+    } catch (e) {
+        // 畸形编码（如 /assets/%）会抛 URIError，直接 400，避免进程崩溃
+        res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('400 Bad Request');
+        return;
+    }
 
     if (reqPath === '/') {
         reqPath = '/index.html';
@@ -204,39 +284,51 @@ h1{font-size:24px;margin:0 0 10px}
         return;
     }
 
+    // V5.1.1：后端同源代理 /api/backend/* → 本机 :3000/api/*（手机端云同步修复）
+    if (reqPath.indexOf('/api/backend') === 0) {
+        const backendPath = '/api' + reqPath.replace(/^\/api\/backend/, '');
+        handleBackendProxy(req, res, backendPath);
+        return;
+    }
+
     // 后台管理平台：/admin/* → apps/admin/*
     if (reqPath.startsWith('/admin/')) {
         if (reqPath === '/admin/' || reqPath === '/admin') {
             serveFile(path.join(adminDir, 'index.html'), res);
             return;
         }
-        const adminPath = path.join(adminDir, reqPath.replace('/admin/', ''));
+        const adminPath = safeJoin(adminDir, reqPath.replace(/^\/admin\//, ''));
+        if (!adminPath) { send404(res); return; }
         serveFile(adminPath, res);
         return;
     }
 
     // 题库数据：/packages/content/* → packages/content/*
     if (reqPath.startsWith('/packages/content/')) {
-        const contentPath = path.join(contentDir, reqPath.replace('/packages/content/', ''));
+        const contentPath = safeJoin(contentDir, reqPath.replace(/^\/packages\/content\//, ''));
+        if (!contentPath) { send404(res); return; }
         serveFile(contentPath, res);
         return;
     }
 
     // 移动端静态资源：/assets/* → apps/mobile/assets/*
     if (reqPath.startsWith('/assets/')) {
-        const assetPath = path.join(assetsDir, reqPath.replace('/assets/', ''));
+        const assetPath = safeJoin(assetsDir, reqPath.replace(/^\/assets\//, ''));
+        if (!assetPath) { send404(res); return; }
         serveFile(assetPath, res);
         return;
     }
 
     // 移动端默认：尝试从 apps/mobile/app/ 提供文件
-    const appPath = path.join(appDir, reqPath);
-    if (fs.existsSync(appPath) && fs.statSync(appPath).isFile()) {
-        serveFile(appPath, res);
-    } else {
-        serveFile(appPath, res);
-    }
+    const appPath = safeJoin(appDir, reqPath);
+    if (!appPath) { send404(res); return; }
+    serveFile(appPath, res);
 });
+
+function send404(res) {
+    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end('<h1>404 Page Not Found</h1>');
+}
 
 function serveFile(filePath, res) {
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {

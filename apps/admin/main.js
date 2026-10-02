@@ -54,7 +54,7 @@ function createAdminMenu() {
             const { dialog } = require('electron');
             dialog.showMessageBox(mainWindow, {
               title: '关于',
-              message: '新传研背管理后台 v5.1.0\n管理员内容管理工具',
+              message: '新传研背管理后台 v5.1.1\n管理员内容管理工具',
               type: 'info'
             });
           }
