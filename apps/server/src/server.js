@@ -1,21 +1,21 @@
-// ===== 新传研背 后端 · HTTP 服务 =====
-// 使用 Node.js 内置 http + node:sqlite，零第三方依赖。
-// 启动：node src/server.js   （默认端口 3000，可用环境变量 PORT 覆盖）
+// ===== 新传研背 后端 · HTTP 服务入口 =====
+// 零第三方运行时依赖（Node 内置 http + node:sqlite；云端模式接 @libsql/client）。
+// 启动：node src/server.js   （默认端口 3000，可用环境变量 PORT / XC_DB / XC_TURSO_URL 覆盖）
 const http = require('http');
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { db, initSchema } = require('./db');
-
-initSchema();
+const crypto = require('crypto');
+const { createDb, initSchema, DATA_DIR } = require('./db');
+const { verifyToken, hashPassword, publicUser } = require('./auth');
+const { sendJson } = require('./util');
+const { handleRegister, handleLogin, handleMe } = require('./routes/auth');
+const { handleQuestions, handleQuestionSync } = require('./routes/questions');
+const { handlePull, handlePush, COLLECTIONS } = require('./routes/sync');
+const { handleAdminUsers, handleAdminStats } = require('./routes/admin');
 
 const PORT = Number(process.env.PORT) || 3000;
 
-// ===== V5.1.1 API 令牌鉴权 =====
-// 写操作（POST/PUT/PATCH/DELETE）必须携带 Authorization: Bearer <token>。
-// 令牌来源：环境变量 XC_API_TOKEN > data/.api_token 文件 > 自动生成（写入文件并打印）。
-// data/ 已被 .gitignore 忽略，令牌不会进仓库；打包版由主进程通过 XC_DATA_DIR 指向可写目录。
-const DATA_DIR = process.env.XC_DATA_DIR || path.join(__dirname, '..', 'data');
+// ===== API 令牌（写操作兼容旧机制：Bearer <api_token> 或 Bearer <JWT>） =====
 const TOKEN_FILE = path.join(DATA_DIR, '.api_token');
 let API_TOKEN = process.env.XC_API_TOKEN || '';
 if (!API_TOKEN) {
@@ -34,210 +34,127 @@ if (!API_TOKEN) {
   console.log('   [auth] API Token (from env XC_API_TOKEN)');
 }
 
-function isAuthorized(req) {
+/**
+ * 鉴权上下文：返回 { via, user? } 或 null。
+ * - Bearer <api_token>：旧机制（管理后台批量写入），无用户维度
+ * - Bearer <JWT>：登录签发，user = { uid, username, role }
+ */
+function authCtx(req) {
   const h = req.headers['authorization'] || '';
-  return h === 'Bearer ' + API_TOKEN;
-}
-
-const WRITE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
-
-/**
- * 统一 JSON 响应。
- * @param {http.ServerResponse} res 响应对象
- * @param {number} httpCode HTTP 状态码
- * @param {object} payload 响应体 { code, message, data }
- * @returns {void}
- */
-function sendJson(res, httpCode, payload) {
-  const body = JSON.stringify(payload);
-  res.writeHead(httpCode, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Content-Length': Buffer.byteLength(body)
-  });
-  res.end(body);
+  const t = h.startsWith('Bearer ') ? h.slice(7) : '';
+  if (!t) return null;
+  if (t === API_TOKEN) return { via: 'api-token', user: null };
+  const payload = verifyToken(t);
+  if (payload && payload.uid) return { via: 'jwt', user: payload };
+  return null;
 }
 
 /**
- * 读取并解析请求体 JSON（限制 5MB）。
- * @param {http.IncomingMessage} req 请求对象
- * @returns {Promise<object>} 解析后的对象（失败返回空对象）
+ * 首次启动确保管理员账号存在（环境变量 XC_ADMIN_USERNAME / XC_ADMIN_PASSWORD）。
+ * 未设置则不创建（默认无管理员；部署时通过环境变量注入初始管理员）。
  */
-function readJsonBody(req) {
-  return new Promise((resolve) => {
-    const chunks = [];
-    let size = 0;
-    req.on('data', (c) => {
-      size += c.length;
-      if (size > 5 * 1024 * 1024) { req.destroy(); return; }
-      chunks.push(c);
-    });
-    req.on('end', () => {
-      if (!chunks.length) return resolve({});
-      try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
-      catch (e) { resolve({}); }
-    });
-    req.on('error', () => resolve({}));
-  });
-}
-
-/**
- * 数据库 questions 行 -> 对外 JSON（字段名驼峰化 + BigInt 转 Number）。
- * @param {object} row 数据库行
- * @returns {object} 对外题目对象
- */
-function mapQuestion(row) {
-  return {
-    id: Number(row.id),
-    questionType: row.question_type,
-    title: row.title,
-    category: row.category,
-    tag: row.tag,
-    status: row.status,
-    contentJson: row.content_json,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
-
-/**
- * 处理 /api/questions 系列请求（题库 CRUD）。
- * @param {http.IncomingMessage} req 请求
- * @param {http.ServerResponse} res 响应
- * @param {URL} url 解析后的 URL
- * @param {number|null} id 路径中的题目 id（列表/新增时为 null）
- * @returns {Promise<void>}
- */
-async function handleQuestions(req, res, url, id) {
-  // 列表
-  if (req.method === 'GET' && id == null) {
-    const type = url.searchParams.get('type');
-    const status = url.searchParams.get('status');
-    const conds = [];
-    const args = [];
-    if (type) { conds.push('question_type = ?'); args.push(type); }
-    if (status) { conds.push('status = ?'); args.push(status); }
-    const where = conds.length ? ' WHERE ' + conds.join(' AND ') : '';
-    const rows = db.prepare('SELECT * FROM questions' + where + ' ORDER BY id DESC').all(...args);
-    return sendJson(res, 200, { code: 0, message: 'ok', data: rows.map(mapQuestion) });
+async function ensureAdmin(db) {
+  const name = process.env.XC_ADMIN_USERNAME || 'admin';
+  const pass = process.env.XC_ADMIN_PASSWORD;
+  if (!pass) return;
+  const exists = await db.prepare('SELECT id FROM users WHERE username = ?').get(name);
+  if (!exists) {
+    await db.prepare('INSERT INTO users (username, password_hash, nickname, role) VALUES (?,?,?,?)')
+      .run(name, hashPassword(pass), '管理员', 'admin');
+    console.log('   [auth] 管理员账号已创建: ' + name);
   }
+}
 
-  // 详情
-  if (req.method === 'GET' && id != null) {
-    const row = db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
-    if (!row) return sendJson(res, 404, { code: 404, message: '题目不存在', data: null });
-    return sendJson(res, 200, { code: 0, message: 'ok', data: mapQuestion(row) });
-  }
+async function main() {
+  const db = await createDb();
+  await initSchema(db);
+  await ensureAdmin(db);
+  console.log('   [db] 模式: ' + db.mode + (db.mode === 'turso' ? '' : ' (' + require('./db').DB_PATH + ')'));
 
-  // 新增
-  if (req.method === 'POST' && id == null) {
-    const b = await readJsonBody(req);
-    if (!b.title || !b.questionType) {
-      return sendJson(res, 400, { code: 400, message: '缺少 title 或 questionType', data: null });
+  const server = http.createServer(async (req, res) => {
+    // CORS（开发放开；上线可收紧为指定域名）
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+
+    const url = new URL(req.url, 'http://localhost');
+    const p = url.pathname;
+    const ctx = authCtx(req);
+
+    try {
+      // 健康检查
+      if (p === '/api/health') {
+        return sendJson(res, 200, {
+          code: 0, message: 'ok',
+          data: { status: 'healthy', service: 'xinchuan-server', mode: db.mode, time: new Date().toISOString() }
+        });
+      }
+
+      // 认证（注册登录无需鉴权）
+      if (p === '/api/auth/register' && req.method === 'POST') return await handleRegister(req, res, db);
+      if (p === '/api/auth/login' && req.method === 'POST') return await handleLogin(req, res, db);
+      if (p === '/api/auth/me' && req.method === 'GET') {
+        if (!ctx || !ctx.user) return sendJson(res, 401, { code: 401, message: '未登录或登录已过期', data: null });
+        return await handleMe(req, res, db, ctx);
+      }
+
+      // 题库（GET 公开；写操作需 api-token 或 JWT）
+      if (p === '/api/questions') {
+        if (req.method === 'POST' && !ctx) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
+        return await handleQuestions(req, res, db, url, null);
+      }
+      if (p === '/api/questions/sync' && req.method === 'POST') {
+        if (!ctx) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
+        return await handleQuestionSync(req, res, db);
+      }
+      const qm = p.match(/^\/api\/questions\/(\d+)$/);
+      if (qm) {
+        if (req.method !== 'GET' && !ctx) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
+        return await handleQuestions(req, res, db, url, Number(qm[1]));
+      }
+
+      // 管理接口（仅 admin 角色 JWT）
+      if (p === '/api/admin/users' && req.method === 'GET') {
+        if (!ctx || !ctx.user) return sendJson(res, 401, { code: 401, message: '未登录或登录已过期', data: null });
+        if (ctx.user.role !== 'admin') return sendJson(res, 403, { code: 403, message: '无权限：需要管理员账号', data: null });
+        return await handleAdminUsers(req, res, db);
+      }
+      if (p === '/api/admin/stats' && req.method === 'GET') {
+        if (!ctx || !ctx.user) return sendJson(res, 401, { code: 401, message: '未登录或登录已过期', data: null });
+        if (ctx.user.role !== 'admin') return sendJson(res, 403, { code: 403, message: '无权限：需要管理员账号', data: null });
+        return await handleAdminStats(req, res, db);
+      }
+
+      // 用户数据云同步（需 JWT 登录态）
+      const sm = p.match(/^\/api\/sync\/(\w+)$/);
+      if (sm) {
+        const collection = sm[1];
+        if (!COLLECTIONS[collection]) return sendJson(res, 404, { code: 404, message: '未知同步集合: ' + collection, data: null });
+        if (!ctx || !ctx.user) return sendJson(res, 401, { code: 401, message: '未登录或登录已过期', data: null });
+        if (req.method === 'GET') return await handlePull(req, res, db, url, ctx, collection);
+        if (req.method === 'POST') return await handlePush(req, res, db, ctx, collection);
+        return sendJson(res, 405, { code: 405, message: '方法不允许', data: null });
+      }
+
+      return sendJson(res, 404, { code: 404, message: '接口不存在: ' + p, data: null });
+    } catch (e) {
+      return sendJson(res, 500, { code: 500, message: '服务器错误: ' + e.message, data: null });
     }
-    const info = db.prepare(
-      'INSERT INTO questions (question_type, title, category, tag, status, content_json) VALUES (?,?,?,?,?,?)'
-    ).run(b.questionType, b.title, b.category || null, b.tag || null, b.status || 'draft', b.contentJson || null);
-    db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)')
-      .run(Number(info.lastInsertRowid), 'create', null);
-    const row = db.prepare('SELECT * FROM questions WHERE id = ?').get(Number(info.lastInsertRowid));
-    return sendJson(res, 201, { code: 0, message: 'created', data: mapQuestion(row) });
-  }
+  });
 
-  // 编辑
-  if (req.method === 'PUT' && id != null) {
-    const b = await readJsonBody(req);
-    const row = db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
-    if (!row) return sendJson(res, 404, { code: 404, message: '题目不存在', data: null });
-    db.prepare(
-      "UPDATE questions SET question_type=?, title=?, category=?, tag=?, status=?, content_json=?, updated_at=datetime('now','localtime') WHERE id=?"
-    ).run(
-      b.questionType || row.question_type,
-      b.title || row.title,
-      b.category != null ? b.category : row.category,
-      b.tag != null ? b.tag : row.tag,
-      b.status || row.status,
-      b.contentJson != null ? b.contentJson : row.content_json,
-      id
-    );
-    db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)').run(id, 'update', null);
-    const updated = db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
-    return sendJson(res, 200, { code: 0, message: 'updated', data: mapQuestion(updated) });
-  }
-
-  // 删除
-  if (req.method === 'DELETE' && id != null) {
-    const row = db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
-    if (!row) return sendJson(res, 404, { code: 404, message: '题目不存在', data: null });
-    db.prepare('DELETE FROM questions WHERE id = ?').run(id);
-    db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)').run(id, 'delete', null);
-    return sendJson(res, 200, { code: 0, message: 'deleted', data: { id } });
-  }
-
-  return sendJson(res, 405, { code: 405, message: '方法不允许', data: null });
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log('==================================================');
+    console.log('   新传研背 后端服务已启动');
+    console.log('   API:      http://localhost:' + PORT + '/api');
+    console.log('   健康检查: http://localhost:' + PORT + '/api/health');
+    console.log('==================================================');
+  });
 }
 
-/**
- * 批量同步题库：后台把本地题库全量推送过来，按 id 覆盖写入（upsert）。
- * @param {http.IncomingMessage} req 请求（body: 数组 或 { items: [...] }）
- * @param {http.ServerResponse} res 响应
- * @returns {Promise<void>}
- */
-async function handleQuestionSync(req, res) {
-  const b = await readJsonBody(req);
-  const items = Array.isArray(b) ? b : (b.items || []);
-  const stmt = db.prepare(
-    "INSERT OR REPLACE INTO questions (id, question_type, title, category, tag, status, content_json, created_at, updated_at) " +
-    "VALUES (?,?,?,?,?,?,?, COALESCE((SELECT created_at FROM questions WHERE id=?), datetime('now','localtime')), datetime('now','localtime'))"
-  );
-  let n = 0;
-  for (const it of items) {
-    if (!it || it.id == null) continue;
-    stmt.run(Number(it.id), it.questionType || 'noun', it.title || '', it.category || null,
-      it.tag || null, it.status || 'draft', it.contentJson || null, Number(it.id));
-    n++;
-  }
-  return sendJson(res, 200, { code: 0, message: 'synced', data: { count: n } });
-}
-
-const server = http.createServer(async (req, res) => {
-  // CORS（开发阶段放开；上线可收紧为指定域名）
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
-
-  // 写操作鉴权：无有效令牌一律 401（GET 只读保持公开，供学生端拉取）
-  if (WRITE_METHODS.indexOf(req.method) >= 0 && !isAuthorized(req)) {
-    return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
-  }
-
-  const url = new URL(req.url, 'http://localhost');
-  const p = url.pathname;
-
-  try {
-    if (p === '/api/health') {
-      return sendJson(res, 200, {
-        code: 0, message: 'ok',
-        data: { status: 'healthy', service: 'xinchuan-server', time: new Date().toISOString() }
-      });
-    }
-    if (p === '/api/questions') return await handleQuestions(req, res, url, null);
-    if (p === '/api/questions/sync' && req.method === 'POST') return await handleQuestionSync(req, res);
-    const m = p.match(/^\/api\/questions\/(\d+)$/);
-    if (m) return await handleQuestions(req, res, url, Number(m[1]));
-
-    return sendJson(res, 404, { code: 404, message: '接口不存在: ' + p, data: null });
-  } catch (e) {
-    return sendJson(res, 500, { code: 500, message: '服务器错误: ' + e.message, data: null });
-  }
+main().catch((e) => {
+  console.error('[fatal] 启动失败:', e);
+  process.exit(1);
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('==================================================');
-  console.log('   新传研背 后端服务已启动');
-  console.log('   API:      http://localhost:' + PORT + '/api');
-  console.log('   健康检查: http://localhost:' + PORT + '/api/health');
-  console.log('==================================================');
-});
-
-module.exports = { server };
+module.exports = { server: null };

@@ -1,25 +1,82 @@
-// ===== 新传研背 后端 · 数据库模块 =====
-// 使用 Node.js 内置 SQLite（node:sqlite，需 Node >= 22），零第三方依赖。
-// 数据库文件默认存放在 apps/server/data/xinchuan.db（已在 .gitignore 忽略）；
-// 打包进 Electron 后由主进程通过环境变量 XC_DATA_DIR 指向用户可写目录。
+// ===== 新传研背 后端 · 数据库模块（双模式适配）=====
+// XC_DB 环境变量选择模式：
+//   sqlite（默认）：node:sqlite 本地文件库（Node >= 22），开发 / 打包版使用
+//   turso        ：@libsql/client 连接云端 Turso 库（SQLite 方言，业务 SQL 零改动）
+//
+// 统一对外异步接口（Promise）：
+//   db.prepare(sql).run(...args)  -> { changes, lastInsertRowid }
+//   db.prepare(sql).get(...args)  -> row | undefined
+//   db.prepare(sql).all(...args)  -> rows[]
+//   db.exec(sql)                  -> void
 const path = require('path');
 const fs = require('fs');
-const { DatabaseSync } = require('node:sqlite');
 
 const DATA_DIR = process.env.XC_DATA_DIR || path.join(__dirname, '..', 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-
 const DB_PATH = path.join(DATA_DIR, 'xinchuan.db');
-const db = new DatabaseSync(DB_PATH);
 
-/**
- * 初始化数据库表结构（幂等：已存在则跳过）。
- * 首次启动会自动创建全部表与索引。
- * @returns {void}
- */
-function initSchema() {
-  db.exec(`
-    -- 用户账号
+const MODE = process.env.XC_DB || 'sqlite';
+
+function toNumber(v) {
+  if (v == null) return v;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : v;
+}
+
+async function createDb() {
+  if (MODE === 'turso') {
+    // ---------- 云端 Turso（SQLite 方言，持久化） ----------
+    const { createClient } = require('@libsql/client');
+    const url = process.env.XC_TURSO_URL;
+    if (!url) throw new Error('[db] XC_TURSO_URL 未设置（turso 模式需要云库连接串）');
+    const client = createClient({ url, authToken: process.env.XC_TURSO_TOKEN });
+    return {
+      mode: 'turso',
+      async exec(sql) { await client.executeMultiple(sql); },
+      prepare(sql) {
+        return {
+          async run(...args) {
+            const r = await client.execute({ sql, args: [...args] });
+            return { changes: r.rowsAffected ?? 0, lastInsertRowid: toNumber(r.lastInsertRowid) };
+          },
+          async get(...args) {
+            const r = await client.execute({ sql, args: [...args] });
+            return r.rows[0];
+          },
+          async all(...args) {
+            const r = await client.execute({ sql, args: [...args] });
+            return r.rows;
+          }
+        };
+      },
+      async close() { /* 无连接池需手动关闭 */ }
+    };
+  }
+
+  // ---------- 本地 SQLite（node:sqlite，同步 API 包一层 Promise） ----------
+  const { DatabaseSync } = require('node:sqlite');
+  const raw = new DatabaseSync(DB_PATH);
+  return {
+    mode: 'sqlite',
+    async exec(sql) { raw.exec(sql); },
+    prepare(sql) {
+      const stmt = raw.prepare(sql);
+      return {
+        async run(...args) {
+          const r = stmt.run(...args);
+          return { changes: r.changes, lastInsertRowid: toNumber(r.lastInsertRowid) };
+        },
+        async get(...args) { return stmt.get(...args); },
+        async all(...args) { return stmt.all(...args); }
+      };
+    },
+    async close() { raw.close(); }
+  };
+}
+
+/** 幂等初始化表结构 + 老库缺列迁移（不重建、不丢数据）。 */
+async function initSchema(db) {
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
       username      TEXT UNIQUE NOT NULL,
@@ -30,7 +87,6 @@ function initSchema() {
       created_at    TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     );
 
-    -- 题库（名词解释/简答/论述/实务）
     CREATE TABLE IF NOT EXISTS questions (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
       question_type TEXT NOT NULL,                      -- noun / short / essay / practice
@@ -43,58 +99,57 @@ function initSchema() {
       updated_at    TEXT
     );
 
-    -- 学习资料
     CREATE TABLE IF NOT EXISTS materials (
       id           INTEGER PRIMARY KEY AUTOINCREMENT,
       title        TEXT NOT NULL,
-      source_type  TEXT,                                -- 教材 / 真题 / 其他
-      file_type    TEXT,                                -- PDF / Word ...
+      source_type  TEXT,
+      file_type    TEXT,
       word_count   INTEGER,
       chapter_info TEXT,
-      parse_status TEXT,                                -- pending / done / failed
+      parse_status TEXT,
       uploaded_by  INTEGER,
       created_at   TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     );
 
-    -- 收藏关系（用户 × 题目）
     CREATE TABLE IF NOT EXISTS favorites (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     INTEGER NOT NULL,
       question_id INTEGER NOT NULL,
-      created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      updated_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      deleted     INTEGER NOT NULL DEFAULT 0,
       UNIQUE(user_id, question_id)
     );
 
-    -- 笔记
     CREATE TABLE IF NOT EXISTS notes (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     INTEGER NOT NULL,
       question_id INTEGER,
       content     TEXT,
-      created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+      created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      updated_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      deleted     INTEGER NOT NULL DEFAULT 0
     );
 
-    -- 学习进度（掌握度）
     CREATE TABLE IF NOT EXISTS study_progress (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     INTEGER NOT NULL,
       question_id INTEGER NOT NULL,
-      rating      TEXT,                                 -- known / blur / unknown
+      rating      TEXT,
       updated_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      deleted     INTEGER NOT NULL DEFAULT 0,
       UNIQUE(user_id, question_id)
     );
 
-    -- 考试 / 训练历史
     CREATE TABLE IF NOT EXISTS exam_history (
       id             INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id        INTEGER NOT NULL,
-      type           TEXT,                              -- interview / comment / news ...
+      type           TEXT,
       question_index INTEGER,
       answer         TEXT,
-      updated_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+      updated_at     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      deleted        INTEGER NOT NULL DEFAULT 0
     );
 
-    -- 用户反馈
     CREATE TABLE IF NOT EXISTS feedback (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id    INTEGER,
@@ -102,21 +157,37 @@ function initSchema() {
       created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     );
 
-    -- 题库发布日志
     CREATE TABLE IF NOT EXISTS publish_logs (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       question_id INTEGER NOT NULL,
-      action      TEXT,                                 -- create / update / publish / unpublish / delete
+      action      TEXT,
       operator    INTEGER,
       created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     );
 
     CREATE INDEX IF NOT EXISTS idx_questions_type_status ON questions(question_type, status);
-    CREATE INDEX IF NOT EXISTS idx_favorites_user        ON favorites(user_id);
-    CREATE INDEX IF NOT EXISTS idx_notes_user            ON notes(user_id);
-    CREATE INDEX IF NOT EXISTS idx_progress_user         ON study_progress(user_id);
-    CREATE INDEX IF NOT EXISTS idx_exam_user             ON exam_history(user_id);
+    CREATE INDEX IF NOT EXISTS idx_favorites_user    ON favorites(user_id);
+    CREATE INDEX IF NOT EXISTS idx_notes_user        ON notes(user_id);
+    CREATE INDEX IF NOT EXISTS idx_progress_user     ON study_progress(user_id);
+    CREATE INDEX IF NOT EXISTS idx_exam_user         ON exam_history(user_id);
   `);
+
+  // 老库迁移：为既有表补充新增列（ALTER 幂等，仅缺列时执行）
+  await ensureColumn(db, 'favorites', 'updated_at', "TEXT NOT NULL DEFAULT (datetime('now','localtime'))");
+  await ensureColumn(db, 'favorites', 'deleted', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'notes', 'updated_at', "TEXT NOT NULL DEFAULT (datetime('now','localtime'))");
+  await ensureColumn(db, 'notes', 'deleted', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'study_progress', 'deleted', 'INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn(db, 'exam_history', 'deleted', 'INTEGER NOT NULL DEFAULT 0');
 }
 
-module.exports = { db, initSchema, DB_PATH };
+/** 检查表是否已有某列，缺则 ALTER TABLE ADD COLUMN。 */
+async function ensureColumn(db, table, column, ddl) {
+  try {
+    const rows = await db.prepare('PRAGMA table_info(' + table + ')').all();
+    const exists = rows.some((c) => c && c.name === column);
+    if (!exists) await db.exec('ALTER TABLE ' + table + ' ADD COLUMN ' + column + ' ' + ddl);
+  } catch (e) { /* 表不存在时跳过（建表已覆盖） */ }
+}
+
+module.exports = { createDb, initSchema, MODE, DB_PATH, DATA_DIR };

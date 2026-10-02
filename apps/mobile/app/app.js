@@ -138,6 +138,7 @@ function rateWord(rating) {
   var isFirst = !ratings[key];
   ratings[key] = { rating: rating, ts: new Date().toISOString() };
   localStorage.setItem('wordRatings', JSON.stringify(ratings));
+  Cloud.pushRating(key, rating, ratings[key].ts); // V6.0：云端同步掌握度
   return isFirst;
 }
 
@@ -1469,20 +1470,45 @@ function thirdPartyLogin(type) {
   }, 1500);
 }
 
-function doLogin(phone, type) {
+function doLogin(account, type) {
+  // V6.0：密码登录走真实云端账号（未注册自动注册）；游客/第三方为本地模式
+  if (type === 'password') {
+    var password = document.getElementById('password-input').value.trim();
+    Cloud.login(account, password).then(function () {
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('loginType', 'password');
+      localStorage.setItem('userPhone', account);
+      ensureDefaultProfile();
+      Cloud.syncAll().then(function () {
+        showConfirm('登录成功', '欢迎回来！', 'success', function () { navigateTo('index.html'); });
+      }).catch(function () {
+        showConfirm('登录成功', '欢迎回来！', 'success', function () { navigateTo('index.html'); });
+      });
+    }).catch(function (err) {
+      showConfirm('登录失败', (err && err.message) || '网络不可用，请检查网络后重试', 'error');
+    });
+    return;
+  }
   localStorage.setItem('isLoggedIn', 'true');
   localStorage.setItem('loginType', type);
-  localStorage.setItem('userPhone', phone);
+  localStorage.setItem('userPhone', account);
   ensureDefaultProfile();
-  
+
   showConfirm('登录成功', '欢迎回来！', 'success', function() {
     navigateTo('index.html');
   });
 }
 
+// V6.0：游客体验入口（不登录，数据仅存本地；登录后可云端同步）
+function guestLogin() {
+  var account = '游客' + Math.floor(Math.random() * 100000);
+  doLogin(account, 'guest');
+}
+
 function handleLogout() {
   showConfirm('退出登录', '确定要退出登录吗？', 'warning', 
     function() {
+      Cloud.logout();
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('loginType');
       navigateTo('login.html');
@@ -2115,6 +2141,7 @@ function toggleFavorite(e) {
       bumpStat('favoriteCount', 1); // V5.0：收藏计数落库
     }
     markStudyDay();
+    if (entry) Cloud.pushFav(entry, false); // V6.0：云端同步收藏
     showConfirm('收藏', '已收藏该内容', 'success');
   } else {
     btn.textContent = '☆';
@@ -2124,6 +2151,8 @@ function toggleFavorite(e) {
       localStorage.setItem('favorites', JSON.stringify(favs));
       bumpStat('favoriteCount', -1); // V5.0：取消收藏同步递减
     }
+    markStudyDay();
+    if (entry) Cloud.pushFav(entry, true); // V6.0：云端同步取消收藏
     showConfirm('收藏', '已取消收藏', 'info');
   }
 }
@@ -2146,11 +2175,13 @@ function saveNote() {
   }
   
   var notes = safeParseStorage('notes', []);
-  notes.push({
+  var note = {
     content: content,
     timestamp: new Date().toISOString()
-  });
+  };
+  notes.push(note);
   localStorage.setItem('notes', JSON.stringify(notes));
+  Cloud.pushNote(note); // V6.0：云端同步笔记
   bumpStat('noteCount', 1); // V5.0：笔记计数落库
   markStudyDay();
   
@@ -3196,6 +3227,34 @@ function toggleDataSync() {
   localStorage.setItem('dataSync', manual ? 'auto' : 'manual');
   updateSettingsRowVal('toggleDataSync()', (manual ? '自动' : '手动') + ' ›');
   showConfirm('数据同步', manual ? '已切换为自动记录' : '已切换为手动记录', 'info');
+}
+
+// ===== V5.1.1 原生App 云端服务器地址配置（安卓/iOS 壳连接后端用） =====
+function openServerUrlModal() {
+  var current = localStorage.getItem('xc_server_url') || '';
+  var html = '<div class="modal-overlay" style="display:flex;" id="srv-modal" onclick="closeModal(\'srv-modal\')">' +
+    '<div class="modal-content" onclick="event.stopPropagation()">' +
+      '<div class="modal-title">云端服务器地址</div>' +
+      '<div class="modal-close" onclick="closeModal(\'srv-modal\')">×</div>' +
+      '<div style="padding:16px 0;">' +
+        '<input id="srv-input" placeholder="例如：http://192.168.1.5:3000/api" value="' + escapeHtml(current) + '" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--paper-line);border-radius:10px;font-size:13px;margin-bottom:10px;outline:none;background:var(--paper);color:var(--ink);" />' +
+        '<div style="font-size:12px;color:var(--ink-light);margin:4px 0 14px;">仅安卓/App 使用：填管理后台所在电脑的局域网地址（同一Wi-Fi）。留空则仅用本地背诵功能。</div>' +
+        '<div class="save-btn" style="text-align:center;" onclick="saveServerUrl()">保存</div>' +
+      '</div>' +
+    '</div></div>';
+  var old = document.getElementById('srv-modal');
+  if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function saveServerUrl() {
+  var input = document.getElementById('srv-input');
+  if (!input) return;
+  var val = input.value.trim().replace(/\/+$/, '');
+  localStorage.setItem('xc_server_url', val);
+  closeModal('srv-modal');
+  updateSettingsRowVal('openServerUrlModal()', (val ? '已配置' : '未配置') + ' ›');
+  showConfirm('云端服务器地址', val ? '已保存：' + val : '已清空，App 仅使用本地功能', 'success');
 }
 
 // —— AI 设置（与详情页 AI 弹窗同一套 key：aiModel / aiModelName / apiKey）——
@@ -4687,3 +4746,15 @@ function toggleFullSample() {
     if (toggle) toggle.textContent = isHidden ? '›' : '‹';
   }
 }
+
+// ===== V6.0 云同步初始化 =====
+// 已登录用户：静默校验登录态 + 增量同步；未登录/离线静默跳过（离线优先）
+// 部分页面 cloud.js 在 app.js 之后加载，延迟到本轮同步脚本执行完再初始化
+(function initCloud() {
+  function tryInit() {
+    try {
+      if (typeof Cloud !== 'undefined' && Cloud.init) Cloud.init();
+    } catch (e) { /* 云能力不可用不影响本地使用 */ }
+  }
+  if (typeof Cloud !== 'undefined') { tryInit(); } else { setTimeout(tryInit, 0); }
+})();

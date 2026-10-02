@@ -19,11 +19,19 @@ var XCSync = (function () {
   var LS_OVERLAY = 'xc_question_sync';
   var LS_SRV_HASH = 'xc_srv_hash';
   // 后端地址：网页版走 8081 同源代理 /api/backend（手机/局域网零配置）；
-  // Electron（file://）直连本机后端。部署到云服务器时把域名写进 window.XC_API_BASE 即可切换。
+  // Electron（file://）直连本机后端；原生壳（Capacitor）用设置页填写的服务器地址（同一 Wi-Fi 下填管理员的电脑IP:3000）。
   var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || '';
   if (!XC_API_BASE) {
-    var _isFile = typeof location !== 'undefined' && location.protocol === 'file:';
-    XC_API_BASE = _isFile ? 'http://localhost:3000/api' : '/api/backend';
+    var _proto = typeof location !== 'undefined' ? location.protocol : '';
+    var _isFile = _proto === 'file:';
+    var _isCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
+    if (_isFile) {
+      XC_API_BASE = 'http://localhost:3000/api';
+    } else if (_isCapacitor) {
+      try { XC_API_BASE = localStorage.getItem('xc_server_url') || ''; } catch (e) { XC_API_BASE = ''; }
+    } else {
+      XC_API_BASE = '/api/backend';
+    }
   }
 
   function isElectron() {

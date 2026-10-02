@@ -1,0 +1,8 @@
+{
+  "appId": "com.xinchuan.yanbei",
+  "appName": "新传研背",
+  "webDir": "apps/mobile/app",
+  "android": {
+    "allowMixedContent": true
+  }
+}

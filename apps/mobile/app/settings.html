@@ -61,6 +61,7 @@
   </div>
   
   <script src="xc-sync.js"></script>
+  <script src="cloud.js"></script>
   <script src="ai-service.js"></script>
   <script src="app.js"></script>
   <script>
@@ -80,7 +81,13 @@
         var boundEmail = localStorage.getItem('boundEmail');
         var pwdHint = localStorage.getItem('localPasswordHint');
         var phone = localStorage.getItem('userPhone') || '13800000000';
-        html = '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openChangePasswordModal()"><span>修改密码</span><span class="val">' + (pwdHint ? '已设置' : '未设置') + ' ›</span></div>' +
+        var curUser = null;
+        try { curUser = JSON.parse(localStorage.getItem('xc_user') || 'null'); } catch (e) { curUser = null; }
+        var loginLine = '<div class="settings-row" style="' + rowStyleLast + '"><span>当前账号</span><span class="val" style="color:var(--ink);">' +
+          (curUser && curUser.username ? escapeHtml(curUser.username) : '游客（数据仅存本地）') + '</span></div>' +
+          '<div class="settings-row" style="' + rowStyle + '"><span>云同步</span><span class="val">' + (Cloud.isLoggedIn() ? '已开启 · 登录后自动同步' : '未登录 · 收藏/笔记/掌握度仅存本地') + '</span></div>';
+        html = loginLine +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openChangePasswordModal()"><span>修改密码</span><span class="val">' + (pwdHint ? '已设置' : '未设置') + ' ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '"><span>绑定手机</span><span class="val">' + maskPhone(phone) + '</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openBindEmailModal()"><span>绑定邮箱</span><span class="val">' + (boundEmail ? escapeHtml(boundEmail) : '未绑定') + ' ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="handleLogout()"><span>退出登录</span><span class="val" style="color:var(--red);">›</span></div>';
@@ -121,6 +128,7 @@
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="exportStudyData()"><span>导出学习数据</span><span class="val">备份到文件 ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="importStudyData()"><span>导入学习数据</span><span class="val">从备份恢复 ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlex + '" onclick="toggleOfflineSync()"><span>离线下载</span><span class="val">' + (offlineOn ? 'Wi-Fi下' : '关闭') + ' ›</span></div>' +
+               '<div class="settings-row" style="' + rowStyleFlex + '" onclick="openServerUrlModal()"><span>云端服务器地址</span><span class="val">' + (localStorage.getItem('xc_server_url') ? '已配置' : '未配置') + ' ›</span></div>' +
                '<div class="settings-row" style="' + rowStyleFlexLast + '" onclick="toggleDataSync()"><span>数据同步</span><span class="val">' + syncMode + ' ›</span></div>';
       } else if (section === 'about') {
         var version = localStorage.getItem('APP_VERSION') || 'v5.1.1';

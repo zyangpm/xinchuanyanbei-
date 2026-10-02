@@ -11,7 +11,7 @@
     "build:all": "electron-builder"
   },
   "build": {
-    "appId": "com.xinchuan.yanbei.v4",
+    "appId": "com.xinchuan.yanbei.v5",
     "productName": "新传研背V5",
     "npmRebuild": false,
     "electronDist": "../../node_modules/electron/dist",

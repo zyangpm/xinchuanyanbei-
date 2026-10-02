@@ -13,12 +13,35 @@ var pageNames = {
   bank: '题库管理',
   publish: '发布管理',
   stats: '数据统计',
+  users: '用户管理',
   feedback: '用户反馈'
 };
 
 var DEFAULT_ADMIN = 'admin';
 
-// ===== 登录处理 =====
+// ===== V6.0 管理后台云端接口封装 =====
+// 后端地址：设置页/本地存储 xc_server_url 优先，默认本机后端（Electron 自动拉起）
+function adminApi(path, opts) {
+  opts = opts || {};
+  var headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+  var token = sessionStorage.getItem('adminToken') || localStorage.getItem('xc_admin_token') || '';
+  if (token) headers.Authorization = 'Bearer ' + token;
+  var base = localStorage.getItem('xc_server_url') || 'http://localhost:3000/api';
+  return fetch(base.replace(/\/+$/, '') + '/' + String(path).replace(/^\//, ''), {
+    method: opts.method || 'GET',
+    headers: headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  }).then(function (r) {
+    return r.json().catch(function () { return { code: r.status, message: '服务器响应异常', data: null }; });
+  }).then(function (res) {
+    if (res && res.code === 0) return res;
+    var err = new Error((res && res.message) || '请求失败');
+    err.code = res && res.code;
+    throw err;
+  });
+}
+
+// ===== 登录处理（V6.0：真实管理员账号，JWT 鉴权） =====
 function handleLogin(event) {
   event.preventDefault();
   var username = document.getElementById('admin-username').value.trim();
@@ -27,29 +50,30 @@ function handleLogin(event) {
   if (!username) { showHint('请输入管理员账号'); return false; }
   if (!password) { showHint('请输入密码'); return false; }
 
-  // V5.1：必须通过账号密码校验（默认 admin/admin123），任意非空凭据不再放行
-  if (typeof verifyAdminCredential !== 'function' || !verifyAdminCredential(username, password)) {
-    showHint('账号或密码错误，请重试（默认账号 admin，密码 admin123）');
-    var errBtn = document.querySelector('.login-btn');
-    if (errBtn) { errBtn.textContent = '登 录'; errBtn.style.opacity = '1'; }
-    return false;
-  }
-
   var btn = document.querySelector('.login-btn');
-  btn.textContent = '登录中...';
-  btn.style.opacity = '0.7';
+  if (btn) { btn.textContent = '登录中...'; btn.style.opacity = '0.7'; }
 
-  setTimeout(function() {
-    sessionStorage.setItem('adminLoggedIn', 'true');
-    sessionStorage.setItem('adminName', username);
-    window.location.href = 'dashboard.html';
-  }, 800);
+  adminApi('auth/login', { method: 'POST', body: { username: username, password: password } })
+    .then(function (res) {
+      if (!res.data || !res.data.user || res.data.user.role !== 'admin') {
+        throw new Error('该账号不是管理员');
+      }
+      sessionStorage.setItem('adminLoggedIn', 'true');
+      sessionStorage.setItem('adminName', res.data.user.username || username);
+      sessionStorage.setItem('adminToken', res.data.token);
+      window.location.href = 'dashboard.html';
+    })
+    .catch(function (err) {
+      showHint((err && err.message) || '网络不可用，请检查后端服务是否启动');
+      if (btn) { btn.textContent = '登 录'; btn.style.opacity = '1'; }
+    });
   return false;
 }
 
 function handleLogout() {
   sessionStorage.removeItem('adminLoggedIn');
   sessionStorage.removeItem('adminName');
+  sessionStorage.removeItem('adminToken');
   window.location.href = 'index.html';
 }
 
@@ -76,7 +100,39 @@ function switchPage(pageName, navEl) {
   if (pageName === 'bank') renderQuestions();
   if (pageName === 'publish') renderPublishPage();
   if (pageName === 'stats') refreshStats();
+  if (pageName === 'users') renderUsers();
   if (pageName === 'feedback') renderFeedbacks();
+}
+
+// ===== 用户管理（V6.0：云端真实用户数据） =====
+function renderUsers() {
+  var tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--ink-light);">加载中...</td></tr>';
+  adminApi('admin/users').then(function (res) {
+    var users = res.data || [];
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--ink-light);">暂无注册用户</td></tr>';
+      return;
+    }
+    var html = '';
+    users.forEach(function (u) {
+      html += '<tr>' +
+        '<td>' + u.id + '</td>' +
+        '<td>' + escapeHtml(u.username) + '</td>' +
+        '<td>' + escapeHtml(u.nickname || u.username) + '</td>' +
+        '<td><span class="status-tag ' + (u.role === 'admin' ? 'reviewing' : '') + '">' + (u.role === 'admin' ? '管理员' : '学生') + '</span></td>' +
+        '<td>' + (u.stats ? u.stats.favorites : 0) + '</td>' +
+        '<td>' + (u.stats ? u.stats.notes : 0) + '</td>' +
+        '<td>' + (u.stats ? u.stats.progress : 0) + '</td>' +
+        '<td>' + (u.stats ? u.stats.history : 0) + '</td>' +
+        '<td>' + escapeHtml(u.createdAt || '') + '</td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = html;
+  }).catch(function (err) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--red);">加载失败：' + escapeHtml((err && err.message) || '网络错误') + '</td></tr>';
+  });
 }
 
 function switchPageByName(pageName) {

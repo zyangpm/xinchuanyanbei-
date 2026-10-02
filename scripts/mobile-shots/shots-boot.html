@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>shots-boot</title></head>
+<body>
+<script>
+// 临时测试引导页：模拟已登录状态后跳转到目标页面（仅本地适配检查用，不入库）
+localStorage.setItem('isLoggedIn', 'true');
+localStorage.setItem('userNickname', '阿宇');
+localStorage.setItem('studyDays', '5');
+localStorage.setItem('xc_server_url', 'http://localhost:3000/api');
+var p = new URLSearchParams(location.search).get('page') || 'apps/mobile/app/index.html';
+location.replace('/' + p);
+</script>
+</body>
+</html>
