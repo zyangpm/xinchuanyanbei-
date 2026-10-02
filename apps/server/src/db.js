@@ -1,11 +1,12 @@
 // ===== 新传研背 后端 · 数据库模块 =====
 // 使用 Node.js 内置 SQLite（node:sqlite，需 Node >= 22），零第三方依赖。
-// 数据库文件存放在 apps/server/data/xinchuan.db（已在 .gitignore 忽略）。
+// 数据库文件默认存放在 apps/server/data/xinchuan.db（已在 .gitignore 忽略）；
+// 打包进 Electron 后由主进程通过环境变量 XC_DATA_DIR 指向用户可写目录。
 const path = require('path');
 const fs = require('fs');
 const { DatabaseSync } = require('node:sqlite');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.XC_DATA_DIR || path.join(__dirname, '..', 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const DB_PATH = path.join(DATA_DIR, 'xinchuan.db');

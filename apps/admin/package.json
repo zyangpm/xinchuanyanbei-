@@ -18,6 +18,7 @@
     "extraMetadata": {
       "main": "apps/admin/main.js"
     },
+    "asar": false,
     "files": [
       "package.json",
       { "from": ".", "to": "apps/admin", "filter": ["main.js", "preload.js", "index.html", "dashboard.html"] },

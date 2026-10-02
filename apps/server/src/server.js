@@ -14,8 +14,9 @@ const PORT = Number(process.env.PORT) || 3000;
 // ===== V5.1.1 API 令牌鉴权 =====
 // 写操作（POST/PUT/PATCH/DELETE）必须携带 Authorization: Bearer <token>。
 // 令牌来源：环境变量 XC_API_TOKEN > data/.api_token 文件 > 自动生成（写入文件并打印）。
-// data/ 已被 .gitignore 忽略，令牌不会进仓库。
-const TOKEN_FILE = path.join(__dirname, '..', 'data', '.api_token');
+// data/ 已被 .gitignore 忽略，令牌不会进仓库；打包版由主进程通过 XC_DATA_DIR 指向可写目录。
+const DATA_DIR = process.env.XC_DATA_DIR || path.join(__dirname, '..', 'data');
+const TOKEN_FILE = path.join(DATA_DIR, '.api_token');
 let API_TOKEN = process.env.XC_API_TOKEN || '';
 if (!API_TOKEN) {
   try { API_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf8').trim(); } catch (e) { API_TOKEN = ''; }

@@ -13,8 +13,18 @@ const Store = require('electron-store');
 
 const store = new Store({ name: '新传研背V5' });
 
+// V5.1.1：学生端与管理后台共用同一数据目录（后端数据库、API 令牌），保证双端数据一致
+app.setPath('userData', path.join(app.getPath('appData'), 'xinchuan-yanbei'));
+
 // V5.1.1：桌面版自动拉起后端服务（系统 node 运行 apps/server/src/server.js，要求 Node>=22）
 // 端口 3000 已有服务则跳过；本机无 node 或启动失败时静默降级，不影响本地背诵功能。
+// 打包版：后端位于 app.asar.unpacked（asar 归档原生 node 无法读取，故解包），
+// 数据目录通过 XC_DATA_DIR 指向统一 userData（%APPDATA%/xinchuan-yanbei），保证可写且双端共用。
+function backendEntryPath() {
+  // 打包配置 asar:false，文件落在 resources/app/ 真实文件系统，路径与源码一致（原生 node 可直接读取）
+  return path.join(__dirname, '..', 'server', 'src', 'server.js');
+}
+
 function ensureBackend() {
   const probe = http.request({ host: '127.0.0.1', port: 3000, path: '/api/questions', method: 'GET', timeout: 800 }, (res) => {
     res.destroy(); // 已有后端在跑，跳过
@@ -26,9 +36,14 @@ function ensureBackend() {
 
 function startBackend() {
   try {
-    const serverEntry = path.join(__dirname, '..', 'server', 'src', 'server.js');
+    const serverEntry = backendEntryPath();
     const serverDir = path.dirname(serverEntry);
-    const child = spawn('node', [serverEntry], { cwd: serverDir, stdio: 'ignore', detached: true });
+    const child = spawn('node', [serverEntry], {
+      cwd: serverDir,
+      stdio: 'ignore',
+      detached: true,
+      env: Object.assign({}, process.env, { XC_DATA_DIR: app.getPath('userData') })
+    });
     child.on('error', () => { /* 系统无 node / 启动失败：静默降级 */ });
     child.unref();
   } catch (e) { /* 静默降级 */ }

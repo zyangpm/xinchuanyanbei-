@@ -21,6 +21,7 @@
     "extraMetadata": {
       "main": "apps/mobile/main.js"
     },
+    "asar": false,
     "files": [
       "package.json",
       { "from": ".", "to": "apps/mobile", "filter": ["main.js", "preload.js"] },

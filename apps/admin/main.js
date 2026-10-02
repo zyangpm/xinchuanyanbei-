@@ -13,10 +13,24 @@ const { spawn } = require('child_process');
 
 let mainWindow;
 
+// V5.1.1：管理后台与学生端共用同一数据目录（后端数据库、API 令牌），保证双端数据一致
+app.setPath('userData', path.join(app.getPath('appData'), 'xinchuan-yanbei'));
+
 // V5.1.1：管理后台 exe 启动时自动拉起配套服务（替代原 .bat 脚本）：
 // 1. 后端 API（127.0.0.1:3000，供管理端与学生端云同步）
 // 2. 网页版服务（0.0.0.0:8081，手机扫码访问手机端/PWA）
 // 均用系统 node 运行（要求 Node>=22）；端口已占用则跳过；无 node 或失败时静默降级。
+// 打包版：脚本位于 app.asar.unpacked（asar 归档原生 node 无法读取，故解包）。
+function backendEntryPath() {
+  // 打包配置 asar:false，文件落在 resources/app/ 真实文件系统，路径与源码一致（原生 node 可直接读取）
+  return path.join(__dirname, '..', 'server', 'src', 'server.js');
+}
+
+function webEntryPath() {
+  // 同上：网页版服务脚本与页面目录随包解出，原生 node 可直接读取
+  return path.join(__dirname, '..', 'mobile', 'start-server.js');
+}
+
 function ensureService(port, entryFile, cwd) {
   const probe = http.request({ host: '127.0.0.1', port: port, path: '/', method: 'GET', timeout: 800 }, (res) => {
     res.destroy(); // 已有服务在跑，跳过
@@ -28,18 +42,23 @@ function ensureService(port, entryFile, cwd) {
 
 function startService(entryFile, cwd) {
   try {
-    const child = spawn('node', [entryFile], { cwd: cwd, stdio: 'ignore', detached: true });
+    const child = spawn('node', [entryFile], {
+      cwd: cwd,
+      stdio: 'ignore',
+      detached: true,
+      env: Object.assign({}, process.env, { XC_DATA_DIR: app.getPath('userData') })
+    });
     child.on('error', () => { /* 系统无 node / 启动失败：静默降级 */ });
     child.unref();
   } catch (e) { /* 静默降级 */ }
 }
 
 function ensureBackend() {
-  ensureService(3000, path.join(__dirname, '..', 'server', 'src', 'server.js'), path.join(__dirname, '..', 'server', 'src'));
+  ensureService(3000, backendEntryPath(), path.dirname(backendEntryPath()));
 }
 
 function ensureWeb() {
-  ensureService(8081, path.join(__dirname, '..', 'mobile', 'start-server.js'), path.join(__dirname, '..', 'mobile'));
+  ensureService(8081, webEntryPath(), path.dirname(webEntryPath()));
 }
 
 function createAdminMenu() {
