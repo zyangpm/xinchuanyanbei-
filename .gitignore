@@ -47,3 +47,6 @@ CLAUDE.md
 新传研背上线前项目审计报告.md
 docs/Bug修复方案-测试报告.md
 docs/落地计划-GitHub公测.md
+
+# 部署密钥（勿提交）
+apps/server/data/.deploy-secrets.env

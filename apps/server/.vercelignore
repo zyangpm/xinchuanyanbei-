@@ -1,0 +1,6 @@
+# Vercel 部署排除（避免上传敏感文件与无用依赖）
+data/
+node_modules/
+dist/
+scripts/
+*.env

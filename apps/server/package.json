@@ -10,5 +10,8 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
   }
 }
