@@ -5,9 +5,56 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "echo \"Admin 构建待接入 Vite（V5+）\""
+    "build:win": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.xinchuan.yanbei.admin",
+    "productName": "新传研背管理后台",
+    "npmRebuild": false,
+    "electronDist": "../../node_modules/electron/dist",
+    "directories": {
+      "output": "../../dist/admin"
+    },
+    "extraMetadata": {
+      "main": "apps/admin/main.js"
+    },
+    "files": [
+      "package.json",
+      { "from": ".", "to": "apps/admin", "filter": ["main.js", "preload.js", "index.html", "dashboard.html"] },
+      { "from": "src", "to": "apps/admin/src" },
+      { "from": "public", "to": "apps/admin/public" },
+      { "from": "../../apps/server", "to": "apps/server", "filter": ["src/**", "package.json"] },
+      { "from": "../../apps/mobile", "to": "apps/mobile", "filter": ["start-server.js"] },
+      { "from": "../../apps/mobile/app", "to": "apps/mobile/app" },
+      { "from": "../../apps/mobile/assets", "to": "apps/mobile/assets" },
+      { "from": "../../packages/content", "to": "packages/content" }
+    ],
+    "icon": "public/logo.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "dir",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "新传研背管理后台"
+    }
   },
   "devDependencies": {
-    "electron": "28.2.8"
+    "electron": "28.2.8",
+    "electron-builder": "^24.9.1"
   }
 }

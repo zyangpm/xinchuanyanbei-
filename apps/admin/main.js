@@ -8,8 +8,39 @@
 
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
+const http = require('http');
+const { spawn } = require('child_process');
 
 let mainWindow;
+
+// V5.1.1：管理后台 exe 启动时自动拉起配套服务（替代原 .bat 脚本）：
+// 1. 后端 API（127.0.0.1:3000，供管理端与学生端云同步）
+// 2. 网页版服务（0.0.0.0:8081，手机扫码访问手机端/PWA）
+// 均用系统 node 运行（要求 Node>=22）；端口已占用则跳过；无 node 或失败时静默降级。
+function ensureService(port, entryFile, cwd) {
+  const probe = http.request({ host: '127.0.0.1', port: port, path: '/', method: 'GET', timeout: 800 }, (res) => {
+    res.destroy(); // 已有服务在跑，跳过
+  });
+  probe.on('error', () => startService(entryFile, cwd));
+  probe.on('timeout', () => { probe.destroy(); startService(entryFile, cwd); });
+  probe.end();
+}
+
+function startService(entryFile, cwd) {
+  try {
+    const child = spawn('node', [entryFile], { cwd: cwd, stdio: 'ignore', detached: true });
+    child.on('error', () => { /* 系统无 node / 启动失败：静默降级 */ });
+    child.unref();
+  } catch (e) { /* 静默降级 */ }
+}
+
+function ensureBackend() {
+  ensureService(3000, path.join(__dirname, '..', 'server', 'src', 'server.js'), path.join(__dirname, '..', 'server', 'src'));
+}
+
+function ensureWeb() {
+  ensureService(8081, path.join(__dirname, '..', 'mobile', 'start-server.js'), path.join(__dirname, '..', 'mobile'));
+}
 
 function createAdminMenu() {
   const menu = Menu.buildFromTemplate([
@@ -93,6 +124,8 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createAdminMenu();
+  ensureBackend(); // 自动拉起后端 API（失败静默）
+  ensureWeb();    // 自动拉起网页版服务（手机扫码访问）
   createWindow();
 
   app.on('activate', () => {

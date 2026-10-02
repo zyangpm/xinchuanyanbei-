@@ -63,6 +63,15 @@ xinchuan-yanbei/
 
 ## 快速开始
 
+### 普通用户（免安装依赖）
+
+从 [Releases](https://github.com/zyangpm/xinchuanyanbei-/releases) 下载安装包即可：
+
+- `新传研背V5 Setup 5.1.1.exe` → 学生端 APP（背诵 + 考试，本地运行，自动拉起后端）
+- `新传研背管理后台 Setup 5.1.1.exe` → 管理后台（内容管理，自动拉起后端与网页版服务，手机可扫码访问网页版）
+
+### 开发者（源码运行）
+
 ```bash
 # 安装依赖
 npm install
@@ -77,11 +86,6 @@ npm run serve:mobile
 npm run dev:admin
 ```
 
-## 启动脚本
-
-- `启动网页版.bat` → 启动 HTTP 服务器，手机扫码访问
-- `启动学生端APP.bat` → 启动 Electron 桌面应用
-
 ## 版本
 
-当前：V4.0（标准化 Monorepo 架构重构）
+当前：V5.1.1（安全修复 + 前后台联动打通，公测中）
