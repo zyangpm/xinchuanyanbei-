@@ -41,3 +41,9 @@ scripts/_qa_shots/
 
 # Server database
 apps/server/data/
+
+# 内部文档（不公开）：审计报告、测试报告、落地计划、AI 协作说明
+CLAUDE.md
+新传研背上线前项目审计报告.md
+docs/Bug修复方案-测试报告.md
+docs/落地计划-GitHub公测.md

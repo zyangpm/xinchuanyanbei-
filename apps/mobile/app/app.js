@@ -1,4 +1,4 @@
-﻿// ===== 学生端通用应用逻辑 =====
+// ===== 学生端通用应用逻辑 =====
 // 这个脚本主要负责：
 // 1. 初始化默认登录状态和用户信息
 // 2. 主题、字体、学习模式等设置
@@ -302,7 +302,7 @@ function initThemeAndFont() {
 
 document.addEventListener('DOMContentLoaded', function() {
   initStatBase();
-  localStorage.setItem('APP_VERSION', 'v5.1.0');
+  localStorage.setItem('APP_VERSION', 'v5.1.1');
   initThemeAndFont();
   initFavoriteStar();
   renderCollections();
@@ -2194,18 +2194,19 @@ function renderPosts() {
   posts.forEach(function(post) {
     var postDiv = document.createElement('div');
     postDiv.className = 'community-post';
+    // V5.1.1：全部字段输出转义，防 self-XSS / 存储型 XSS
     postDiv.innerHTML = `
       <div class="post-header">
-        <div class="post-avatar">${post.avatar}</div>
+        <div class="post-avatar">${escapeHtml(post.avatar)}</div>
         <div>
-          <div class="post-user">${post.user}</div>
-          <div class="post-time">${post.time}</div>
+          <div class="post-user">${escapeHtml(post.user)}</div>
+          <div class="post-time">${escapeHtml(post.time)}</div>
         </div>
       </div>
-      <div class="post-content">${post.content}</div>
+      <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
       <div class="post-actions">
-        <span class="post-action">👍 ${post.likes}</span>
-        <span class="post-action">💬 ${post.comments}</span>
+        <span class="post-action">👍 ${escapeHtml(post.likes)}</span>
+        <span class="post-action">💬 ${escapeHtml(post.comments)}</span>
       </div>
     `;
     
@@ -2660,18 +2661,19 @@ function renderCommunity(community) {
   community.forEach(function(post) {
     var postDiv = document.createElement('div');
     postDiv.className = 'community-post';
+    // V5.1.1：全部字段输出转义，防 self-XSS / 存储型 XSS
     postDiv.innerHTML = `
       <div class="post-header">
-        <div class="post-avatar">${post.avatar}</div>
+        <div class="post-avatar">${escapeHtml(post.avatar)}</div>
         <div>
-          <div class="post-user">${post.user}</div>
-          <div class="post-time">${post.time}</div>
+          <div class="post-user">${escapeHtml(post.user)}</div>
+          <div class="post-time">${escapeHtml(post.time)}</div>
         </div>
       </div>
-      <div class="post-content">${post.content}</div>
+      <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
       <div class="post-actions">
-        <span class="post-action">👍 ${post.likes}</span>
-        <span class="post-action">💬 ${post.comments}</span>
+        <span class="post-action">👍 ${escapeHtml(post.likes)}</span>
+        <span class="post-action">💬 ${escapeHtml(post.comments)}</span>
       </div>
     `;
     section.appendChild(postDiv);
@@ -3139,6 +3141,56 @@ function toggleOfflineSync() {
   showConfirm('离线下载', enabled ? '已关闭离线下载' : '将在 Wi-Fi 环境下自动缓存已学内容（当前版本为本地记录）', 'success');
 }
 
+// ===== V5.1.1 学习数据导出/导入备份（F9：防清缓存/换设备丢失） =====
+function exportStudyData() {
+  var data = {};
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k === 'isLoggedIn' || k === 'loginType') continue; // 登录态不导出
+    try { data[k] = localStorage.getItem(k); } catch (e) {}
+  }
+  data.__exportedAt = new Date().toISOString();
+  data.__app = 'xinchuan-yanbei';
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '新传研背学习数据备份-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  showConfirm('导出学习数据', '已导出 ' + (Object.keys(data).length - 2) + ' 项数据到备份文件。', 'success');
+}
+
+function importStudyData() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json,.json';
+  input.onchange = function () {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var data = JSON.parse(e.target.result);
+        if (!data || typeof data !== 'object' || data.__app !== 'xinchuan-yanbei') {
+          showConfirm('导入学习数据', '文件格式不正确：不是新传研背的备份文件。', 'error');
+          return;
+        }
+        var n = 0;
+        for (var k in data) {
+          if (k === '__exportedAt' || k === '__app') continue;
+          try { localStorage.setItem(k, data[k]); n++; } catch (err) {}
+        }
+        showConfirm('导入学习数据', '成功恢复 ' + n + ' 项数据，即将刷新页面生效。', 'success', function () { location.reload(); });
+      } catch (err) {
+        showConfirm('导入学习数据', '文件解析失败：' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+  input.click();
+}
+
 function toggleDataSync() {
   var manual = localStorage.getItem('dataSync') === 'manual';
   localStorage.setItem('dataSync', manual ? 'auto' : 'manual');
@@ -3473,7 +3525,7 @@ function rateApp() {
 }
 
 function showAbout() {
-  var version = localStorage.getItem('APP_VERSION') || 'v5.1.0';
+  var version = localStorage.getItem('APP_VERSION') || 'v5.1.1';
   showConfirm('关于新传研背', '新传研背 ' + version + '\n新传考研背诵与训练工具\n名词解释 · 简答题 · 论述题 · 考试实务训练', 'info');
 }
 

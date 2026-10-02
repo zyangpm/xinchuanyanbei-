@@ -18,8 +18,13 @@ var XCSync = (function () {
   var LS_FEEDBACKS = 'feedbacks';
   var LS_OVERLAY = 'xc_question_sync';
   var LS_SRV_HASH = 'xc_srv_hash';
-  // 后端地址（部署到云服务器时把域名写进 window.XC_API_BASE 即可切换）
-  var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || 'http://localhost:3000/api';
+  // 后端地址：网页版走 8081 同源代理 /api/backend（手机/局域网零配置）；
+  // Electron（file://）直连本机后端。部署到云服务器时把域名写进 window.XC_API_BASE 即可切换。
+  var XC_API_BASE = (typeof window !== 'undefined' && window.XC_API_BASE) || '';
+  if (!XC_API_BASE) {
+    var _isFile = typeof location !== 'undefined' && location.protocol === 'file:';
+    XC_API_BASE = _isFile ? 'http://localhost:3000/api' : '/api/backend';
+  }
 
   function isElectron() {
     return !!(window.xcShared && window.xcShared.mode === 'electron');
@@ -145,7 +150,7 @@ var XCSync = (function () {
       topic: '',
       noTopic: false,
       question: q.title,
-      variants: [{ title: '原题', content: raw || q.title }],
+      variants: [{ title: '原题', content: plainToHtml(raw || q.title) }],
       framework: [],
       answer: raw ? plainToHtml(raw) : '该题已由管理后台发布，参考答案待后台补充。',
       memoryTip: '',
@@ -164,9 +169,9 @@ var XCSync = (function () {
       type: '其他实务',
       category: '其他',
       tag: q.tag || '实务',
-      question: raw || q.title,
+      question: raw ? plainToHtml(raw) : q.title,
       framework: [],
-      fullSample: raw || '该实务题已由管理后台发布，参考范文待后台补充。',
+      fullSample: raw ? plainToHtml(raw) : '该实务题已由管理后台发布，参考范文待后台补充。',
       notes: [],
       masteryLevel: '',
       _fromAdmin: true
@@ -241,10 +246,11 @@ var XCSync = (function () {
   }
 
   // V6.0：从后端拉取题库 overlay（跨设备共享）。
+  // V5.1.1：移除 Electron 早退——桌面版学生端同样从后端拉取（file:// 下直连本机后端）。
   // 异步执行，失败静默；拉到新数据时写入本地 overlay 并刷新一次，使后台发布的题在本机可见。
   function fetchServerOverlay() {
     try {
-      if (typeof fetch !== 'function' || isElectron()) return;
+      if (typeof fetch !== 'function') return;
       fetch(XC_API_BASE + '/questions').then(function (r) { return r.json(); }).then(function (res) {
         if (!res || !Array.isArray(res.data)) return;
         var remote = {};

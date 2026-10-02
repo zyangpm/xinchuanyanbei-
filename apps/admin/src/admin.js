@@ -295,7 +295,7 @@ function parsePDF(file, callback) {
   }
   try {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      'public/vendor/pdf.worker.min.js';
   } catch (e) { /* 忽略 worker 配置异常，必要时走 fake worker */ }
 
   var fileReader = new FileReader();

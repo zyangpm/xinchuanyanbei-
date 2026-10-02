@@ -1,6 +1,6 @@
 {
   "name": "@xinchuan/mobile",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "description": "新传研背 V5.1 - 移动端（Electron + PWA）",
   "main": "main.js",
   "scripts": {
@@ -26,6 +26,7 @@
       { "from": ".", "to": "apps/mobile", "filter": ["main.js", "preload.js"] },
       { "from": "app", "to": "apps/mobile/app" },
       { "from": "assets", "to": "apps/mobile/assets" },
+      { "from": "../../apps/server", "to": "apps/server", "filter": ["src/**", "package.json"] },
       { "from": "../../packages/content", "to": "packages/content" }
     ],
     "icon": "assets/icon.png",

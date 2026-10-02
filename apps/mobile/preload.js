@@ -42,10 +42,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 });
 
 // 学生端 / 管理后台共用的数据同步桥
+// V5.1.1：setCollection 仅放行已知业务键，越界键拒绝写入，收敛 preload 攻击面
+var ALLOWED_SHARED_KEYS = ['xc_question_sync', 'xc_materials', 'xc_feedbacks', 'xc_admin_credential', 'xc_admin_token'];
 contextBridge.exposeInMainWorld('xcShared', {
   mode: 'electron',
   getAll: () => readShared(),
   setCollection: (name, value) => {
+    if (ALLOWED_SHARED_KEYS.indexOf(name) < 0) return false;
     var data = readShared();
     data[name] = value;
     return writeShared(data);

@@ -7,9 +7,32 @@
 
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
+const http = require('http');
+const { spawn } = require('child_process');
 const Store = require('electron-store');
 
 const store = new Store({ name: '新传研背V5' });
+
+// V5.1.1：桌面版自动拉起后端服务（系统 node 运行 apps/server/src/server.js，要求 Node>=22）
+// 端口 3000 已有服务则跳过；本机无 node 或启动失败时静默降级，不影响本地背诵功能。
+function ensureBackend() {
+  const probe = http.request({ host: '127.0.0.1', port: 3000, path: '/api/questions', method: 'GET', timeout: 800 }, (res) => {
+    res.destroy(); // 已有后端在跑，跳过
+  });
+  probe.on('error', () => startBackend());
+  probe.on('timeout', () => { probe.destroy(); startBackend(); });
+  probe.end();
+}
+
+function startBackend() {
+  try {
+    const serverEntry = path.join(__dirname, '..', 'server', 'src', 'server.js');
+    const serverDir = path.dirname(serverEntry);
+    const child = spawn('node', [serverEntry], { cwd: serverDir, stdio: 'ignore', detached: true });
+    child.on('error', () => { /* 系统无 node / 启动失败：静默降级 */ });
+    child.unref();
+  } catch (e) { /* 静默降级 */ }
+}
 
 let mainWindow;
 let splashWindow;
@@ -62,7 +85,7 @@ function setupChineseMenu() {
           click: () => {
             dialog.showMessageBox(mainWindow, {
               title: '关于新传研背',
-              message: '新传研背 V5.1.0\n新传考研考试模拟系统',
+              message: '新传研背 V5.1.1\n新传考研考试模拟系统',
               type: 'info'
             });
           }
@@ -130,6 +153,23 @@ function createMainWindow() {
     mainWindow.setTitle('新传研背');
   });
 
+  // V5.1.1：导航防护——仅允许应用内页面（file:// 本机或本机 8081 网页版），外部导航一律拦截
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const allowed = url.startsWith('file://')
+      || url.indexOf('localhost:8081') > -1
+      || url.indexOf('127.0.0.1:8081') > -1;
+    if (!allowed) {
+      event.preventDefault();
+      console.warn('[nav] blocked navigation to: ' + url);
+    }
+  });
+
+  // V5.1.1：禁止应用内弹出新窗口；外部链接一律拒绝
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    console.warn('[nav] blocked window.open: ' + url);
+    return { action: 'deny' };
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -137,6 +177,7 @@ function createMainWindow() {
 
 app.whenReady().then(() => {
   setupChineseMenu();
+  ensureBackend(); // 自动拉起后端（云同步用），失败静默
   createSplashWindow();
 
   setTimeout(() => {

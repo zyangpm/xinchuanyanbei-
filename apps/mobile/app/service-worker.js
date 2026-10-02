@@ -1,7 +1,7 @@
 // ===== PWA Service Worker（V5.1）=====
 // 网络优先 + 离线回退；导航请求按"去 query"的键缓存，保证离线直达 ?term=xxx 等深链可用。
 
-const CACHE_NAME = 'xinchuan-cache-v5.1';
+const CACHE_NAME = 'xinchuan-cache-v5.1.1';
 const ASSETS_TO_CACHE = [
     '/index.html',
     '/splash.html',
