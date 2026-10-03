@@ -287,11 +287,17 @@ var XCSync = (function () {
           }
         });
         var mergedStr = JSON.stringify(merged);
+        // V6.1：哈希规范化（key 排序后再序列化），避免因对象遍历顺序波动导致每次比较都不同
+        var canonicalStr = JSON.stringify(Object.keys(merged).sort().map(function (k) { return merged[k]; }));
         var prevHash = localStorage.getItem(LS_SRV_HASH) || '';
-        if (prevHash !== mergedStr) {
+        if (prevHash !== canonicalStr) {
           localStorage.setItem(LS_OVERLAY, mergedStr);
-          localStorage.setItem(LS_SRV_HASH, mergedStr);
-          location.reload();
+          localStorage.setItem(LS_SRV_HASH, canonicalStr);
+          // V6.1 修复：不再整页 location.reload()（此前会导致登录页/任意页面在
+          // 数据哈希不一致时无限刷新、白屏闪烁）。改为直接重放 overlay 到全局题库
+          // 数据对象；用户下一次进入相关页面/刷新即可看到后台最新发布。
+          applied = false;
+          try { applyOverlay(); } catch (e) { /* 单页数据对象未就绪时静默 */ }
         }
       }).catch(function () { /* 后端离线：静默降级为本地数据 */ });
     } catch (e) { /* 静默 */ }
