@@ -1,0 +1,68 @@
+﻿==== MOBILE DEPLOY 10/03/2026 00:02:49 ====
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2)
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-mobile.ps1:9 字符: 7
++ $o1 = & $nodeExe $vercelJs link --yes 2>&1 | Out-String
++       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1.0 (Node.js 22.23.2):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Loading teams…
+
+  Directory       ~\Desktop\产品汇总\xinchuanyanbei-\apps\mobile\app
+
+Searching for existing projects…
+
+  No framework detected. Default Project Settings:
+  Build Command: `npm run vercel-build` or `npm run build`
+  Development Command: None
+  Install Command: `yarn install`, `pnpm install`, `npm install`, or `bun install`
+  Output Directory: `public` if it exists, or `.`
+
+✓ Created         zy52242410-3730/app
+> Connecting GitHub repository: https://github.com/zyangpm/xinchuanyanbei-
+Error: Failed to link zyangpm/xinchuanyanbei-. You need to add a Login Connection to your GitHub account first. (400)
+Visit https://vercel.com/docs/accounts/create-an-account#login-methods-and-connections for more information.
+
+Retrieving project…
+> Downloading a fresh `VERCEL_OIDC_TOKEN` for app
+Downloading
+
+✓ Created         .env.local file and added it to .gitignore
+
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2)
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-mobile.ps1:11 字符: 7
++ $o2 = & $nodeExe $vercelJs deploy --prod 2>&1 | Out-String
++       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1.0 (Node.js 22.23.2):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Deploying app
+Uploading [--------------------] (0.0B/716.4KB)
+Uploading [=====---------------] (184.1KB/716.4KB)
+Uploading [==========----------] (368.9KB/716.4KB)
+Uploading [===============-----] (551.5KB/716.4KB)
+Uploading [====================] (716.4KB/716.4KB)
+  Inspect         https://vercel.com/zy52242410-3730/app/9u8XvwhadHU9w7qfVTUikddNavDZ
+  Production      https://app-25z5scr89-zy52242410-3730.vercel.app
+Building…
+Building…
+[2K[1A[2K[G  Production      https://app-25z5scr89-zy52242410-3730.vercel.app
+Completing…
+▲ Aliased         https://app-three-orpin-61.vercel.app
+
+✓ Ready in 8s
+
+! Deployment Protection is on for this project (Vercel Authentication). Use `vercel curl` to access it.
+
+Next steps:
+- Automatically deploy changes on every push by connecting Git:
+  vercel git connect
+- Check the production response:
+  vercel curl https://app-three-orpin-61.vercel.app
+- View build logs:
+  vercel inspect app-25z5scr89-zy52242410-3730.vercel.app --logs
+- Create a new deployment from the same source:
+  vercel redeploy app-25z5scr89-zy52242410-3730.vercel.app
+https://app-25z5scr89-zy52242410-3730.vercel.app
+
+EXIT=0

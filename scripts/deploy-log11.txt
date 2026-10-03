@@ -1,0 +1,314 @@
+﻿==== TEST 10/02/2026 23:45:41 ====
+--- health ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0           00:01              0
+100     96 100     96   0      0     43      0   00:02   00:02              0
+100     96 100     96   0      0     43      0   00:02   00:02              0
+100     96 100     96   0      0     43      0   00:02   00:02              0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::tsqkh-1790955947336-3f0ae720da44
+
+--- register ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T15:45:49.654Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T15:45:49.656Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T15:45:52.096Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T15:45:52.098Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345,ni
+ckname:HR测试}"]
+> [debug] [2026-10-02T15:45:52.133Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T15:45:52.136Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T15:45:53.145Z] #2 ← 200 OK: sfo1::72bxf-1790955952409-910c5837990a [1.01s]
+> [debug] [2026-10-02T15:45:53.159Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T15:45:53.647Z] #1 ← 200 OK: sfo1::p9v4k-1790955953220-62f4e94bba4b [1.51s]
+> [debug] [2026-10-02T15:45:53.788Z] #3 ← 200 OK: sfo1::f9dcj-1790955953325-e58b6360b50c [629ms]
+> [debug] [2026-10-02T15:45:53.791Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T15:45:53.791Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/register --heade
+r "x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345,nic
+kname:HR测试}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     58   0      0 100     58      0     49   00:01   00:01             57
+100    154 100     96 100     58     79     47   00:01   00:01             57
+100    154 100     96 100     58     79     47   00:01   00:01             57
+100    154 100     96 100     58     79     47   00:01   00:01             57
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::mrp8v-1790955954090-d062cbe9e418
+> [debug] [2026-10-02T15:45:55.630Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T15:45:57.142Z] Telemetry subprocess killed due to timeout
+> [debug] [2026-10-02T15:45:57.156Z] Telemetry subprocess exited with code null
+
+--- login ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T15:45:57.757Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T15:45:57.758Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T15:45:58.907Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T15:45:58.909Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345}"]
+> [debug] [2026-10-02T15:45:58.930Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T15:45:58.932Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T15:45:59.684Z] #1 ← 200 OK: sfo1::9czdf-1790955959214-8bfca7048c2c [754ms]
+> [debug] [2026-10-02T15:45:59.909Z] #2 ← 200 OK: sfo1::rcm8x-1790955959213-1da539e74864 [977ms]
+> [debug] [2026-10-02T15:45:59.913Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T15:46:00.226Z] #3 ← 200 OK: sfo1::bhv64-1790955959766-c9ddc5e2ffde [313ms]
+> [debug] [2026-10-02T15:46:00.228Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T15:46:00.228Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/login --header "
+x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100    136 100     96 100     40    108     45                              0
+100    136 100     96 100     40    108     45                              0
+100    136 100     96 100     40    108     45                              0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::rp4xj-1790955960176-5b6ed490ddfb
+> [debug] [2026-10-02T15:46:01.520Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T15:46:03.204Z] Telemetry subprocess killed due to timeout
+> [debug] [2026-10-02T15:46:03.218Z] Telemetry subprocess exited with code null
+
+==== END 10/02/2026 23:46:03 ====
+==== TEST 10/02/2026 23:49:54 ====
+--- health ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     96 100     96   0      0     95      0   00:01   00:01              0
+100     96 100     96   0      0     95      0   00:01   00:01              0
+100     96 100     96   0      0     95      0   00:01   00:01              0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::njkhs-1790956198423-d79a638bcd6d
+
+--- register ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T15:50:00.067Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T15:50:00.068Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T15:50:01.665Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T15:50:01.667Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345,ni
+ckname:HR测试}"]
+> [debug] [2026-10-02T15:50:01.690Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T15:50:01.693Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T15:50:02.436Z] #1 ← 200 OK: sfo1::tgzbm-1790956202006-7fcb8fcd7819 [746ms]
+> [debug] [2026-10-02T15:50:02.670Z] #2 ← 200 OK: sfo1::zdcdz-1790956202016-8f8135af46e5 [977ms]
+> [debug] [2026-10-02T15:50:02.677Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T15:50:02.996Z] #3 ← 200 OK: sfo1::rt788-1790956202534-058c242af5a3 [318ms]
+> [debug] [2026-10-02T15:50:02.998Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T15:50:02.998Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/register --heade
+r "x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345,nic
+kname:HR测试}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100    154 100     96 100     58     96     58   00:01           00:01      0
+100    154 100     96 100     58     96     58   00:01           00:01      0
+100    154 100     96 100     58     96     58   00:01           00:01      0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::m4zwl-1790956202940-5a833ed81986
+> [debug] [2026-10-02T15:50:04.373Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T15:50:06.085Z] Telemetry subprocess killed due to timeout
+> [debug] [2026-10-02T15:50:06.100Z] Telemetry subprocess exited with code null
+
+--- login ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T15:50:06.493Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T15:50:06.494Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T15:50:07.642Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T15:50:07.643Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345}"]
+> [debug] [2026-10-02T15:50:07.662Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T15:50:07.664Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T15:50:08.435Z] #1 ← 200 OK: sfo1::wj4rb-1790956208000-a986545b46c4 [773ms]
+> [debug] [2026-10-02T15:50:08.668Z] #2 ← 200 OK: sfo1::jjbtg-1790956208014-4b7df811dd16 [1.00s]
+> [debug] [2026-10-02T15:50:08.673Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T15:50:08.972Z] #3 ← 200 OK: sfo1::6z77r-1790956208512-bb2a2eba0b36 [299ms]
+> [debug] [2026-10-02T15:50:08.974Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T15:50:08.974Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/login --header "
+x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100    136 100     96 100     40     93     39   00:01   00:01              0
+100    136 100     96 100     40     93     39   00:01   00:01              0
+100    136 100     96 100     40     93     39   00:01   00:01              0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::b844w-1790956208924-d00e1a53a10d
+> [debug] [2026-10-02T15:50:10.602Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T15:50:12.098Z] Telemetry subprocess killed due to timeout
+> [debug] [2026-10-02T15:50:12.115Z] Telemetry subprocess exited with code null
+
+==== END 10/02/2026 23:50:12 ====
+==== TEST 10/02/2026 23:52:12 ====
+--- health ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+  0      0   0      0   0      0      0      0           00:01              0
+  0      0   0      0   0      0      0      0           00:02              0
+100    130 100    130   0      0     41      0   00:03   00:03             46
+100    130 100    130   0      0     41      0   00:03   00:03             46
+100    130 100    130   0      0     41      0   00:03   00:03             46
+{"code":0,"message":"ok","data":{"status":"healthy","service":"xinchuan-server","mode":"turso","time":"2026-10-02T15:52:19.019Z"}}
+
+--- register ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T15:52:20.126Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T15:52:20.127Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T15:52:21.859Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T15:52:21.861Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345,ni
+ckname:HR测试}"]
+> [debug] [2026-10-02T15:52:21.883Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T15:52:21.885Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T15:52:22.588Z] #1 ← 200 OK: sfo1::ttqn9-1790956342147-ace8efd2e34c [704ms]
+> [debug] [2026-10-02T15:52:23.009Z] #2 ← 200 OK: sfo1::kllq5-1790956342372-1149a2fa5813 [1.12s]
+> [debug] [2026-10-02T15:52:23.014Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T15:52:23.330Z] #3 ← 200 OK: sfo1::fqszb-1790956342856-b416869cbb58 [316ms]
+> [debug] [2026-10-02T15:52:23.334Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T15:52:23.334Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/register --heade
+r "x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345,nic
+kname:HR测试}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100    149 100     91 100     58    125     79                              0
+100    149 100     91 100     58    125     79                              0
+100    149 100     91 100     58    124     79                              0
+> [debug] [2026-10-02T15:52:24.624Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T15:52:26.172Z] Telemetry subprocess killed due to timeout
+> [debug] [2026-10-02T15:52:26.199Z] Telemetry subprocess exited with code null
+{"code":400,"message":"用户名需为 2-32 位字母/数字/下划线/中文","data":null}
+
+--- login ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test11.ps1:17 字符: 8
++   $o = & $nodeExe $vercelJs @($t.args) 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T15:52:27.034Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T15:52:27.035Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T15:52:29.099Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T15:52:29.102Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345}"]
+> [debug] [2026-10-02T15:52:29.140Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T15:52:29.143Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T15:52:29.870Z] #1 ← 200 OK: sfo1::lfjjs-1790956349433-221c10172c22 [730ms]
+> [debug] [2026-10-02T15:52:30.057Z] #2 ← 200 OK: sfo1::l9wcn-1790956349413-006fb35e4a8f [914ms]
+> [debug] [2026-10-02T15:52:30.065Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T15:52:30.439Z] #3 ← 200 OK: sfo1::n4s8l-1790956349979-2b0e7955874e [374ms]
+> [debug] [2026-10-02T15:52:30.441Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T15:52:30.441Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/login --header "
+x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     40   0      0 100     40      0     34   00:01   00:01             39
+100     40   0      0 100     40      0     18   00:02   00:02             19
+100    101 100     61 100     40     21     14   00:02   00:02             19
+100    101 100     61 100     40     21     14   00:02   00:02             19
+100    101 100     61 100     40     21     14   00:02   00:02             19
+> [debug] [2026-10-02T15:52:33.643Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T15:52:35.207Z] Telemetry event tracked
+> [debug] [2026-10-02T15:52:35.283Z] Telemetry subprocess exited with code 0
+{"code":401,"message":"用户名或密码错误","data":null}
+
+==== END 10/02/2026 23:52:35 ====

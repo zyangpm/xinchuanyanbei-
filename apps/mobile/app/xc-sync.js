@@ -30,7 +30,9 @@ var XCSync = (function () {
     } else if (_isCapacitor) {
       try { XC_API_BASE = localStorage.getItem('xc_server_url') || ''; } catch (e) { XC_API_BASE = ''; }
     } else {
-      XC_API_BASE = '/api/backend';
+      // V6.0：网页版（Vercel 静态托管）直连云后端；设置页可覆盖服务器地址
+      try { XC_API_BASE = localStorage.getItem('xc_server_url') || 'https://server-lilac-nu.vercel.app/api'; }
+      catch (e) { XC_API_BASE = 'https://server-lilac-nu.vercel.app/api'; }
     }
   }
 
@@ -262,8 +264,10 @@ var XCSync = (function () {
       fetch(XC_API_BASE + '/questions').then(function (r) { return r.json(); }).then(function (res) {
         if (!res || !Array.isArray(res.data)) return;
         var remote = {};
+        var remoteIds = {};
         res.data.forEach(function (q) {
           if (q && q.id != null) {
+            remoteIds[String(q.id)] = true;
             remote[String(q.id)] = {
               id: q.id, title: q.title, questionType: q.questionType,
               category: q.category, tag: q.tag, status: q.status, contentJson: q.contentJson
@@ -275,6 +279,13 @@ var XCSync = (function () {
         var merged = {};
         Object.keys(local).forEach(function (k) { merged[k] = local[k]; });
         Object.keys(remote).forEach(function (k) { merged[k] = remote[k]; });
+        // V6.0：云端 published 列表里已不存在的题（下架/删除）→ 学生端隐藏
+        Object.keys(merged).forEach(function (k) {
+          var item = merged[k];
+          if (item && !item.deleted && item.status === 'published' && !remoteIds[k]) {
+            merged[k] = Object.assign({}, item, { status: 'draft', deleted: true });
+          }
+        });
         var mergedStr = JSON.stringify(merged);
         var prevHash = localStorage.getItem(LS_SRV_HASH) || '';
         if (prevHash !== mergedStr) {

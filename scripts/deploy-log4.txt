@@ -1,0 +1,69 @@
+﻿==== TEST 10/02/2026 22:26:29 ====
+--- health ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test4.ps1:11 字符: 7
++ $o1 = & $nodeExe $vercelJs curl "https://server-lilac-nu.vercel.app/a ...
++       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> You require a deployment protection bypass token to access this deployment... Generating one now...
+> Successfully generated deployment protection bypass token for project prj_L4g3huUV24Mil00zPQaDm2Pk0R4K
+
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100     96 100     96   0      0     64      0   00:01   00:01              0
+100     96 100     96   0      0     64      0   00:01   00:01              0
+100     96 100     96   0      0     64      0   00:01   00:01              0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::blmtx-1790951192255-9ed10df36ee9
+
+--- register ---
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2) | curl is in beta — https://vercel.com/feedback
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-test4.ps1:15 字符: 7
++ $o2 = & $nodeExe $vercelJs curl "https://server-lilac-nu.vercel.app/a ...
++       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1...el.com/feedback:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> [debug] [2026-10-02T14:26:35.742Z] Agent/TTY/nonInteractive: isAgent=false agentName=none stdin.isTTY=undefined --non
+-interactive=false explicitFalse=false => nonInteractive=false
+> [debug] [2026-10-02T14:26:35.743Z] user supplied known subcommand: "curl"
+> [debug] [2026-10-02T14:26:36.625Z] Using token from VERCEL_TOKEN environment variable, skipping token refresh.
+> [debug] [2026-10-02T14:26:36.626Z] curl flags (4 args): ["-X","POST","-d","{username:hr_test_01,password:Test12345,ni
+ckname:HR测试}"]
+> [debug] [2026-10-02T14:26:36.640Z] #1 → GET https://api.vercel.com/v2/user
+> [debug] [2026-10-02T14:26:36.642Z] #2 → GET https://api.vercel.com/v13/deployments/server-lilac-nu.vercel.app
+> [debug] [2026-10-02T14:26:37.348Z] #1 ← 200 OK: sfo1::qtgwd-1790951194878-5abac07b0165 [708ms]
+> [debug] [2026-10-02T14:26:38.431Z] #2 ← 200 OK: sfo1::mnxvc-1790951195705-9df7ff727768 [1.79s]
+> [debug] [2026-10-02T14:26:38.438Z] #3 → GET https://api.vercel.com/v9/projects/prj_L4g3huUV24Mil00zPQaDm2Pk0R4K?teamI
+d=team_zXAlJHFqhvzdr3W4WnvzNoAK
+> [debug] [2026-10-02T14:26:38.764Z] #3 ← 200 OK: sfo1::76f4p-1790951196269-55d4a29e7a5a [326ms]
+> [debug] [2026-10-02T14:26:38.765Z] Using existing protection bypass token from project settings: 8tGvbARwJKBUjUst1G8i
+yB5AUZhV5DNm
+> [debug] [2026-10-02T14:26:38.765Z] Executing: curl --url https://server-lilac-nu.vercel.app/api/auth/register --heade
+r "x-vercel-protection-bypass: 8tGvbARwJKBUjUst1G8iyB5AUZhV5DNm" -X POST -d {username:hr_test_01,password:Test12345,nic
+kname:HR测试}
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+
+  0      0   0      0   0      0      0      0                              0
+100    154 100     96 100     58    108     65                              0
+100    154 100     96 100     58    108     65                              0
+100    154 100     96 100     58    108     65                              0
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+hkg1::k6qzc-1790951196658-6249321d5d5c
+> [debug] [2026-10-02T14:26:39.999Z] Vercel CLI 62.1.0 (Node.js 22.23.2)
+
+> [debug] [2026-10-02T14:26:41.730Z] Telemetry subprocess killed due to timeout
+> [debug] [2026-10-02T14:26:41.744Z] Telemetry subprocess exited with code null
+
+==== END 10/02/2026 22:26:41 ====

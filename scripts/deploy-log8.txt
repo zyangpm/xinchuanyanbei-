@@ -1,0 +1,49 @@
+﻿==== DEPLOY 10/02/2026 22:31:16 ====
+node.exe : Vercel CLI 62.1.0 (Node.js 22.23.2)
+所在位置 C:\Users\PC\Desktop\产品汇总\xinchuanyanbei-\scripts\deploy-run8.ps1:9 字符: 6
++ $o = & $nodeExe $vercelJs deploy --prod 2>&1 | Out-String
++      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 62.1.0 (Node.js 22.23.2):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Deploying server
+Uploading [--------------------] (0.0B/478B)
+Uploading [====================] (478.0B/478B)
+  Inspect         https://vercel.com/zy52242410-3730/server/5WouTWREEBbPy58QSVzwAQHJfdoj
+  Production      https://server-mcsx2l60r-zy52242410-3730.vercel.app
+Building…
+Building…
+Running build in Washington, D.C., USA (East) – iad1
+Build machine configuration: 2 cores, 8 GB
+Retrieving list of deployment files...
+Downloading 23 deployment files...
+Restored build cache from previous deployment (Am56xVysQxULesZYdbQL4F4d1Gk3)
+Running "vercel build"
+Vercel CLI 62.1.0
+Warning: Detected "engines": { "node": ">=22" } in your `package.json` that will automatically upgrade when a new major
+ Node.js Version is released. Learn More: https://vercel.link/node-version
+Installing dependencies...
+up to date in 1s
+✓ Build complete — Using src/app.cjs as the root entrypoint.
+Build Completed in /vercel/output [2s]
+Deploying outputs...
+[2K[1A[2K[G  Production      https://server-mcsx2l60r-zy52242410-3730.vercel.app
+Completing…
+▲ Aliased         https://server-lilac-nu.vercel.app
+
+✓ Ready in 17s
+
+! Deployment Protection is on for this project (Vercel Authentication). Use `vercel curl` to access it.
+
+Next steps:
+- Automatically deploy changes on every push by connecting Git:
+  vercel git connect
+- Check the production response:
+  vercel curl https://server-lilac-nu.vercel.app
+- View build logs:
+  vercel inspect server-mcsx2l60r-zy52242410-3730.vercel.app --logs
+- Create a new deployment from the same source:
+  vercel redeploy server-mcsx2l60r-zy52242410-3730.vercel.app
+https://server-mcsx2l60r-zy52242410-3730.vercel.app
+
+EXIT=0
