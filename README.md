@@ -9,7 +9,7 @@
 | 入口 | 地址 | 说明 |
 |---|---|---|
 | 📱 **学生端（手机/电脑浏览器直接打开）** | **[https://app-three-orpin-61.vercel.app](https://app-three-orpin-61.vercel.app)** | 注册一个账号即可使用全部功能，收藏/笔记/掌握度云同步 |
-| 🛠️ **管理后台（网页版）** | **[https://admin-web-ruby-nu.vercel.app/dashboard.html](https://admin-web-ruby-nu.vercel.app/dashboard.html)** | 题库管理 / 用户管理 / 数据统计（演示账号 `admin` / `__REDACTED__`） |
+| 🛠️ **管理后台（网页版）** | **[https://admin-web-ruby-nu.vercel.app](https://admin-web-ruby-nu.vercel.app)** | 题库管理 / 用户管理 / 数据统计（演示账号 `admin` / `__REDACTED__`） |
 
 > 💡 演示学生账号：`hr_demo2` / `Test12345`（也可以自己注册新账号）。
 > 后端 API：`https://server-lilac-nu.vercel.app/api`（JWT 鉴权 + Turso 云数据库）。
