@@ -50,3 +50,5 @@ docs/落地计划-GitHub公测.md
 
 # 部署密钥（勿提交）
 apps/server/data/.deploy-secrets.env
+.vercel
+.env*

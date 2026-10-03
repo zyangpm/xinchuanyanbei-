@@ -6,7 +6,7 @@
 // 同步协议与后端 /api/sync/* 对齐：增量拉取(since) + 上传(push) + 软删除标记。
 var Cloud = (function () {
   // 默认云端地址：部署后端后在此填入线上域名（如 https://xxx.onrender.com/api）
-  var DEFAULT_CLOUD = '';
+  var DEFAULT_CLOUD = 'https://server-lilac-nu.vercel.app/api';
 
   var TOKEN_KEY = 'xc_token';
   var USER_KEY = 'xc_user';

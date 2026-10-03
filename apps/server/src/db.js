@@ -11,11 +11,16 @@
 const path = require('path');
 const fs = require('fs');
 
+const MODE = process.env.XC_DB || 'sqlite';
+
 const DATA_DIR = process.env.XC_DATA_DIR || path.join(__dirname, '..', 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_PATH = path.join(DATA_DIR, 'xinchuan.db');
 
-const MODE = process.env.XC_DB || 'sqlite';
+// 仅本地 sqlite 模式需要创建/访问本地数据目录；云端 turso 模式运行在只读 serverless
+// 环境（如 Vercel /var/task），绝不触碰本地磁盘，否则模块加载即崩溃。
+if (MODE !== 'turso') {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+}
 
 function toNumber(v) {
   if (v == null) return v;

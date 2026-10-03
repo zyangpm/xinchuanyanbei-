@@ -26,7 +26,7 @@ function adminApi(path, opts) {
   var headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
   var token = sessionStorage.getItem('adminToken') || localStorage.getItem('xc_admin_token') || '';
   if (token) headers.Authorization = 'Bearer ' + token;
-  var base = localStorage.getItem('xc_server_url') || 'http://localhost:3000/api';
+  var base = localStorage.getItem('xc_server_url') || 'https://server-lilac-nu.vercel.app/api';
   return fetch(base.replace(/\/+$/, '') + '/' + String(path).replace(/^\//, ''), {
     method: opts.method || 'GET',
     headers: headers,

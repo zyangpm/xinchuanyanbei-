@@ -42,9 +42,7 @@ async function ensureAdmin(db) {
 
 // ---------- API 令牌（写操作兼容旧机制：Bearer <api_token> 或 Bearer <JWT>） ----------
 // Vercel 无持久磁盘：固定令牌请用环境变量 XC_API_TOKEN 注入；否则每次冷启动随机（仅影响旧批量写入客户端）。
-const API_TOKEN = process.env.XC_API_TOKEN || (() => {
-  try { return fs.readFileSync(path.join(require('../src/db').DATA_DIR, '.api_token'), 'utf8').trim(); } catch (e) { return ''; }
-})() || crypto.randomBytes(24).toString('hex');
+const API_TOKEN = process.env.XC_API_TOKEN || '';
 
 /** 鉴权上下文：返回 { via, user? } 或 null。 */
 function authCtx(req) {
@@ -150,4 +148,34 @@ async function sync(req, res, collection) {
   return sendJson(res, 405, { code: 405, message: '方法不允许', data: null });
 }
 
-module.exports = { getDb, authCtx, corsPreflight, reqUrl, health, register, login, me, questions, questionSync, questionById, adminUsers, adminStats, sync };
+// ---------- 总路由入口（Vercel 单函数服务器模式用；api/*.js 薄封装亦可复用各 handler） ----------
+// 按 URL 路径分发：/api/health、/api/auth/*、/api/questions*、/api/admin/*、/api/sync/* 等。
+async function handleAll(req, res) {
+  corsPreflight(req, res);
+  const url = reqUrl(req);
+  const segs = url.pathname.split('/').filter(Boolean);
+  if (segs[0] !== 'api') {
+    return sendJson(res, 200, {
+      ok: true, service: 'xinchuan-api',
+      note: 'API 入口在 /api/*，请访问 /api/health 验证'
+    });
+  }
+  const sub = segs.slice(1);
+  try {
+    if (sub.length === 1 && sub[0] === 'health') return health(req, res);
+    if (sub.length === 1 && sub[0] === 'questions') return questions(req, res);
+    if (sub.length === 2 && sub[0] === 'questions' && sub[1] === 'sync') return questionSync(req, res);
+    if (sub.length === 2 && sub[0] === 'questions') return questionById(req, res, sub[1]);
+    if (sub.length === 2 && sub[0] === 'auth' && sub[1] === 'register') return register(req, res);
+    if (sub.length === 2 && sub[0] === 'auth' && sub[1] === 'login') return login(req, res);
+    if (sub.length === 2 && sub[0] === 'auth' && sub[1] === 'me') return me(req, res);
+    if (sub.length === 2 && sub[0] === 'admin' && sub[1] === 'users') return adminUsers(req, res);
+    if (sub.length === 2 && sub[0] === 'admin' && sub[1] === 'stats') return adminStats(req, res);
+    if (sub.length === 2 && sub[0] === 'sync') return sync(req, res, sub[1]);
+    return sendJson(res, 404, { code: 404, message: '接口不存在: /' + segs.join('/'), data: null });
+  } catch (e) {
+    return sendJson(res, 500, { code: 500, message: '服务器错误: ' + e.message, data: null });
+  }
+}
+
+module.exports = { getDb, authCtx, corsPreflight, reqUrl, health, register, login, me, questions, questionSync, questionById, adminUsers, adminStats, sync, handleAll };

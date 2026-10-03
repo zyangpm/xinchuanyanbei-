@@ -4,3 +4,5 @@ node_modules/
 dist/
 scripts/
 *.env
+# 排除常驻服务器入口（避免 Vercel 误判为 Legacy Server；桌面本地运行不受影响）
+src/server.js
