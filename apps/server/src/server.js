@@ -7,11 +7,20 @@ const path = require('path');
 const crypto = require('crypto');
 const { createDb, initSchema, DATA_DIR } = require('./db');
 const { verifyToken, hashPassword, publicUser } = require('./auth');
-const { sendJson } = require('./util');
+const { sendJson, rateLimit } = require('./util');
 const { handleRegister, handleLogin, handleMe } = require('./routes/auth');
 const { handleQuestions, handleQuestionSync } = require('./routes/questions');
 const { handlePull, handlePush, COLLECTIONS } = require('./routes/sync');
 const { handleAdminUsers, handleAdminStats } = require('./routes/admin');
+
+/** 写题库类操作仅允许 admin 角色 JWT（拒绝匿名 api-token，防越权）。 */
+function requireAdmin(res, ctx) {
+  if (!ctx || !ctx.user || ctx.user.role !== 'admin') {
+    sendJson(res, 403, { code: 403, message: '无权限：需要管理员账号', data: null });
+    return false;
+  }
+  return true;
+}
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -91,27 +100,33 @@ async function main() {
         });
       }
 
-      // 认证（注册登录无需鉴权）
-      if (p === '/api/auth/register' && req.method === 'POST') return await handleRegister(req, res, db);
-      if (p === '/api/auth/login' && req.method === 'POST') return await handleLogin(req, res, db);
+      // 认证（注册登录无需鉴权，但做同 IP 限流防爆破）
+      if (p === '/api/auth/register' && req.method === 'POST') {
+        if (!rateLimit(req, res, 10, 60000)) return;
+        return await handleRegister(req, res, db);
+      }
+      if (p === '/api/auth/login' && req.method === 'POST') {
+        if (!rateLimit(req, res, 10, 60000)) return;
+        return await handleLogin(req, res, db);
+      }
       if (p === '/api/auth/me' && req.method === 'GET') {
         if (!ctx || !ctx.user) return sendJson(res, 401, { code: 401, message: '未登录或登录已过期', data: null });
         return await handleMe(req, res, db, ctx);
       }
 
-      // 题库（GET 公开；写操作需 api-token 或 JWT）
+      // 题库（GET 公开仅已发布；写操作需管理员 JWT）
       if (p === '/api/questions') {
-        if (req.method === 'POST' && !ctx) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
-        return await handleQuestions(req, res, db, url, null);
+        if (req.method === 'POST' && !requireAdmin(res, ctx)) return;
+        return await handleQuestions(req, res, db, url, null, ctx);
       }
       if (p === '/api/questions/sync' && req.method === 'POST') {
-        if (!ctx) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
+        if (!requireAdmin(res, ctx)) return;
         return await handleQuestionSync(req, res, db);
       }
       const qm = p.match(/^\/api\/questions\/(\d+)$/);
       if (qm) {
-        if (req.method !== 'GET' && !ctx) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
-        return await handleQuestions(req, res, db, url, Number(qm[1]));
+        if (req.method !== 'GET' && !requireAdmin(res, ctx)) return;
+        return await handleQuestions(req, res, db, url, Number(qm[1]), ctx);
       }
 
       // 管理接口（仅 admin 角色 JWT）

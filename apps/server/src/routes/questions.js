@@ -41,15 +41,22 @@ function mapQuestion(row) {
   };
 }
 
-/** /api/questions 系列（列表/详情/新增/编辑/删除）。 */
-async function handleQuestions(req, res, db, url, id) {
+/** /api/questions 系列（列表/详情/新增/编辑/删除）。
+ *  ctx：可选鉴权上下文。GET 列表默认仅返回 published；查看非发布状态（draft/all）需 admin。
+ *  写操作由上层路由负责 admin 校验，本函数不重复判断（保持薄路由职责）。
+ */
+async function handleQuestions(req, res, db, url, id, ctx) {
   if (req.method === 'GET' && id == null) {
     const type = url.searchParams.get('type');
-    const status = url.searchParams.get('status');
+    const status = url.searchParams.get('status') || 'published';
+    // 非 published 状态（draft/all 等）仅管理员可见
+    if (status !== 'published' && !(ctx && ctx.user && ctx.user.role === 'admin')) {
+      return sendJson(res, 403, { code: 403, message: '无权限：仅管理员可查看非发布状态题目', data: null });
+    }
     const conds = [];
     const args = [];
     if (type) { conds.push('question_type = ?'); args.push(type); }
-    if (status) { conds.push('status = ?'); args.push(status); }
+    if (status !== 'all') { conds.push('status = ?'); args.push(status); }
     const where = conds.length ? ' WHERE ' + conds.join(' AND ') : '';
     const rows = await db.prepare('SELECT * FROM questions' + where + ' ORDER BY id DESC').all(...args);
     return sendJson(res, 200, { code: 0, message: 'ok', data: rows.map(mapQuestion) });

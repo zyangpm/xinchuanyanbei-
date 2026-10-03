@@ -16,7 +16,8 @@ if (fs.existsSync(envFile)) {
 }
 process.env.XC_DB = 'turso';
 process.env.XC_ADMIN_USERNAME = process.env.XC_ADMIN_USERNAME || 'admin';
-process.env.XC_ADMIN_PASSWORD = process.env.XC_ADMIN_PASSWORD || '__REDACTED__';
+// 密码必须由环境变量/密钥文件提供（.deploy-secrets.env 已 gitignore），不落代码
+process.env.XC_ADMIN_PASSWORD = process.env.XC_ADMIN_PASSWORD || 'change-me';
 
 // ---- 模拟 Vercel 路由表 ----
 function loadApi(rel) { return require(path.join(__dirname, '..', 'apps', 'server', 'api', rel)); }

@@ -9,10 +9,9 @@
 | 入口 | 地址 | 说明 |
 |---|---|---|
 | 📱 **学生端（手机/电脑浏览器直接打开）** | **[https://app-three-orpin-61.vercel.app](https://app-three-orpin-61.vercel.app)** | 注册一个账号即可使用全部功能，收藏/笔记/掌握度云同步 |
-| 🛠️ **管理后台（网页版）** | **[https://admin-web-ruby-nu.vercel.app](https://admin-web-ruby-nu.vercel.app)** | 题库管理 / 用户管理 / 数据统计（演示账号 `admin` / `__REDACTED__`） |
+| 🛠️ **管理后台（网页版）** | **[https://admin-web-ruby-nu.vercel.app](https://admin-web-ruby-nu.vercel.app)** | 题库管理 / 用户管理 / 数据统计（演示账号请向作者索取） |
 
-> 💡 演示学生账号：`hr_demo2` / `Test12345`（也可以自己注册新账号）。
-> 后端 API：`https://server-lilac-nu.vercel.app/api`（JWT 鉴权 + Turso 云数据库）。
+> 💡 学生端注册一个账号即可使用全部功能；后端 API：`https://server-lilac-nu.vercel.app/api`（JWT 鉴权 + Turso 云数据库）。
 
 ---
 
@@ -55,7 +54,7 @@
 
 - **跨端架构**：Electron（Windows 桌面）+ PWA / Capacitor（手机）+ 管理后台独立应用，Monorepo 统一管理
 - **后端**：Node.js 分层架构（路由 / 鉴权 / 数据访问分离），JWT 登录认证 + 密码哈希存储
-- **云同步**：收藏 / 笔记 / 掌握度 / 考试历史四类数据云端同步，增量拉取 + 冲突处理（后写覆盖）
+- **云同步**：收藏 / 笔记 / 掌握度三类数据云端同步，增量拉取 + 冲突处理（后写覆盖）
 - **数据库**：本地 SQLite 与云端 Turso 双模式，同一套业务 SQL 无缝切换
 - **测试**：端到端回归测试脚本，覆盖注册 → 登录 → 上传 → 云恢复全链路
 

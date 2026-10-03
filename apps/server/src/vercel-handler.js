@@ -8,7 +8,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { createDb, initSchema } = require('../src/db');
 const { verifyToken, hashPassword } = require('../src/auth');
-const { sendJson } = require('../src/util');
+const { sendJson, rateLimit } = require('../src/util');
 const { handleRegister, handleLogin, handleMe } = require('../src/routes/auth');
 const { handleQuestions, handleQuestionSync } = require('../src/routes/questions');
 const { handlePull, handlePush, COLLECTIONS } = require('../src/routes/sync');
@@ -80,11 +80,13 @@ async function health(req, res) {
 
 async function register(req, res) {
   const db = await getDb();
+  if (!rateLimit(req, res, 10, 60000)) return;
   return handleRegister(req, res, db);
 }
 
 async function login(req, res) {
   const db = await getDb();
+  if (!rateLimit(req, res, 10, 60000)) return;
   return handleLogin(req, res, db);
 }
 
@@ -98,25 +100,21 @@ async function me(req, res) {
 async function questions(req, res) {
   const db = await getDb();
   const url = reqUrl(req);
-  if (req.method === 'POST' && !authCtx(req)) {
-    return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
-  }
-  return handleQuestions(req, res, db, url, null);
+  if (req.method === 'POST' && !adminGuard(req, res)) return;
+  return handleQuestions(req, res, db, url, null, authCtx(req));
 }
 
 async function questionSync(req, res) {
   const db = await getDb();
-  if (!authCtx(req)) return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
+  if (!adminGuard(req, res)) return;
   return handleQuestionSync(req, res, db);
 }
 
 async function questionById(req, res, id) {
   const db = await getDb();
   const url = reqUrl(req);
-  if (req.method !== 'GET' && !authCtx(req)) {
-    return sendJson(res, 401, { code: 401, message: '未授权：缺少或错误的 API 令牌', data: null });
-  }
-  return handleQuestions(req, res, db, url, Number(id));
+  if (req.method !== 'GET' && !adminGuard(req, res)) return;
+  return handleQuestions(req, res, db, url, Number(id), authCtx(req));
 }
 
 async function adminGuard(req, res) {
