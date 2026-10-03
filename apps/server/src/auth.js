@@ -8,7 +8,21 @@ const path = require('path');
 const { DATA_DIR } = require('./db');
 
 const SECRET_FILE = path.join(DATA_DIR, '.jwt_secret');
+// 生产环境（Vercel / NODE_ENV=production / Serverless）：必须显式配置 XC_JWT_SECRET。
+// 禁止依赖 Serverless 本地文件保存密钥（无持久磁盘、每次冷启动随机会导致全体用户登出）。
+// 本地开发（无以上标记）：自动生成并持久化到 data/.jwt_secret，保持开发体验。
+const IS_PROD_SERVERLESS =
+  process.env.VERCEL === '1' ||
+  process.env.NODE_ENV === 'production' ||
+  !!process.env.SERVERLESS ||
+  !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+
 let SECRET = process.env.XC_JWT_SECRET || '';
+if (!SECRET && IS_PROD_SERVERLESS) {
+  console.error('[auth] 生产环境必须显式配置 XC_JWT_SECRET 环境变量（当前未配置）。' +
+    '请在 Vercel Project Settings → Environment Variables 添加后重新部署。拒绝进入生产模式。');
+  process.exit(1);
+}
 if (!SECRET) {
   try { SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim(); } catch (e) { SECRET = ''; }
 }

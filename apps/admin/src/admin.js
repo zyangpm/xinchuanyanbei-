@@ -677,11 +677,16 @@ function adoptContent(id) {
     contentId: id, questionType: c.questionType, title: c.title,
     category: '待分类', tag: 'AI生成', status: 'published',
     publishedAt: new Date().toLocaleString('zh-CN')
-  }).catch(function () { /* 云端失败静默（本地已写入） */ });
-  DB.addPublishLog({ questionIds: '[' + id + ']', publishType: 'immediate', status: 'success' });
-  renderReviewList();
-  refreshSidebarBadge();
-  showHint('已采纳并直接发布到学生端APP');
+  }).then(function () {
+    DB.addPublishLog({ questionIds: '[' + id + ']', publishType: 'immediate', status: 'success' });
+    renderReviewList();
+    refreshSidebarBadge();
+    showHint('已采纳并同步到云端题库');
+  }).catch(function (err) {
+    renderReviewList();
+    refreshSidebarBadge();
+    showHint('采纳失败，未能同步到云端：' + ((err && err.message) || '后端离线'));
+  });
 }
 
 function refreshSidebarBadge() {

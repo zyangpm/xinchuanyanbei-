@@ -7,15 +7,19 @@ const path = require('path');
 const crypto = require('crypto');
 const { createDb, initSchema, DATA_DIR } = require('./db');
 const { verifyToken, hashPassword, publicUser } = require('./auth');
-const { sendJson, rateLimit } = require('./util');
+const { sendJson, rateLimit, corsPreflight } = require('./util');
 const { handleRegister, handleLogin, handleMe } = require('./routes/auth');
 const { handleQuestions, handleQuestionSync } = require('./routes/questions');
 const { handlePull, handlePush, COLLECTIONS } = require('./routes/sync');
 const { handleAdminUsers, handleAdminStats } = require('./routes/admin');
 
-/** 写题库类操作仅允许 admin 角色 JWT（拒绝匿名 api-token，防越权）。 */
+/** 写题库类操作仅允许 admin 角色 JWT（拒绝匿名 api-token，防越权）。未登录 401，非管理员 403。 */
 function requireAdmin(res, ctx) {
-  if (!ctx || !ctx.user || ctx.user.role !== 'admin') {
+  if (!ctx || !ctx.user) {
+    sendJson(res, 401, { code: 401, message: '未登录或登录已过期', data: null });
+    return false;
+  }
+  if (ctx.user.role !== 'admin') {
     sendJson(res, 403, { code: 403, message: '无权限：需要管理员账号', data: null });
     return false;
   }
@@ -36,11 +40,11 @@ if (!API_TOKEN) {
     fs.mkdirSync(path.dirname(TOKEN_FILE), { recursive: true });
     fs.writeFileSync(TOKEN_FILE, API_TOKEN, 'utf8');
   } catch (e) { /* 写文件失败不阻塞启动 */ }
-  console.log('   [auth] API Token (auto-generated): ' + API_TOKEN);
+  console.log('   [auth] API Token 已自动生成并持久化到 data/.api_token（值不打印）');
 } else if (!process.env.XC_API_TOKEN) {
-  console.log('   [auth] API Token (from file): ' + API_TOKEN);
+  console.log('   [auth] API Token 从 data/.api_token 读取（值不打印）');
 } else {
-  console.log('   [auth] API Token (from env XC_API_TOKEN)');
+  console.log('   [auth] API Token 从环境变量 XC_API_TOKEN 读取（值不打印）');
 }
 
 /**
@@ -81,11 +85,8 @@ async function main() {
   console.log('   [db] 模式: ' + db.mode + (db.mode === 'turso' ? '' : ' (' + require('./db').DB_PATH + ')'));
 
   const server = http.createServer(async (req, res) => {
-    // CORS（开发放开；上线可收紧为指定域名）
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+    // CORS：未配置 XC_ALLOWED_ORIGINS 时本地/Electron 放开；配置后仅放行白名单域名
+    if (corsPreflight(req, res)) return;
 
     const url = new URL(req.url, 'http://localhost');
     const p = url.pathname;
@@ -121,7 +122,7 @@ async function main() {
       }
       if (p === '/api/questions/sync' && req.method === 'POST') {
         if (!requireAdmin(res, ctx)) return;
-        return await handleQuestionSync(req, res, db);
+        return await handleQuestionSync(req, res, db, ctx);
       }
       const qm = p.match(/^\/api\/questions\/(\d+)$/);
       if (qm) {
@@ -154,7 +155,8 @@ async function main() {
 
       return sendJson(res, 404, { code: 404, message: '接口不存在: ' + p, data: null });
     } catch (e) {
-      return sendJson(res, 500, { code: 500, message: '服务器错误: ' + e.message, data: null });
+      const isProd = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+      return sendJson(res, 500, { code: 500, message: isProd ? '服务器错误，请稍后重试' : ('服务器错误: ' + e.message), data: null });
     }
   });
 

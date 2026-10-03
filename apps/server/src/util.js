@@ -57,3 +57,31 @@ function rateLimit(req, res, limit, windowMs) {
 }
 
 module.exports = { sendJson, readJsonBody, nowIso, rateLimit };
+
+// ---------- CORS（环境变量 XC_ALLOWED_ORIGINS 白名单控制） ----------
+// 未配置（本地开发/Electron）：不限制（*）；配置后仅放行列表内 origin + file://（Electron 壳）。
+function getCorsOrigin(req) {
+  const raw = process.env.XC_ALLOWED_ORIGINS || '';
+  const origin = req.headers.origin || '';
+  if (!raw) return '*';
+  if (!origin) return null; // 无 Origin 的请求（curl/服务端）：无需 CORS 头
+  if (origin === 'file://' || origin === 'null') return origin;
+  const list = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return list.indexOf(origin) >= 0 ? origin : null;
+}
+
+function applyCors(req, res) {
+  const o = getCorsOrigin(req);
+  if (o) res.setHeader('Access-Control-Allow-Origin', o);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+}
+
+/** CORS 预检：设置响应头；OPTIONS 时写 204 并返回 true（调用方直接 return）。 */
+function corsPreflight(req, res) {
+  applyCors(req, res);
+  if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return true; }
+  return false;
+}
+
+module.exports = { sendJson, readJsonBody, nowIso, rateLimit, getCorsOrigin, applyCors, corsPreflight };

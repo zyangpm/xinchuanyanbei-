@@ -138,7 +138,9 @@ function rateWord(rating) {
   var isFirst = !ratings[key];
   ratings[key] = { rating: rating, ts: new Date().toISOString() };
   localStorage.setItem('wordRatings', JSON.stringify(ratings));
-  Cloud.pushRating(key, rating, ratings[key].ts); // V6.0：云端同步掌握度
+  Cloud.pushRating(key, rating, ratings[key].ts).then(function (r) { // V6.0：云端同步掌握度
+    if (r && r.ok === false && r.offline) showConfirm('同步提示', '掌握度已保存本机，云端暂不可用，联网后自动同步', 'warning');
+  });
   return isFirst;
 }
 
@@ -1479,10 +1481,14 @@ function doLogin(account, type) {
       localStorage.setItem('loginType', 'password');
       localStorage.setItem('userPhone', account);
       ensureDefaultProfile();
-      Cloud.syncAll().then(function () {
-        showConfirm('登录成功', '欢迎回来！', 'success', function () { navigateTo('index.html'); });
+      Cloud.syncAll().then(function (s) {
+        if (s && s.ok === false) {
+          showConfirm('登录成功', '已登录。云端暂不可用，数据已保存本机，联网后自动同步', 'warning', function () { navigateTo('index.html'); });
+        } else {
+          showConfirm('登录成功', '欢迎回来！', 'success', function () { navigateTo('index.html'); });
+        }
       }).catch(function () {
-        showConfirm('登录成功', '欢迎回来！', 'success', function () { navigateTo('index.html'); });
+        showConfirm('登录成功', '已登录。云端暂不可用，数据已保存本机，联网后自动同步', 'warning', function () { navigateTo('index.html'); });
       });
     }).catch(function (err) {
       showConfirm('登录失败', (err && err.message) || '网络不可用，请检查网络后重试', 'error');
@@ -2141,7 +2147,9 @@ function toggleFavorite(e) {
       bumpStat('favoriteCount', 1); // V5.0：收藏计数落库
     }
     markStudyDay();
-    if (entry) Cloud.pushFav(entry, false); // V6.0：云端同步收藏
+    if (entry) Cloud.pushFav(entry, false).then(function (r) { // V6.0：云端同步收藏
+      if (r && r.ok === false && r.offline) showConfirm('同步提示', '收藏已保存本机，云端暂不可用，联网后自动同步', 'warning');
+    });
     showConfirm('收藏', '已收藏该内容', 'success');
   } else {
     btn.textContent = '☆';
@@ -2152,7 +2160,9 @@ function toggleFavorite(e) {
       bumpStat('favoriteCount', -1); // V5.0：取消收藏同步递减
     }
     markStudyDay();
-    if (entry) Cloud.pushFav(entry, true); // V6.0：云端同步取消收藏
+    if (entry) Cloud.pushFav(entry, true).then(function (r) { // V6.0：云端同步取消收藏
+      if (r && r.ok === false && r.offline) showConfirm('同步提示', '已取消收藏（本机），云端暂不可用，联网后自动同步', 'warning');
+    });
     showConfirm('收藏', '已取消收藏', 'info');
   }
 }
@@ -2181,7 +2191,9 @@ function saveNote() {
   };
   notes.push(note);
   localStorage.setItem('notes', JSON.stringify(notes));
-  Cloud.pushNote(note); // V6.0：云端同步笔记
+  Cloud.pushNote(note).then(function (r) { // V6.0：云端同步笔记
+    if (r && r.ok === false && r.offline) showConfirm('同步提示', '笔记已保存本机，云端暂不可用，联网后自动同步', 'warning');
+  });
   bumpStat('noteCount', 1); // V5.0：笔记计数落库
   markStudyDay();
   
@@ -4748,12 +4760,23 @@ function toggleFullSample() {
 }
 
 // ===== V6.0 云同步初始化 =====
-// 已登录用户：静默校验登录态 + 增量同步；未登录/离线静默跳过（离线优先）
-// 部分页面 cloud.js 在 app.js 之后加载，延迟到本轮同步脚本执行完再初始化
+// 已登录用户：校验登录态 + 增量同步；未登录静默跳过（离线优先）。
+// 同步失败时明确提示（限频 5 分钟一次），不静默伪装云端成功。
 (function initCloud() {
   function tryInit() {
     try {
-      if (typeof Cloud !== 'undefined' && Cloud.init) Cloud.init();
+      if (typeof Cloud !== 'undefined' && Cloud.init) {
+        Cloud.init().then(function (s) {
+          if (s && s.ok === false && s.reason !== 'not-logged-in' && s.reason !== 'session-expired') {
+            var lastToast = 0;
+            try { lastToast = Number(localStorage.getItem('xc_sync_toast') || 0); } catch (e) {}
+            if (Date.now() - lastToast > 5 * 60 * 1000) {
+              try { localStorage.setItem('xc_sync_toast', String(Date.now())); } catch (e) {}
+              showConfirm('同步提示', '云端暂不可用，学习数据已保存在本机，联网后打开应用会自动同步', 'warning');
+            }
+          }
+        }).catch(function () { /* 云能力不可用不影响本地使用 */ });
+      }
     } catch (e) { /* 云能力不可用不影响本地使用 */ }
   }
   if (typeof Cloud !== 'undefined') { tryInit(); } else { setTimeout(tryInit, 0); }

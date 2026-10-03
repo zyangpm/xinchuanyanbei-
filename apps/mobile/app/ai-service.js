@@ -175,12 +175,13 @@ var AiService = (function () {
   }
 
   // ===== V5.1 浏览器同源代理 =====
-  // 网页/PWA 环境下，讯飞星火、OpenAI 等默认端点不返回 CORS 头，浏览器直连必然
-  // "Failed to fetch"。这些请求改走同源服务端转发（见 start-server.js 的 /api/ai-proxy）；
+  // 网页/PWA 环境下，部分厂商默认端点不返回 CORS 头，浏览器直连必然 "Failed to fetch"。
+  // 这些请求改走同源服务端转发（见 start-server.js 的 /api/ai-proxy 与线上 Vercel 函数 apps/mobile/app/api/ai-proxy.js）；
   // Electron(file://) 下不受 CORS 限制，仍直连厂商。
+  // 注意：DeepSeek 官方接口实测 CORS 全开放（OPTIONS 200 + 回显任意 Origin），网页端直接调用，不走代理。
   var PROXY_PATH = '/api/ai-proxy';
   var PROXY_HOSTS = [
-    'api.deepseek.com', 'open.bigmodel.cn', 'api.moonshot.cn',
+    'open.bigmodel.cn', 'api.moonshot.cn',
     'spark-api-open.xf-yun.com', 'api.openai.com',
     'generativelanguage.googleapis.com', 'api.anthropic.com',
     // V5.1 视频生成：火山方舟 doubao-seedream 视频

@@ -43,9 +43,12 @@ function mapQuestion(row) {
 
 /** /api/questions 系列（列表/详情/新增/编辑/删除）。
  *  ctx：可选鉴权上下文。GET 列表默认仅返回 published；查看非发布状态（draft/all）需 admin。
- *  写操作由上层路由负责 admin 校验，本函数不重复判断（保持薄路由职责）。
+ *  写操作由上层路由负责 admin 校验，本函数不重复判断（保持薄路由职责）；
+ *  operator 记录当前管理员 user.id（ctx.user.uid）。
  */
 async function handleQuestions(req, res, db, url, id, ctx) {
+  const operator = ctx && ctx.user ? ctx.user.uid : null;
+
   if (req.method === 'GET' && id == null) {
     const type = url.searchParams.get('type');
     const status = url.searchParams.get('status') || 'published';
@@ -58,8 +61,16 @@ async function handleQuestions(req, res, db, url, id, ctx) {
     if (type) { conds.push('question_type = ?'); args.push(type); }
     if (status !== 'all') { conds.push('status = ?'); args.push(status); }
     const where = conds.length ? ' WHERE ' + conds.join(' AND ') : '';
-    const rows = await db.prepare('SELECT * FROM questions' + where + ' ORDER BY id DESC').all(...args);
-    return sendJson(res, 200, { code: 0, message: 'ok', data: rows.map(mapQuestion) });
+    // 轻量分页：page=1..N、pageSize 默认 100、上限 100（防止无限制全量 SELECT）
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
+    let pageSize = parseInt(url.searchParams.get('pageSize') || '100', 10) || 100;
+    if (pageSize < 1) pageSize = 100;
+    if (pageSize > 100) pageSize = 100;
+    const totalRow = await db.prepare('SELECT COUNT(*) c FROM questions' + where).get(...args);
+    const total = Number(totalRow && totalRow.c || 0);
+    const rows = await db.prepare('SELECT * FROM questions' + where + ' ORDER BY id DESC LIMIT ? OFFSET ?')
+      .all(...args, pageSize, (page - 1) * pageSize);
+    return sendJson(res, 200, { code: 0, message: 'ok', data: rows.map(mapQuestion), total });
   }
 
   if (req.method === 'GET' && id != null) {
@@ -77,7 +88,7 @@ async function handleQuestions(req, res, db, url, id, ctx) {
       'INSERT INTO questions (question_type, title, category, tag, status, content_json) VALUES (?,?,?,?,?,?)'
     ).run(b.questionType, b.title, b.category || null, b.tag || null, b.status || 'draft', b.contentJson || null);
     await db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)')
-      .run(Number(info.lastInsertRowid), 'create', null);
+      .run(Number(info.lastInsertRowid), 'create', operator);
     const row = await db.prepare('SELECT * FROM questions WHERE id = ?').get(Number(info.lastInsertRowid));
     return sendJson(res, 201, { code: 0, message: 'created', data: mapQuestion(row) });
   }
@@ -97,7 +108,7 @@ async function handleQuestions(req, res, db, url, id, ctx) {
       b.contentJson != null ? b.contentJson : row.content_json,
       id
     );
-    await db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)').run(id, 'update', null);
+    await db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)').run(id, 'update', operator);
     const updated = await db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
     return sendJson(res, 200, { code: 0, message: 'updated', data: mapQuestion(updated) });
   }
@@ -106,15 +117,16 @@ async function handleQuestions(req, res, db, url, id, ctx) {
     const row = await db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
     if (!row) return sendJson(res, 404, { code: 404, message: '题目不存在', data: null });
     await db.prepare('DELETE FROM questions WHERE id = ?').run(id);
-    await db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)').run(id, 'delete', null);
+    await db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)').run(id, 'delete', operator);
     return sendJson(res, 200, { code: 0, message: 'deleted', data: { id } });
   }
 
   return sendJson(res, 405, { code: 405, message: '方法不允许', data: null });
 }
 
-/** 批量同步题库：后台全量推送，按 id upsert（兼容旧接口）。 */
-async function handleQuestionSync(req, res, db) {
+/** 批量同步题库：后台全量推送，按 id upsert（兼容旧接口）。ctx 记录操作员。 */
+async function handleQuestionSync(req, res, db, ctx) {
+  const operator = ctx && ctx.user ? ctx.user.uid : null;
   const b = await readJsonBody(req);
   const items = Array.isArray(b) ? b : (b.items || []);
   const stmt = db.prepare(
@@ -126,6 +138,10 @@ async function handleQuestionSync(req, res, db) {
     if (!it || it.id == null) continue;
     await stmt.run(Number(it.id), it.questionType || 'noun', it.title || '', it.category || null,
       it.tag || null, it.status || 'draft', it.contentJson || null, Number(it.id));
+    if (operator != null) {
+      await db.prepare('INSERT INTO publish_logs (question_id, action, operator) VALUES (?,?,?)')
+        .run(Number(it.id), 'sync', operator);
+    }
     n++;
   }
   return sendJson(res, 200, { code: 0, message: 'synced', data: { count: n } });

@@ -8,7 +8,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { createDb, initSchema } = require('../src/db');
 const { verifyToken, hashPassword } = require('../src/auth');
-const { sendJson, rateLimit } = require('../src/util');
+const { sendJson, rateLimit, corsPreflight } = require('../src/util');
 const { handleRegister, handleLogin, handleMe } = require('../src/routes/auth');
 const { handleQuestions, handleQuestionSync } = require('../src/routes/questions');
 const { handlePull, handlePush, COLLECTIONS } = require('../src/routes/sync');
@@ -55,15 +55,6 @@ function authCtx(req) {
   return null;
 }
 
-/** CORS 预检：返回 true 表示已处理（204），调用方直接 return。 */
-function corsPreflight(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return true; }
-  return false;
-}
-
 /** 解析请求路径（/api/...）。 */
 function reqUrl(req) {
   return new URL(req.url || '/', 'http://localhost');
@@ -106,14 +97,21 @@ async function questions(req, res) {
 
 async function questionSync(req, res) {
   const db = await getDb();
-  if (!adminGuard(req, res)) return;
-  return handleQuestionSync(req, res, db);
+  const guard = await adminGuard(req, res);
+  if (!guard) return;
+  return handleQuestionSync(req, res, db, guard);
 }
 
 async function questionById(req, res, id) {
   const db = await getDb();
   const url = reqUrl(req);
-  if (req.method !== 'GET' && !adminGuard(req, res)) return;
+  if (!/^\d+$/.test(String(id))) {
+    return sendJson(res, 400, { code: 400, message: '题目 id 必须为数字', data: null });
+  }
+  if (req.method !== 'GET') {
+    const guard = await adminGuard(req, res);
+    if (!guard) return;
+  }
   return handleQuestions(req, res, db, url, Number(id), authCtx(req));
 }
 
@@ -126,13 +124,15 @@ async function adminGuard(req, res) {
 
 async function adminUsers(req, res) {
   const db = await getDb();
-  await adminGuard(req, res);
+  const guard = await adminGuard(req, res);
+  if (!guard) return;
   return handleAdminUsers(req, res, db);
 }
 
 async function adminStats(req, res) {
   const db = await getDb();
-  await adminGuard(req, res);
+  const guard = await adminGuard(req, res);
+  if (!guard) return;
   return handleAdminStats(req, res, db);
 }
 
@@ -149,7 +149,7 @@ async function sync(req, res, collection) {
 // ---------- 总路由入口（Vercel 单函数服务器模式用；api/*.js 薄封装亦可复用各 handler） ----------
 // 按 URL 路径分发：/api/health、/api/auth/*、/api/questions*、/api/admin/*、/api/sync/* 等。
 async function handleAll(req, res) {
-  corsPreflight(req, res);
+  if (corsPreflight(req, res)) return;
   const url = reqUrl(req);
   const segs = url.pathname.split('/').filter(Boolean);
   if (segs[0] !== 'api') {
@@ -172,7 +172,7 @@ async function handleAll(req, res) {
     if (sub.length === 2 && sub[0] === 'sync') return sync(req, res, sub[1]);
     return sendJson(res, 404, { code: 404, message: '接口不存在: /' + segs.join('/'), data: null });
   } catch (e) {
-    return sendJson(res, 500, { code: 500, message: '服务器错误: ' + e.message, data: null });
+    return sendJson(res, 500, { code: 500, message: '服务器错误，请稍后重试', data: null });
   }
 }
 

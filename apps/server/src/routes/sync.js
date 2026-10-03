@@ -34,8 +34,8 @@ const COLLECTIONS = {
     insertNoIdSql:
       'INSERT INTO notes (user_id, question_id, content, created_at, updated_at, deleted) VALUES (?,?,?,?,?,?)',
     insertNoIdArgs: (uid, it) => [uid, it.questionId != null ? Number(it.questionId) : null, it.content != null ? String(it.content) : '', it.createdAt || nowIso(), it.updatedAt || nowIso(), it.deleted ? 1 : 0],
-    findByIdSql: 'SELECT * FROM notes WHERE id = ?',
-    findByIdArgs: (it) => [Number(it.id)]
+    findByIdSql: 'SELECT * FROM notes WHERE id = ? AND user_id = ?',
+    findByIdArgs: (uid, it) => [Number(it.id), uid]
   },
   progress: {
     table: 'study_progress',
@@ -63,8 +63,8 @@ const COLLECTIONS = {
     insertNoIdSql:
       'INSERT INTO exam_history (user_id, type, question_index, answer, updated_at, deleted) VALUES (?,?,?,?,?,?)',
     insertNoIdArgs: (uid, it) => [uid, it.type || null, it.questionIndex != null ? Number(it.questionIndex) : null, it.answer != null ? String(it.answer) : '', it.updatedAt || nowIso(), it.deleted ? 1 : 0],
-    findByIdSql: 'SELECT * FROM exam_history WHERE id = ?',
-    findByIdArgs: (it) => [Number(it.id)]
+    findByIdSql: 'SELECT * FROM exam_history WHERE id = ? AND user_id = ?',
+    findByIdArgs: (uid, it) => [Number(it.id), uid]
   }
 };
 
@@ -115,10 +115,10 @@ async function handlePush(req, res, db, authCtx, collection) {
       // 有 id 的集合（notes/history）走 UPSERT；无 id 走自增插入
       if ((collection === 'notes' || collection === 'history') && it.id == null) {
         const info = await db.prepare(meta.insertNoIdSql).run(...meta.insertNoIdArgs(uid, item));
-        row = await db.prepare(meta.findByIdSql).get(Number(info.lastInsertRowid));
+        row = await db.prepare(meta.findByIdSql).get(Number(info.lastInsertRowid), uid);
       } else {
         await db.prepare(meta.upsertSql).run(...meta.insertArgs(uid, item));
-        row = await db.prepare(meta.findSql || meta.findByIdSql).get(...(meta.findArgs ? meta.findArgs(uid, item) : meta.findByIdArgs(item)));
+        row = await db.prepare(meta.findSql || meta.findByIdSql).get(...(meta.findArgs ? meta.findArgs(uid, item) : meta.findByIdArgs(uid, item)));
       }
     } else {
       row = null;

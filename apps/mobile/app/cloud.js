@@ -12,6 +12,7 @@ var Cloud = (function () {
   var USER_KEY = 'xc_user';
   var SINCE_KEY = 'xc_sync_since';
   var PUSHLOG_KEY = 'xc_push_log'; // 已推送的 questionId 集合（用于同步删除标记）
+  var SYNCFAIL_KEY = 'xc_sync_fail'; // 云同步失败标记（时间+原因），用于向用户明确提示"本地已保存，联网后自动同步"
 
   function getBase() {
     try {
@@ -79,9 +80,19 @@ var Cloud = (function () {
 
   function applyAuth(data) {
     if (!data || !data.token) throw new Error('登录响应缺少令牌');
+    // 换账号登录：清空上一账号的本地学习数据，防止误推给新账号（数据隔离）
+    var prev = getUser();
+    if (prev && prev.id && data.user && data.user.id && Number(prev.id) !== Number(data.user.id)) {
+      try {
+        localStorage.removeItem('favorites');
+        localStorage.removeItem('notes');
+        localStorage.removeItem('wordRatings');
+      } catch (e) { /* 忽略 */ }
+    }
     localStorage.setItem(TOKEN_KEY, data.token);
     localStorage.setItem(USER_KEY, JSON.stringify(data.user || {}));
     localStorage.removeItem(SINCE_KEY);
+    localStorage.removeItem(SYNCFAIL_KEY);
     return { user: data.user };
   }
 
@@ -91,6 +102,7 @@ var Cloud = (function () {
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(SINCE_KEY);
     localStorage.removeItem(PUSHLOG_KEY);
+    localStorage.removeItem(SYNCFAIL_KEY);
   }
 
   /** 校验登录态（启动时静默调用；失败仅清除 token，不影响本地使用）。 */
@@ -110,16 +122,20 @@ var Cloud = (function () {
 
   function favKey(f) { return f.type + ':' + f.id; }
 
-  /** 收藏/取消收藏后调用：把变更推送到云端（已登录时）。 */
+  /** 收藏/取消收藏后调用：把变更推送到云端（已登录时）。失败记录状态并返回 {ok:false}。 */
   function pushFav(fav, deleted) {
-    if (!isLoggedIn()) return Promise.resolve();
+    if (!isLoggedIn()) return Promise.resolve({ ok: false, reason: 'not-logged-in' });
     var qid = favKey(fav);
     var log = readLog();
     var body = [{ questionId: qid, updatedAt: new Date().toISOString(), deleted: !!deleted }];
     return req('sync/favorites', { method: 'POST', body: { items: body } }).then(function () {
       if (deleted) delete log[qid]; else log[qid] = 1;
       saveLog(log);
-    }).catch(function () { /* 离线静默 */ });
+      return { ok: true };
+    }).catch(function (err) {
+      markSyncFail('favorites', err);
+      return { ok: false, offline: true };
+    });
   }
 
   /** 收藏云端合并：云端项并入本地（含软删除处理）。 */
@@ -150,9 +166,9 @@ var Cloud = (function () {
     return sid;
   }
 
-  /** 新增笔记后调用（已登录时）：上传并回写本地 _sid。 */
+  /** 新增笔记后调用（已登录时）：上传并回写本地 _sid。失败记录状态并返回 {ok:false}。 */
   function pushNote(note) {
-    if (!isLoggedIn()) return Promise.resolve();
+    if (!isLoggedIn()) return Promise.resolve({ ok: false, reason: 'not-logged-in' });
     var sid = noteSid(note);
     var body = [{
       id: sid, questionId: note.questionId || null,
@@ -162,7 +178,11 @@ var Cloud = (function () {
       // 服务端权威返回，回写 _sid 与时间戳
       if (res.data && res.data[0] && res.data[0].id != null) note._sid = Number(res.data[0].id);
       persistNotes();
-    }).catch(function () { /* 离线静默 */ });
+      return { ok: true };
+    }).catch(function (err) {
+      markSyncFail('notes', err);
+      return { ok: false, offline: true };
+    });
   }
 
   function persistNotes() {
@@ -196,12 +216,16 @@ var Cloud = (function () {
 
   // ---------- 掌握度 ----------
 
-  /** 标记掌握度后调用（已登录时）：上传单条。 */
+  /** 标记掌握度后调用（已登录时）：上传单条。失败记录状态并返回 {ok:false}。 */
   function pushRating(key, rating, ts) {
-    if (!isLoggedIn()) return Promise.resolve();
+    if (!isLoggedIn()) return Promise.resolve({ ok: false, reason: 'not-logged-in' });
     var body = [{ questionId: key, rating: rating || 'yes', updatedAt: ts || new Date().toISOString(), deleted: false }];
     return req('sync/progress', { method: 'POST', body: { items: body } })
-      .catch(function () { /* 离线静默 */ });
+      .then(function () { return { ok: true }; })
+      .catch(function (err) {
+        markSyncFail('progress', err);
+        return { ok: false, offline: true };
+      });
   }
 
   function mergeProgress(items) {
@@ -239,7 +263,8 @@ var Cloud = (function () {
 
   /**
    * 全量双向同步：拉取云端增量合并到本地；本地有但云端无的变更推送上去。
-   * 登录成功 / 应用启动（已登录）时调用；失败静默（离线优先）。
+   * 登录成功 / 应用启动（已登录）时调用。
+   * 结果语义：全部成功 → { ok:true } 并清除失败标记；任一失败 → 记录失败标记并返回 { ok:false }（数据仍保留本地）。
    */
   function syncAll() {
     if (!isLoggedIn()) return Promise.resolve({ ok: false, reason: 'not-logged-in' });
@@ -247,63 +272,88 @@ var Cloud = (function () {
     var nowIso = new Date().toISOString();
 
     return Promise.all([
-      pull('favorites', since).then(mergeFavorites).catch(function () { return null; }),
-      pull('notes', since).then(mergeNotes).catch(function () { return null; }),
-      pull('progress', since).then(mergeProgress).catch(function () { return null; })
+      pull('favorites', since).then(mergeFavorites).catch(function (err) { markSyncFail('favorites', err); return null; }),
+      pull('notes', since).then(mergeNotes).catch(function (err) { markSyncFail('notes', err); return null; }),
+      pull('progress', since).then(mergeProgress).catch(function (err) { markSyncFail('progress', err); return null; })
     ]).then(function () {
       // 合并后把本地（可能新增/更新的）数据整体推送一次，保证双向收敛
-      var pushAll = [];
-      safeParse('favorites', []).forEach(function (f) {
-        pushAll.push({ questionId: favKey(f), updatedAt: new Date().toISOString(), deleted: false });
-      });
-      safeParse('notes', []).forEach(function (n) {
-        pushAll.push({
-          id: noteSid(n), questionId: n.questionId || null,
-          content: n.content || '', updatedAt: new Date().toISOString(), deleted: false
-        });
-      });
       var ratings = safeParse('wordRatings', {});
-      Object.keys(ratings).forEach(function (k) {
-        pushAll.push({ questionId: k, rating: ratings[k].rating || 'yes', updatedAt: ratings[k].ts || new Date().toISOString(), deleted: false });
-      });
-      // 分集合推送（按协议各集合独立）
       var favItems = safeParse('favorites', []).map(function (f) { return { questionId: favKey(f), updatedAt: new Date().toISOString(), deleted: false }; });
       var noteItems = safeParse('notes', []).map(function (n) { return { id: noteSid(n), questionId: n.questionId || null, content: n.content || '', updatedAt: new Date().toISOString(), deleted: false }; });
       var progItems = Object.keys(ratings).map(function (k) { return { questionId: k, rating: ratings[k].rating || 'yes', updatedAt: ratings[k].ts || new Date().toISOString(), deleted: false }; });
 
       var jobs = [];
-      if (favItems.length) jobs.push(req('sync/favorites', { method: 'POST', body: { items: favItems } }).catch(function () { return null; }));
-      if (noteItems.length) jobs.push(req('sync/notes', { method: 'POST', body: { items: noteItems } }).then(function (res) {
-        // 回写服务端权威 id
-        if (res.data && res.data.length) {
-          var notes = safeParse('notes', []);
-          res.data.forEach(function (it) {
-            if (it && it.id != null) {
-              var m = notes.find(function (n) { return n._sid != null && String(n._sid) === String(it.id); });
-              if (m) m._sid = Number(it.id);
-            }
-          });
-          persistNotes();
-        }
-      }).catch(function () { return null; }));
-      if (progItems.length) jobs.push(req('sync/progress', { method: 'POST', body: { items: progItems } }).catch(function () { return null; }));
+      if (favItems.length) jobs.push(req('sync/favorites', { method: 'POST', body: { items: favItems } })
+        .then(function () { return true; })
+        .catch(function (err) { markSyncFail('favorites', err); return false; }));
+      if (noteItems.length) jobs.push(req('sync/notes', { method: 'POST', body: { items: noteItems } })
+        .then(function (res) {
+          // 回写服务端权威 id
+          if (res.data && res.data.length) {
+            var notes = safeParse('notes', []);
+            res.data.forEach(function (it) {
+              if (it && it.id != null) {
+                var m = notes.find(function (n) { return n._sid != null && String(n._sid) === String(it.id); });
+                if (m) m._sid = Number(it.id);
+              }
+            });
+            persistNotes();
+          }
+          return true;
+        })
+        .catch(function (err) { markSyncFail('notes', err); return false; }));
+      if (progItems.length) jobs.push(req('sync/progress', { method: 'POST', body: { items: progItems } })
+        .then(function () { return true; })
+        .catch(function (err) { markSyncFail('progress', err); return false; }));
 
-      return Promise.all(jobs).then(function () {
-        localStorage.setItem(SINCE_KEY, nowIso);
-        // 全量推送后重建推送日志（收藏键集合）
-        var log = {};
-        safeParse('favorites', []).forEach(function (f) { log[favKey(f)] = 1; });
-        saveLog(log);
-        return { ok: true };
+      return Promise.all(jobs).then(function (results) {
+        var allOk = results.every(function (r) { return r !== false; });
+        if (allOk) {
+          localStorage.setItem(SINCE_KEY, nowIso);
+          // 全量推送后重建推送日志（收藏键集合）
+          var log = {};
+          safeParse('favorites', []).forEach(function (f) { log[favKey(f)] = 1; });
+          saveLog(log);
+          clearSyncFail();
+        } else {
+          markSyncFail('push', null);
+        }
+        return { ok: allOk };
       });
     });
   }
 
-  /** 应用启动：校验登录态 + 增量同步（全部静默）。 */
+  /** 记录一次云同步失败（本地数据仍保留，联网后自动重试）。 */
+  function markSyncFail(collection, err) {
+    try {
+      var cur = JSON.parse(localStorage.getItem(SYNCFAIL_KEY) || 'null') || { time: 0, collections: [] };
+      if (!cur.collections || !cur.collections.length) cur.collections = [];
+      if (collection && cur.collections.indexOf(collection) < 0) cur.collections.push(collection);
+      cur.time = Date.now();
+      cur.reason = (err && err.message) || '网络不可用';
+      localStorage.setItem(SYNCFAIL_KEY, JSON.stringify(cur));
+    } catch (e) { /* 忽略 */ }
+  }
+
+  /** 读取当前同步状态（供 UI 显示"离线已保存，联网后自动同步"）。 */
+  function syncStatus() {
+    try {
+      var s = JSON.parse(localStorage.getItem(SYNCFAIL_KEY) || 'null');
+      if (!s || !s.time) return { failed: false };
+      return { failed: true, time: s.time, collections: s.collections || [], reason: s.reason || '' };
+    } catch (e) { return { failed: false }; }
+  }
+
+  function clearSyncFail() {
+    try { localStorage.removeItem(SYNCFAIL_KEY); } catch (e) { /* 忽略 */ }
+  }
+
+  /** 应用启动：校验登录态 + 增量同步（失败自动记录状态，联网后下次启动自动重试）。 */
   function init() {
-    if (!getToken()) return;
-    checkSession().then(function (s) {
-      if (s.ok) syncAll();
+    if (!getToken()) return Promise.resolve({ ok: false, reason: 'not-logged-in' });
+    return checkSession().then(function (s) {
+      if (!s.ok) return { ok: false, reason: 'session-expired' };
+      return syncAll();
     });
   }
 
@@ -315,6 +365,7 @@ var Cloud = (function () {
     getUser: getUser,
     checkSession: checkSession,
     syncAll: syncAll,
+    syncStatus: syncStatus,
     pushFav: pushFav,
     pushNote: pushNote,
     pushRating: pushRating
