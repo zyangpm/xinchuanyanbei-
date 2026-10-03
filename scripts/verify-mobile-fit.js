@@ -80,7 +80,7 @@ const CONTENT_SEL = '.home-body, .app-body, .profile-body, .exam-body, .intervie
       results.push({ size: `${w}x${h}`, page: p, ok, checks, m, errors });
       // 视觉抽查截图：最小屏 375x667
       if (w === 375 && h === 667) {
-        const shotDir = 'C:/Users/PC/AppData/Local/Temp/trae/mobile-fit-shots';
+        const shotDir = 'mobile-fit-shots';
         require('fs').mkdirSync(shotDir, { recursive: true });
         const name = p.split('.')[0].split('?')[0];
         try { await page.screenshot({ path: `${shotDir}/${name}-375x667.png` }); } catch (e) {}
@@ -102,6 +102,6 @@ const CONTENT_SEL = '.home-body, .app-body, .profile-body, .exam-body, .intervie
     console.log('\n失败明细：');
     for (const r of fails) console.log(`- ${r.size} ${r.page}: ${JSON.stringify(r.checks)} errors=${JSON.stringify(r.errors)}`);
   }
-  console.log('\n截图目录: C:/Users/PC/AppData/Local/Temp/trae/mobile-fit-shots');
+  console.log('\n截图目录: mobile-fit-shots');
   process.exit(fail ? 1 : 0);
 })();
