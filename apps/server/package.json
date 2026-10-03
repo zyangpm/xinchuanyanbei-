@@ -4,7 +4,7 @@
   "private": true,
   "description": "新传研背后端服务（Vercel Functions 模式：api/*.js）",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0"

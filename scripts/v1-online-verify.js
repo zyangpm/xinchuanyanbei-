@@ -1,9 +1,10 @@
 // ===== 新传研背 V1 线上验收（真实 Turso 生产库） =====
 // 用法：node scripts/v1-online-verify.js
 // 覆盖：健康/CORS/分页/匿名限制/跨用户隔离(hr_demo2 vs va_web)/学生越权/admin 闭环/ai-proxy 路由
+// 用法：node scripts/v1-online-verify.js（管理员密码从环境变量 XC_ONLINE_ADMIN_PASS 传入，不硬编码）
 const BASE = 'https://server-lilac-nu.vercel.app/api';
 const APP = 'https://app-three-orpin-61.vercel.app';
-const ADMIN_PASS = process.env.XC_ONLINE_ADMIN_PASS || '__REDACTED__';
+const ADMIN_PASS = process.env.XC_ONLINE_ADMIN_PASS || ''; // 未传则跳过管理员用例
 let pass = 0, fail = 0;
 function ok(name, cond, extra) {
   if (cond) { pass++; console.log('PASS  ' + name + (extra ? ' | ' + extra : '')); }
@@ -77,28 +78,32 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await req('/sync/favorites', { method: 'POST', body: JSON.stringify({ items: [{ questionId: keyH, updatedAt: new Date().toISOString(), deleted: true }] }), headers: H(hTok) });
   console.log('INFO  测试收藏已清理');
 
-  // 9) 管理员闭环：登录 → 写题 → 查看 → 删除
-  const la = await req('/auth/login', { method: 'POST', body: JSON.stringify({ username: 'admin', password: ADMIN_PASS }), headers: { 'Content-Type': 'application/json' } });
-  const aTok = la.body && la.body.data && la.body.data.token;
-  ok('管理员登录（新密码）', la.status === 200 && !!aTok, 'status=' + la.status);
-  if (aTok) {
-    const aPost = await req('/questions', { method: 'POST', body: JSON.stringify({ questionType: 'noun', title: 'V1线上验收临时题' + Date.now().toString().slice(-5), category: '验收', status: 'published' }), headers: H(aTok) });
-    const nq = aPost.body && aPost.body.data;
-    ok('管理员写题库 → 201', aPost.status === 201 && nq && nq.id != null, 'id=' + (nq && nq.id));
-    const aMe = await req('/auth/me', { headers: H(aTok) });
-    ok('管理员 JWT role=admin', aMe.status === 200 && aMe.body.data.user.role === 'admin', 'role=' + (aMe.body.data && aMe.body.data.user && aMe.body.data.user.role));
-    const aUsers2 = await req('/admin/users', { headers: H(aTok) });
-    ok('管理员 /admin/users → 200', aUsers2.status === 200 && Array.isArray(aUsers2.body.data), 'users=' + (aUsers2.body.data || []).length);
-    const aStats = await req('/admin/stats', { headers: H(aTok) });
-    ok('管理员 /admin/stats → 200', aStats.status === 200 && typeof aStats.body.data.questions === 'number', 'questions=' + (aStats.body.data && aStats.body.data.questions));
-    if (nq && nq.id != null) {
-      const aDel = await req('/questions/' + nq.id, { method: 'DELETE', headers: H(aTok) });
-      ok('管理员删题 → 200', aDel.status === 200, 'status=' + aDel.status);
-      console.log('INFO  临时题已清理 id=' + nq.id);
+  // 9) 管理员闭环：登录 → 写题 → 查看 → 删除（密码经 XC_ONLINE_ADMIN_PASS 传入，未传则跳过）
+  if (!ADMIN_PASS) {
+    console.log('INFO  未传 XC_ONLINE_ADMIN_PASS，跳过管理员用例');
+  } else {
+    const la = await req('/auth/login', { method: 'POST', body: JSON.stringify({ username: 'admin', password: ADMIN_PASS }), headers: { 'Content-Type': 'application/json' } });
+    const aTok = la.body && la.body.data && la.body.data.token;
+    ok('管理员登录', la.status === 200 && !!aTok, 'status=' + la.status);
+    if (aTok) {
+      const aPost = await req('/questions', { method: 'POST', body: JSON.stringify({ questionType: 'noun', title: 'V1线上验收临时题' + Date.now().toString().slice(-5), category: '验收', status: 'published' }), headers: H(aTok) });
+      const nq = aPost.body && aPost.body.data;
+      ok('管理员写题库 → 201', aPost.status === 201 && nq && nq.id != null, 'id=' + (nq && nq.id));
+      const aMe = await req('/auth/me', { headers: H(aTok) });
+      ok('管理员 JWT role=admin', aMe.status === 200 && aMe.body.data.user.role === 'admin', 'role=' + (aMe.body.data && aMe.body.data.user && aMe.body.data.user.role));
+      const aUsers2 = await req('/admin/users', { headers: H(aTok) });
+      ok('管理员 /admin/users → 200', aUsers2.status === 200 && Array.isArray(aUsers2.body.data), 'users=' + (aUsers2.body.data || []).length);
+      const aStats = await req('/admin/stats', { headers: H(aTok) });
+      ok('管理员 /admin/stats → 200', aStats.status === 200 && typeof aStats.body.data.questions === 'number', 'questions=' + (aStats.body.data && aStats.body.data.questions));
+      if (nq && nq.id != null) {
+        const aDel = await req('/questions/' + nq.id, { method: 'DELETE', headers: H(aTok) });
+        ok('管理员删题 → 200', aDel.status === 200, 'status=' + aDel.status);
+        console.log('INFO  临时题已清理 id=' + nq.id);
+      }
+      // 学生删除他人题 → 403
+      const sDel = await req('/questions/1', { method: 'DELETE', headers: H(vTok) });
+      ok('学生删他人题 → 403', sDel.status === 403, 'status=' + sDel.status);
     }
-    // 学生删除他人题 → 403
-    const sDel = await req('/questions/1', { method: 'DELETE', headers: H(vTok) });
-    ok('学生删他人题 → 403', sDel.status === 403, 'status=' + sDel.status);
   }
 
   // 10) 线上 ai-proxy 路由（学生端 Vercel Function）
