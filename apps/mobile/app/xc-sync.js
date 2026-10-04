@@ -121,21 +121,32 @@ var XCSync = (function () {
 
   function buildNoun(q) {
     var raw = (q.contentJson || '').trim();
-    var lines = raw.split(/\r?\n+/).map(function (s) { return s.trim(); }).filter(Boolean);
-    var sections;
-    if (lines.length) {
-      sections = lines.slice(0, 10).map(function (line, i) {
-        return { title: i === 0 ? '题目内容' : '要点 ' + i, content: line };
-      });
+    // contentJson 可能是管理端 AI 生成的结构化 JSON（{caption, definition:{blocks}}），
+    // 也可能是纯文本。先尝试解析，避免把 JSON 原文当 caption 渲染到页面。
+    var parsed = null;
+    try { parsed = JSON.parse(raw); } catch (e) { /* 非 JSON，按纯文本处理 */ }
+    var caption;
+    var blocks;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      caption = (typeof parsed.caption === 'string' ? parsed.caption : parsed.title) || raw.slice(0, 40);
+      if (parsed.definition && Array.isArray(parsed.definition.blocks) && parsed.definition.blocks.length) {
+        blocks = parsed.definition.blocks;
+      } else {
+        blocks = [{ label: '① 核心内容', sections: [{ title: '题目内容', content: raw }] }];
+      }
     } else {
-      sections = [{ title: '内容状态', content: '该题已由管理后台发布，详细内容待后台补充。' }];
+      var lines = raw.split(/\r?\n+/).map(function (s) { return s.trim(); }).filter(Boolean);
+      caption = lines[0] ? lines[0].slice(0, 40) : '管理后台同步词条';
+      blocks = [{ label: '① 核心内容', sections: lines.length ? lines.slice(0, 10).map(function (line, i) {
+        return { title: i === 0 ? '题目内容' : '要点 ' + i, content: line };
+      }) : [{ title: '内容状态', content: '该题已由管理后台发布，详细内容待后台补充。' }] }];
     }
     return {
       title: q.title,
       tag: q.tag || '新增',
       category: q.category && q.category !== '待分类' ? q.category : '传播学原理',
-      caption: lines[0] ? lines[0].slice(0, 40) : '管理后台同步词条',
-      definition: { blocks: [{ label: '① 核心内容', sections: sections }] },
+      caption: caption,
+      definition: { blocks: blocks },
       tree: [],
       community: [],
       _fromAdmin: true

@@ -73,29 +73,34 @@ function getUserInfo() {
   return {
     nickname: localStorage.getItem('userNickname') || '新传研友',
     days: localStorage.getItem('studyDays') || '1',
-    masteredCount: localStorage.getItem('masteredCount') || '386',
-    favoriteCount: localStorage.getItem('favoriteCount') || '57',
-    noteCount: localStorage.getItem('noteCount') || '12'
+    masteredCount: localStorage.getItem('masteredCount') || '0',
+    favoriteCount: localStorage.getItem('favoriteCount') || '0',
+    noteCount: localStorage.getItem('noteCount') || '0'
   };
 }
 
 // ===== V5.0 学习统计真实化 =====
-// 首次升级时把旧默认统计值（386/57/12）固化为基数，之后所有学习动作在此基础上累加，避免数字跳变
+// 首次升级时把旧默认统计值固化为基数，之后所有学习动作在此基础上累加，避免数字跳变。
+// V5.2.1：全新用户从 0 开始；仅老用户（localStorage 已有计数键）升级时保留原基数。
 function initStatBase() {
   if (localStorage.getItem('statBase')) return;
+  var hasOld = !!(localStorage.getItem('masteredCount') || localStorage.getItem('favoriteCount') || localStorage.getItem('noteCount'));
+  var mastered = hasOld ? (parseInt(localStorage.getItem('masteredCount') || '0', 10) || 0) : 0;
+  var fav = hasOld ? (parseInt(localStorage.getItem('favoriteCount') || '0', 10) || 0) : 0;
+  var note = hasOld ? (parseInt(localStorage.getItem('noteCount') || '0', 10) || 0) : 0;
   localStorage.setItem('statBase', JSON.stringify({
-    mastered: parseInt(localStorage.getItem('masteredCount') || '386', 10) || 386,
-    fav: parseInt(localStorage.getItem('favoriteCount') || '57', 10) || 57,
-    note: parseInt(localStorage.getItem('noteCount') || '12', 10) || 12
+    mastered: mastered,
+    fav: fav,
+    note: note
   }));
-  if (!localStorage.getItem('masteredCount')) localStorage.setItem('masteredCount', '386');
-  if (!localStorage.getItem('favoriteCount')) localStorage.setItem('favoriteCount', '57');
-  if (!localStorage.getItem('noteCount')) localStorage.setItem('noteCount', '12');
+  if (!localStorage.getItem('masteredCount')) localStorage.setItem('masteredCount', String(mastered));
+  if (!localStorage.getItem('favoriteCount')) localStorage.setItem('favoriteCount', String(fav));
+  if (!localStorage.getItem('noteCount')) localStorage.setItem('noteCount', String(note));
 }
 
 // 统计计数增减（delta 为负表示减少，最小为 0）
 function bumpStat(key, delta) {
-  var defaults = { masteredCount: '386', favoriteCount: '57', noteCount: '12' };
+  var defaults = { masteredCount: '0', favoriteCount: '0', noteCount: '0' };
   var current = parseInt(localStorage.getItem(key) || defaults[key] || '0', 10) || 0;
   current = Math.max(0, current + delta);
   localStorage.setItem(key, String(current));
@@ -1858,7 +1863,8 @@ function stopVideo() {
   var timeDisplay = document.getElementById('video-time');
   var placeholder = document.getElementById('video-placeholder');
   if (progressBar) progressBar.style.width = '0%';
-  if (timeDisplay) timeDisplay.textContent = '00:00 / 00:05';
+  // V5.2.1：视频资源未生成时不显示假的 00:05 时长
+  if (timeDisplay) timeDisplay.textContent = '--:-- / --:--';
   if (placeholder) placeholder.style.display = 'block';
 }
 
