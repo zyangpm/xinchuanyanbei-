@@ -1,24 +1,15 @@
-# 新传研背 版本路线图（ROADMAP）
+# 新传研背 迭代计划（ROADMAP）
 
-> ⚠️ 已过时（2026-10-02 更新）：本文记录的是 V4.0–V6.0 历史规划，当前阶段与发布节奏以 [PRD.md](./PRD.md) 与 [落地计划-GitHub公测.md](./落地计划-GitHub公测.md) 为准。
+## 已完成
 
-## V4.0（当前 — 2026-09-10）
+- **V4.0**（2026-09）：Monorepo 架构、Electron 桌面端、管理后台、本地题库
+- **V5.1.1**（2026-10-02）：真实账号体系（JWT + 手机号登录）、收藏/笔记/掌握度/考试历史云同步、管理后台真实登录、P0 安全修复（笔记 500 / 图标 404 / 脏数据）
+- **V5.2**（2026-10-04）：管理端 AI 接入真实 DeepSeek、桌面端自动更新（electron-updater + GitHub Releases）、README 面向公众重写
 
-- ✅ Monorepo 架构标准化
-- ✅ apps/mobile + apps/admin + packages/content 分层
-- ✅ 唯一题库数据源
-- ✅ 版本记录目录（versions/）
+## 规划中
 
-## V5.0（规划中）
-
-- 后台管理平台接入 Vite 构建
-- 题库数据迁移至 `.json` + `fetch()` 异步加载
-- CI/CD 接入 GitHub Actions
-- APK 发布到 GitHub Releases
-
-## V6.0（规划中）
-
-- 移动端 React Native / Taro 重构
-- 云端数据同步
-- 用户账号体系
-- 学习数据分析与可视化
+- 管理端 AI 草稿入库（不再依赖浏览器 localStorage）
+- 限流升级为共享存储（当前为内存级，Vercel 多实例各自计数）
+- 密码找回
+- 正式域名 + HTTPS 统一
+- 模拟考试内容扩充

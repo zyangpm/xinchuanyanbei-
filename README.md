@@ -111,4 +111,7 @@ Vercel 上是三个独立项目，各自配好根目录和环境变量再部署�
 - [系统架构 ARCHITECTURE](docs/ARCHITECTURE.md)
 - [部署说明 DEPLOY](docs/DEPLOY.md)
 - [iOS 使用指南](docs/IOS.md)
-- [迭代路线 ROADMAP](docs/ROADMAP.md)
+
+## License
+
+[MIT](LICENSE)
