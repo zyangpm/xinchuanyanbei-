@@ -10,6 +10,9 @@ const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
 const Store = require('electron-store');
+// V5.2：桌面端自动更新（发布源为 GitHub Releases，由 electron-builder publish 配置）
+let autoUpdater = null;
+try { autoUpdater = require('electron-updater').autoUpdater; } catch (e) { /* 本地开发无 electron-updater：跳过 */ }
 
 const store = new Store({ name: '新传研背V5' });
 
@@ -199,12 +202,59 @@ app.whenReady().then(() => {
     createMainWindow();
   }, 2000);
 
+  // V5.2：主窗口创建后再检查更新（弹窗依赖 mainWindow），失败静默不打扰
+  setTimeout(() => {
+    setupAutoUpdater();
+  }, 6000);
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
     }
   });
 });
+
+// V5.2 自动更新：发现新版本 → 询问下载 → 下载完成 → 询问重启安装。
+// 无更新 / 网络不可用 / 未配置发布源时静默跳过，不影响正常使用。
+function setupAutoUpdater() {
+  if (!autoUpdater) return;
+  try {
+    autoUpdater.autoDownload = false; // 先询问，用户确认后才下载
+    autoUpdater.on('update-available', (info) => {
+      dialog.showMessageBox(mainWindow || null, {
+        type: 'info',
+        title: '发现新版本',
+        message: '发现新版本 ' + (info && info.version ? info.version : '') + '，是否立即下载更新？',
+        detail: '下载完成后会提示重启安装，不影响您的本地数据。',
+        buttons: ['下载', '稍后'],
+        defaultId: 0,
+        cancelId: 1
+      }).then((r) => {
+        if (r.response === 0) autoUpdater.downloadUpdate();
+      }).catch(() => {});
+    });
+    autoUpdater.on('update-downloaded', () => {
+      dialog.showMessageBox(mainWindow || null, {
+        type: 'info',
+        title: '更新已就绪',
+        message: '新版本已下载完成，重启应用即可完成更新。',
+        detail: '建议先保存当前学习进度（数据已云同步）。',
+        buttons: ['立即重启', '稍后'],
+        defaultId: 0,
+        cancelId: 1
+      }).then((r) => {
+        if (r.response === 0) autoUpdater.quitAndInstall();
+      }).catch(() => {});
+    });
+    autoUpdater.on('error', (err) => {
+      // 静默记录：首启无网络 / 未发布新版本等情况不打扰用户
+      console.warn('[updater] ' + ((err && err.message) || err));
+    });
+    autoUpdater.checkForUpdates().catch(() => {});
+  } catch (e) {
+    console.warn('[updater] disabled: ' + ((e && e.message) || e));
+  }
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

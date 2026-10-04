@@ -517,7 +517,7 @@ function doDeleteMaterial(id) {
   showHint('资料已删除');
 }
 
-// ===== AI内容生成 =====
+// ===== AI内容生成（V5.2 接入真实 DeepSeek：官方接口 CORS 全开放，浏览器直连） =====
 function loadAIMaterialSelect() {
   var select = document.getElementById('ai-material-select');
   if (!select) return;
@@ -527,6 +527,12 @@ function loadAIMaterialSelect() {
       return '<option value="' + m.id + '">' + escapeHtml(m.title) + '</option>';
     }).join('');
 
+  // 回填已保存的 API Key（仅本机浏览器 localStorage）
+  var keyInput = document.getElementById('ai-api-key');
+  if (keyInput) {
+    try { keyInput.value = localStorage.getItem('xc_admin_ai_key') || ''; } catch (e) {}
+  }
+
   renderAIResults();
 }
 
@@ -534,44 +540,103 @@ function generateContent() {
   var materialId = document.getElementById('ai-material-select').value;
   var questionType = document.getElementById('ai-question-type').value;
   var count = parseInt(document.getElementById('ai-count').value) || 5;
-  var model = document.getElementById('ai-model').value;
+  if (count < 1) count = 1;
+  if (count > 20) count = 20;
 
   if (!materialId) { showHint('请先选择资料'); return; }
 
+  var keyInput = document.getElementById('ai-api-key');
+  var apiKey = (keyInput && keyInput.value ? keyInput.value : '').trim();
+  if (!apiKey) { showHint('请先填写 DeepSeek API Key（在 platform.deepseek.com 注册充值后获取）'); return; }
+  try { localStorage.setItem('xc_admin_ai_key', apiKey); } catch (e) {}
+
   var material = DB.getMaterial(parseInt(materialId));
-  var btn = event.target;
+  var btn = (event && event.target) || document.getElementById('ai-generate-btn');
+  if (!btn) return;
   btn.textContent = '生成中...';
   btn.disabled = true;
 
-  // 本地演示生成（V5.0 标注：此处未调用任何真实 AI 接口，仅写入本地示例草稿，不能视为 AI 生成成果）
-  setTimeout(function() {
-    var sampleTitles = {
-      noun: ['议程设置', '沉默的螺旋', '把关人', '编码解码', '使用与满足', '知沟理论', '创新扩散', '意见领袖'],
-      short: ['沉默的螺旋理论述评', '议程设置功能的发展', '把关人理论的演变', '使用与满足理论述评'],
-      essay: ['论沉默的螺旋在新媒体时代的变化', '议程设置理论在算法时代的适用性', '媒介融合对把关人理论的挑战'],
-      practice: ['灾难新闻报道写作', '算法推荐与信息茧房评论', '乡村振兴主题新闻策划']
-    };
+  var typeLabels = { noun: '名词解释', short: '简答题', essay: '论述题', practice: '实务题' };
+  var tLabel = typeLabels[questionType] || questionType;
 
-    var titles = sampleTitles[questionType] || sampleTitles.noun;
+  var prompt =
+    '你是新传考研命题专家。请根据以下资料生成 ' + count + ' 道' + tLabel + '题，用于考研背诵学习。\n' +
+    '资料标题：' + (material ? material.title : '') + '\n' +
+    '题型要求：' + tLabel + '\n' +
+    '内容要求：符合新传考研答题规范；名词解释 150-250 字，简答题 300-500 字，论述题 600-900 字，实务题给出完整写作/策划要点。\n' +
+    '输出要求：只输出一个 JSON 数组，每个元素为 {"title":"题目标题","content":"完整答案正文"}，不要输出任何其它文字或 markdown 代码块标记。';
+
+  var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timer = controller ? setTimeout(function () { controller.abort(); }, 45000) : null;
+
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      max_tokens: 4000
+    }),
+    signal: controller ? controller.signal : undefined
+  }).then(function (r) {
+    if (r.status === 401) throw { aiCode: 'AUTH_FAILED', status: 401 };
+    if (r.status === 402 || r.status === 429) throw { aiCode: 'QUOTA_OR_RATE', status: r.status };
+    if (!r.ok) throw { aiCode: 'HTTP_ERROR', status: r.status };
+    return r.json();
+  }).then(function (data) {
+    if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw { aiCode: 'EMPTY_RESPONSE' };
+    }
+    var text = data.choices[0].message.content || '';
+    var cleaned = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+    var start = cleaned.indexOf('[');
+    var end = cleaned.lastIndexOf(']');
+    if (start > -1 && end > start) cleaned = cleaned.slice(start, end + 1);
+    var json = null;
+    try { json = JSON.parse(cleaned); } catch (e) { json = null; }
+    if (!json || !Array.isArray(json) || json.length === 0) {
+      throw { aiCode: 'PARSE_ERROR' };
+    }
+
     var generated = 0;
-
-    for (var i = 0; i < Math.min(count, titles.length); i++) {
+    json.slice(0, count).forEach(function (it) {
+      if (!it || !it.title) return;
       DB.addContent({
         materialId: parseInt(materialId),
         questionType: questionType,
-        title: titles[i],
-        aiModel: model,
+        title: String(it.title).slice(0, 120),
+        aiModel: 'DeepSeek',
         status: 'reviewing',
-        contentData: '{"source":"' + escapeHtml(material.title) + '","generated":true}'
+        contentData: JSON.stringify({ source: material ? material.title : '', ai: true, content: String(it.content || '') })
       });
       generated++;
-    }
+    });
 
     btn.textContent = '开始生成';
     btn.disabled = false;
-    showHint('【演示模式】已在本地生成 ' + generated + ' 条' + typeLabel(questionType) + '示例草稿（模拟数据，未调用真实 AI），请前往内容审核');
+    if (timer) clearTimeout(timer);
+    if (generated === 0) { showHint('AI 返回的内容无法解析，请重试'); return; }
+    showHint('DeepSeek 已生成 ' + generated + ' 条' + tLabel + '草稿，请前往内容审核（可人工修改后发布）');
     renderAIResults();
-  }, 2000);
+  }).catch(function (err) {
+    btn.textContent = '开始生成';
+    btn.disabled = false;
+    if (timer) clearTimeout(timer);
+    var msg;
+    if (err && err.aiCode) {
+      if (err.aiCode === 'AUTH_FAILED') msg = 'API Key 无效或已失效，请检查 DeepSeek API Key 是否正确';
+      else if (err.aiCode === 'QUOTA_OR_RATE') msg = 'DeepSeek 余额/免费额度不足或触发频率限制，请到 platform.deepseek.com 检查账户';
+      else if (err.aiCode === 'EMPTY_RESPONSE') msg = 'AI 返回内容为空，请重试';
+      else if (err.aiCode === 'PARSE_ERROR') msg = 'AI 返回格式异常，请重试';
+      else msg = 'AI 服务返回异常（' + err.status + '），请稍后重试';
+    } else if (err && (err.name === 'AbortError' || err.code === 20)) {
+      msg = '生成超时（45 秒），请重试或减少生成数量';
+    } else {
+      msg = '网络不可用，无法连接 AI 服务，请检查网络后重试';
+    }
+    showHint(msg);
+  });
 }
 
 function renderAIResults() {
@@ -610,10 +675,15 @@ function viewContent(id) {
   var c = DB.getContent(id);
   if (!c) return;
   var data = JSON.parse(c.contentData || '{}');
+  delete data.ai; // 隐藏内部标记
   var html = '';
-  Object.keys(data).forEach(function(k) {
-    html += k + '：' + data[k] + '\n';
-  });
+  if (data.content) {
+    html = data.content;
+  } else {
+    Object.keys(data).forEach(function(k) {
+      html += k + '：' + data[k] + '\n';
+    });
+  }
   showHint('题型：' + typeLabel(c.questionType) + '\n标题：' + c.title + '\nAI模型：' + c.aiModel + '\n\n内容：\n' + html);
 }
 
@@ -632,10 +702,15 @@ function renderReviewList() {
   contents.forEach(function(c) {
     var material = DB.getMaterial(c.materialId);
     var data = JSON.parse(c.contentData || '{}');
+    delete data.ai; // 隐藏内部标记
     var contentHtml = '';
-    Object.keys(data).forEach(function(k) {
-      contentHtml += '<div style="margin-bottom:8px;"><strong>' + escapeHtml(k) + '：</strong>' + escapeHtml(data[k]) + '</div>';
-    });
+    if (data.content) {
+      contentHtml = '<div style="white-space:pre-wrap;font-size:13px;color:var(--ink-soft);">' + escapeHtml(data.content) + '</div>';
+    } else {
+      Object.keys(data).forEach(function(k) {
+        contentHtml += '<div style="margin-bottom:8px;"><strong>' + escapeHtml(k) + '：</strong>' + escapeHtml(data[k]) + '</div>';
+      });
+    }
 
     html += '<div style="padding:16px 20px;border-bottom:1px solid var(--border-light);">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
