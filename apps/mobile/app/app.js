@@ -2349,7 +2349,8 @@ function renderDefinition(definition) {
         
         var subContent = document.createElement('div');
         subContent.className = 'sub-section-content';
-        subContent.textContent = section.content;
+        // V5.2.1：先 HTML 转义再保留换行，云端 AI 生成的多行内容在窄屏不挤成一坨
+        subContent.innerHTML = nl2br(escapeHtml(section.content));
         subSection.appendChild(subContent);
         
         blockDiv.appendChild(subSection);
@@ -2357,12 +2358,17 @@ function renderDefinition(definition) {
     } else if (block.content) {
       var contentDiv = document.createElement('div');
       contentDiv.className = 'sub-section-content';
-      contentDiv.textContent = block.content;
+      contentDiv.innerHTML = nl2br(escapeHtml(block.content));
       blockDiv.appendChild(contentDiv);
     }
     
     textSection.appendChild(blockDiv);
   });
+}
+
+// 换行符转 <br>（需在 HTML 转义之后调用，避免注入）
+function nl2br(s) {
+  return String(s == null ? '' : s).replace(/\r?\n/g, '<br>');
 }
 
 function renderMindMap(definition, title) {
