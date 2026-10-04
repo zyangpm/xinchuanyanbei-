@@ -1,4 +1,4 @@
-# 版本总览
+﻿# 版本总览
 
 本目录汇总各历史版本的说明、变更记录与界面截图归档。用于对比不同迭代阶段的功能演进，并作为历史版本的备份索引。
 
@@ -12,7 +12,7 @@
 | V4.0 | Monorepo 标准化版本 | [v4.0/README.md](v4.0/README.md) | [v4.0/screenshots](v4.0/screenshots) | 已归档，截图与注释齐全 |
 | V5.0 | 交互化版本，静态数据接通真实交互，学生端与管理后台联动 | [v5.0/README.md](v5.0/README.md) | [v5.0/screenshots](v5.0/screenshots) | 已归档（2026-10 补齐网页+手机端截图） |
 | V5.1 | 账号体系 + 云同步 + 管理后台真实登录 | 见 [docs/PRD.md](../docs/PRD.md) | — | 基线 5.1.1 |
-| V5.2 | 管理端 AI 接真实 DeepSeek + 桌面端自动更新 | 见 [docs/ROADMAP.md](../docs/ROADMAP.md) | — | 当前版本 |
+| V5.2.1 | 管理端 AI 接真实 DeepSeek + 桌面端自动更新 | 见 [docs/ROADMAP.md](../docs/ROADMAP.md) | — | 当前版本 |
 
 ## 说明
 

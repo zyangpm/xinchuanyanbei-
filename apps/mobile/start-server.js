@@ -248,7 +248,7 @@ h1{font-size:24px;margin:0 0 10px}
 </style></head>
 <body><div class="box">
 <div class="logo"></div>
-<h1>新传研背 V5.1</h1>
+<h1>新传研背 V5.2.1</h1>
 <p>手机扫码即可使用</p>
 <div class="url">${url}</div>
 <div class="qr-area">
@@ -350,7 +350,7 @@ server.listen(PORT, '0.0.0.0', () => {
     const qrUrl = 'http://' + ip + ':' + PORT + '/qr';
 
     console.log('==================================================');
-    console.log('    Xinchuan Yanbei V5.1 - Mobile Service Started');
+    console.log('    Xinchuan Yanbei V5.2.1 - Mobile Service Started');
     console.log('==================================================');
     console.log('');
     console.log('   Mobile URL: ' + url);

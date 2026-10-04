@@ -93,7 +93,7 @@ Vercel 上是三个独立项目，各自配好根目录和环境变量再部署�
 
 ## 迭代计划
 
-**已完成（V5.2）**
+**已完成（V5.2.1）**
 
 - 管理后台 AI 内容生成接入真实 DeepSeek（管理员填自己的 API Key，草稿存浏览器本地，审核后发布）
 - 桌面端自动更新（electron-updater + GitHub Releases）

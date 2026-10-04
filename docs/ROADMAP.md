@@ -1,10 +1,10 @@
-# 新传研背 迭代计划（ROADMAP）
+﻿# 新传研背 迭代计划（ROADMAP）
 
 ## 已完成
 
 - **V4.0**（2026-09）：Monorepo 架构、Electron 桌面端、管理后台、本地题库
 - **V5.1.1**（2026-10-02）：真实账号体系（JWT + 手机号登录）、收藏/笔记/掌握度/考试历史云同步、管理后台真实登录、P0 安全修复（笔记 500 / 图标 404 / 脏数据）
-- **V5.2**（2026-10-04）：管理端 AI 接入真实 DeepSeek、桌面端自动更新（electron-updater + GitHub Releases）、README 面向公众重写
+- **V5.2.1**（2026-10-04）：管理端 AI 接入真实 DeepSeek、桌面端自动更新（electron-updater + GitHub Releases）、README 面向公众重写
 
 ## 规划中
 

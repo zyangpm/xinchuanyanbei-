@@ -103,7 +103,7 @@ function setupChineseMenu() {
           click: () => {
             dialog.showMessageBox(mainWindow, {
               title: '关于新传研背',
-              message: '新传研背 V5.1.1\n新传考研考试模拟系统',
+              message: '新传研背 V5.2.1\n新传考研考试模拟系统',
               type: 'info'
             });
           }

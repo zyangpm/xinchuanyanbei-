@@ -2,7 +2,7 @@
   "name": "新传研背",
   "short_name": "新传研背",
   "description": "新传考研学习辅助系统",
-  "version": "5.1.1",
+  "version": "5.2.1",
   "start_url": "/index.html",
   "display": "standalone",
   "orientation": "portrait-primary",

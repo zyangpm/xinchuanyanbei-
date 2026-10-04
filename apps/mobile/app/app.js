@@ -310,7 +310,7 @@ function initThemeAndFont() {
 
 document.addEventListener('DOMContentLoaded', function() {
   initStatBase();
-  localStorage.setItem('APP_VERSION', 'v5.1.1');
+  localStorage.setItem('APP_VERSION', 'v5.2.1');
   initThemeAndFont();
   initFavoriteStar();
   renderCollections();
@@ -3537,7 +3537,7 @@ function rateApp() {
 }
 
 function showAbout() {
-  var version = localStorage.getItem('APP_VERSION') || 'v5.1.1';
+  var version = localStorage.getItem('APP_VERSION') || 'v5.2.1';
   showConfirm('关于新传研背', '新传研背 ' + version + '\n新传考研背诵与训练工具\n名词解释 · 简答题 · 论述题 · 考试实务训练', 'info');
 }
 
@@ -4058,7 +4058,7 @@ function openAbout() {
         '<div>' +
           '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px;">开发信息</div>' +
           '<div style="font-size:13px;color:var(--ink-soft);">© 2026 新传研背团队</div>' +
-          '<div style="font-size:13px;color:var(--ink-light);margin-top:4px;">版本号：v3.0.0</div>' +
+          '<div style="font-size:13px;color:var(--ink-light);margin-top:4px;">版本号：v5.2.1</div>' +
         '</div>' +
       '</div>' +
       '<button class="save-btn" onclick="closeModal(\'about-modal\')">关闭</button>' +

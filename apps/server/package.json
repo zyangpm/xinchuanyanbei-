@@ -1,6 +1,6 @@
 {
   "name": "@xinchuan/server",
-  "version": "5.1.1",
+  "version": "5.2.1",
   "private": true,
   "description": "新传研背后端服务（Vercel Functions 模式：api/*.js）",
   "engines": {
