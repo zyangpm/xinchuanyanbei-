@@ -1,6 +1,6 @@
 {
   "name": "@xinchuan/mobile",
-  "version": "5.1.1",
+  "version": "5.2.1",
   "description": "新传研背 V5.1 - 移动端（Electron + PWA）",
   "main": "main.js",
   "scripts": {
