@@ -84,9 +84,41 @@ var Cloud = (function () {
     var prev = getUser();
     if (prev && prev.id && data.user && data.user.id && Number(prev.id) !== Number(data.user.id)) {
       try {
+        // 云同步四类（会推送云端，必须清）
         localStorage.removeItem('favorites');
         localStorage.removeItem('notes');
         localStorage.removeItem('wordRatings');
+        localStorage.removeItem('exam_history');
+        // 其他用户级本地数据（不推送云端但避免显示串号）
+        localStorage.removeItem('posts');
+        localStorage.removeItem('memMethods');
+        localStorage.removeItem('masteredCount');
+        localStorage.removeItem('favoriteCount');
+        localStorage.removeItem('noteCount');
+        localStorage.removeItem('studyDays');
+        localStorage.removeItem('lastStudyDate');
+        localStorage.removeItem('statBase');
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userAvatar');
+        localStorage.removeItem('avatarColor');
+        localStorage.removeItem('avatarText');
+        localStorage.removeItem('lastGeneratedVideoUrl');
+        localStorage.removeItem('userPhone');
+        // 考试作答记录（各题型答案与分析，用户级）
+        localStorage.removeItem('exam_answers');
+        localStorage.removeItem('exam_analyses');
+        localStorage.removeItem('comment_answers');
+        localStorage.removeItem('copywriting_answers');
+        localStorage.removeItem('health_answers');
+        localStorage.removeItem('marketing_answers');
+        localStorage.removeItem('news_answers');
+        // 其他用户内容/账号信息
+        localStorage.removeItem('feedbacks');
+        localStorage.removeItem('boundEmail');
+        localStorage.removeItem('localPasswordHint');
+        localStorage.removeItem('avatarImage');
+        localStorage.removeItem('aiPromptTemplate');
+        localStorage.removeItem('aiCache');
       } catch (e) { /* 忽略 */ }
     }
     localStorage.setItem(TOKEN_KEY, data.token);
