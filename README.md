@@ -8,7 +8,6 @@
 |---|---|
 | 学生端 | https://app-three-orpin-61.vercel.app |
 | 管理后台 | https://admin-web-ruby-nu.vercel.app |
-| 后端 API | https://server-lilac-nu.vercel.app/api |
 
 浏览器打开即用，注册账号即可。不用装任何东西。
 
@@ -86,7 +85,7 @@ docs/        产品、架构、部署、iOS 等文档
 
 Vercel 上是三个独立项目，各自配好根目录和环境变量再部署：
 
-1. `apps/server` → API（函数入口在 `api/`）
+1. `apps/server` → API，线上地址 https://server-lilac-nu.vercel.app/api（函数入口在 `api/`）
 2. `apps/mobile/app` → 学生端静态站
 3. `scripts/admin-web` → 管理后台静态站
 
