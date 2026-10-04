@@ -22,7 +22,7 @@ const COLLECTIONS = {
   notes: {
     table: 'notes',
     rowToItem: (r) => ({
-      id: Number(r.id), questionId: r.question_id != null ? Number(r.question_id) : null,
+      id: Number(r.id), questionId: r.question_id != null ? String(r.question_id) : null,
       content: r.content, createdAt: r.created_at, updatedAt: r.updated_at, deleted: !!r.deleted
     }),
     upsertSql:
@@ -30,10 +30,10 @@ const COLLECTIONS = {
       'ON CONFLICT(id) DO UPDATE SET question_id = excluded.question_id, content = excluded.content, ' +
       'updated_at = excluded.updated_at, deleted = excluded.deleted ' +
       'WHERE notes.user_id = excluded.user_id AND excluded.updated_at >= notes.updated_at',
-    insertArgs: (uid, it) => [Number(it.id), uid, it.questionId != null ? Number(it.questionId) : null, it.content != null ? String(it.content) : '', it.createdAt || nowIso(), it.updatedAt || nowIso(), it.deleted ? 1 : 0],
+    insertArgs: (uid, it) => [Number(it.id), uid, it.questionId != null ? String(it.questionId) : null, it.content != null ? String(it.content) : '', it.createdAt || nowIso(), it.updatedAt || nowIso(), it.deleted ? 1 : 0],
     insertNoIdSql:
       'INSERT INTO notes (user_id, question_id, content, created_at, updated_at, deleted) VALUES (?,?,?,?,?,?)',
-    insertNoIdArgs: (uid, it) => [uid, it.questionId != null ? Number(it.questionId) : null, it.content != null ? String(it.content) : '', it.createdAt || nowIso(), it.updatedAt || nowIso(), it.deleted ? 1 : 0],
+    insertNoIdArgs: (uid, it) => [uid, it.questionId != null ? String(it.questionId) : null, it.content != null ? String(it.content) : '', it.createdAt || nowIso(), it.updatedAt || nowIso(), it.deleted ? 1 : 0],
     findByIdSql: 'SELECT * FROM notes WHERE id = ? AND user_id = ?',
     findByIdArgs: (uid, it) => [Number(it.id), uid]
   },

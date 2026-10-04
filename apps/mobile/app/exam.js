@@ -246,6 +246,10 @@ function saveHistoryProgress(pageId, questionNum) {
     timestamp: Date.now()
   };
   localStorage.setItem('exam_history', JSON.stringify(history));
+  // 已登录时同步到云端（V1 修复：考试历史不再只存本机）
+  if (typeof Cloud !== 'undefined' && Cloud.pushHistory) {
+    Cloud.pushHistory(pageId, questionNum);
+  }
 }
 
 function loadHistoryProgress(pageId) {

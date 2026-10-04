@@ -243,6 +243,57 @@ var Cloud = (function () {
     localStorage.setItem('wordRatings', JSON.stringify(ratings));
   }
 
+  // ---------- 考试历史 ----------
+
+  function histSid(rec) {
+    if (rec._sid != null) return rec._sid;
+    var sid = Date.now();
+    rec._sid = sid;
+    return sid;
+  }
+
+  /** 保存考试进度后调用（已登录时）：上传该页进度到云端。失败记录状态并返回 {ok:false}。 */
+  function pushHistory(pageId, questionNum) {
+    if (!isLoggedIn()) return Promise.resolve({ ok: false, reason: 'not-logged-in' });
+    var hist = safeParse('exam_history', {});
+    var rec = hist[pageId] || { question: questionNum, timestamp: Date.now() };
+    if (!hist[pageId]) hist[pageId] = rec;
+    var sid = histSid(rec);
+    var body = [{
+      id: sid, type: pageId, questionIndex: questionNum || 1,
+      answer: '', updatedAt: new Date(rec.timestamp || Date.now()).toISOString(), deleted: false
+    }];
+    return req('sync/history', { method: 'POST', body: { items: body } }).then(function (res) {
+      if (res.data && res.data[0] && res.data[0].id != null) rec._sid = Number(res.data[0].id);
+      hist[pageId] = rec;
+      localStorage.setItem('exam_history', JSON.stringify(hist));
+      return { ok: true };
+    }).catch(function (err) {
+      markSyncFail('history', err);
+      return { ok: false, offline: true };
+    });
+  }
+
+  /** 考试历史云端合并：按 type(pageId) 并入本地，软删除处理。 */
+  function mergeHistory(items) {
+    var hist = safeParse('exam_history', {});
+    items.forEach(function (it) {
+      var t = String(it.type || '');
+      if (!t) return;
+      if (it.deleted) {
+        if (hist[t] && hist[t]._sid != null && String(hist[t]._sid) === String(it.id)) delete hist[t];
+        return;
+      }
+      if (hist[t] && hist[t]._sid != null && String(hist[t]._sid) === String(it.id)) return; // 本地为准
+      hist[t] = {
+        question: it.questionIndex != null ? Number(it.questionIndex) : 1,
+        timestamp: it.updatedAt ? (Date.parse(it.updatedAt) || Date.now()) : Date.now(),
+        _sid: Number(it.id)
+      };
+    });
+    localStorage.setItem('exam_history', JSON.stringify(hist));
+  }
+
   // ---------- 同步引擎 ----------
 
   function safeParse(key, def) {
@@ -274,13 +325,21 @@ var Cloud = (function () {
     return Promise.all([
       pull('favorites', since).then(mergeFavorites).catch(function (err) { markSyncFail('favorites', err); return null; }),
       pull('notes', since).then(mergeNotes).catch(function (err) { markSyncFail('notes', err); return null; }),
-      pull('progress', since).then(mergeProgress).catch(function (err) { markSyncFail('progress', err); return null; })
+      pull('progress', since).then(mergeProgress).catch(function (err) { markSyncFail('progress', err); return null; }),
+      pull('history', since).then(mergeHistory).catch(function (err) { markSyncFail('history', err); return null; })
     ]).then(function () {
       // 合并后把本地（可能新增/更新的）数据整体推送一次，保证双向收敛
       var ratings = safeParse('wordRatings', {});
       var favItems = safeParse('favorites', []).map(function (f) { return { questionId: favKey(f), updatedAt: new Date().toISOString(), deleted: false }; });
       var noteItems = safeParse('notes', []).map(function (n) { return { id: noteSid(n), questionId: n.questionId || null, content: n.content || '', updatedAt: new Date().toISOString(), deleted: false }; });
       var progItems = Object.keys(ratings).map(function (k) { return { questionId: k, rating: ratings[k].rating || 'yes', updatedAt: ratings[k].ts || new Date().toISOString(), deleted: false }; });
+      var histObj = safeParse('exam_history', {});
+      var histItems = Object.keys(histObj).map(function (k) {
+        var r = histObj[k];
+        if (r._sid == null) { r._sid = Date.now(); histObj[k] = r; }
+        return { id: r._sid, type: k, questionIndex: r.question || 1, answer: '', updatedAt: r.timestamp ? new Date(r.timestamp).toISOString() : new Date().toISOString(), deleted: false };
+      });
+      if (Object.keys(histObj).length) localStorage.setItem('exam_history', JSON.stringify(histObj));
 
       var jobs = [];
       if (favItems.length) jobs.push(req('sync/favorites', { method: 'POST', body: { items: favItems } })
@@ -305,6 +364,21 @@ var Cloud = (function () {
       if (progItems.length) jobs.push(req('sync/progress', { method: 'POST', body: { items: progItems } })
         .then(function () { return true; })
         .catch(function (err) { markSyncFail('progress', err); return false; }));
+      if (histItems.length) jobs.push(req('sync/history', { method: 'POST', body: { items: histItems } })
+        .then(function (res) {
+          if (res.data && res.data.length) {
+            var hist2 = safeParse('exam_history', {});
+            res.data.forEach(function (it) {
+              if (it && it.id != null && it.type) {
+                var rec = hist2[it.type];
+                if (rec) rec._sid = Number(it.id);
+              }
+            });
+            localStorage.setItem('exam_history', JSON.stringify(hist2));
+          }
+          return true;
+        })
+        .catch(function (err) { markSyncFail('history', err); return false; }));
 
       return Promise.all(jobs).then(function (results) {
         var allOk = results.every(function (r) { return r !== false; });
@@ -368,7 +442,8 @@ var Cloud = (function () {
     syncStatus: syncStatus,
     pushFav: pushFav,
     pushNote: pushNote,
-    pushRating: pushRating
+    pushRating: pushRating,
+    pushHistory: pushHistory
   };
 })();
 

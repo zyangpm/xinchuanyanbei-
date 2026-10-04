@@ -119,7 +119,7 @@ async function initSchema(db) {
     CREATE TABLE IF NOT EXISTS favorites (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     INTEGER NOT NULL,
-      question_id INTEGER NOT NULL,
+      question_id TEXT NOT NULL,
       updated_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       deleted     INTEGER NOT NULL DEFAULT 0,
       UNIQUE(user_id, question_id)
@@ -128,7 +128,7 @@ async function initSchema(db) {
     CREATE TABLE IF NOT EXISTS notes (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     INTEGER NOT NULL,
-      question_id INTEGER,
+      question_id TEXT,
       content     TEXT,
       created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       updated_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
@@ -138,7 +138,7 @@ async function initSchema(db) {
     CREATE TABLE IF NOT EXISTS study_progress (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     INTEGER NOT NULL,
-      question_id INTEGER NOT NULL,
+      question_id TEXT NOT NULL,
       rating      TEXT,
       updated_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       deleted     INTEGER NOT NULL DEFAULT 0,

@@ -1370,35 +1370,12 @@ function switchLoginTab(type) {
   }
 }
 
-var codeCountdown = 0;
-var codeTimer = null;
+function openAgreement() {
+  navigateTo('user-agreement.html');
+}
 
-function sendCode() {
-  var phone = document.getElementById('code-phone-input').value.trim();
-  if (!phone || phone.length !== 11) {
-    showConfirm('提示', '请输入正确的手机号', 'warning');
-    return;
-  }
-  
-  if (codeCountdown > 0) return;
-  
-  codeCountdown = 60;
-  var btn = document.getElementById('send-code-btn');
-  btn.disabled = true;
-  btn.textContent = codeCountdown + 's';
-  
-  codeTimer = setInterval(function() {
-    codeCountdown--;
-    if (codeCountdown <= 0) {
-      clearInterval(codeTimer);
-      btn.disabled = false;
-      btn.textContent = '获取验证码';
-    } else {
-      btn.textContent = codeCountdown + 's';
-    }
-  }, 1000);
-  
-  showConfirm('验证码', '验证码已发送（测试码：1234）', 'success');
+function openPrivacy() {
+  navigateTo('privacy-policy.html');
 }
 
 function handleLogin() {
@@ -1422,54 +1399,6 @@ function handleLogin() {
   }
   
   doLogin(phone, 'password');
-}
-
-function handleCodeLogin() {
-  var phone = document.getElementById('code-phone-input').value.trim();
-  var code = document.getElementById('code-input').value.trim();
-  var agreement = document.getElementById('agreement').checked;
-  
-  if (!agreement) {
-    showConfirm('提示', '请先阅读并同意用户协议和隐私政策', 'warning');
-    return;
-  }
-  
-  if (!phone || phone.length !== 11) {
-    showConfirm('提示', '请输入正确的手机号', 'warning');
-    return;
-  }
-  
-  if (!code) {
-    showConfirm('提示', '请输入验证码', 'warning');
-    return;
-  }
-  
-  if (code !== '1234') {
-    showConfirm('提示', '验证码错误（测试码：1234）', 'error');
-    return;
-  }
-  
-  doLogin(phone, 'code');
-}
-
-function thirdPartyLogin(type) {
-  var agreement = document.getElementById('agreement');
-  if (agreement && !agreement.checked) {
-    showConfirm('提示', '请先阅读并同意用户协议和隐私政策', 'warning');
-    return;
-  }
-  
-  var typeNames = {
-    wechat: '微信',
-    qq: 'QQ',
-    weibo: '微博'
-  };
-  
-  showConfirm('登录中', '正在跳转' + typeNames[type] + '授权页面...', 'info');
-  
-  setTimeout(function() {
-    doLogin('用户' + Math.floor(Math.random() * 10000), type);
-  }, 1500);
 }
 
 function doLogin(account, type) {
