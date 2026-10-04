@@ -28,13 +28,16 @@ function getDb() {
   return dbPromise;
 }
 
-/** 首次启动确保管理员账号存在（环境变量 XC_ADMIN_USERNAME / XC_ADMIN_PASSWORD）。 */
+/** 确保管理员账号存在（环境变量 XC_ADMIN_USERNAME / XC_ADMIN_PASSWORD）；已存在则密码跟随环境变量（生产轮换密码只需改 env 重新部署）。 */
 async function ensureAdmin(db) {
   const name = process.env.XC_ADMIN_USERNAME || 'admin';
   const pass = process.env.XC_ADMIN_PASSWORD;
   if (!pass) return;
   const exists = await db.prepare('SELECT id FROM users WHERE username = ?').get(name);
-  if (!exists) {
+  if (exists) {
+    await db.prepare('UPDATE users SET password_hash = ?, nickname = ?, role = ? WHERE username = ?')
+      .run(hashPassword(pass), '管理员', 'admin', name);
+  } else {
     await db.prepare('INSERT INTO users (username, password_hash, nickname, role) VALUES (?,?,?,?)')
       .run(name, hashPassword(pass), '管理员', 'admin');
   }

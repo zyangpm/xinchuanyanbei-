@@ -63,7 +63,8 @@ function authCtx(req) {
 }
 
 /**
- * 首次启动确保管理员账号存在（环境变量 XC_ADMIN_USERNAME / XC_ADMIN_PASSWORD）。
+ * 确保管理员账号存在（环境变量 XC_ADMIN_USERNAME / XC_ADMIN_PASSWORD）。
+ * 已存在则密码跟随环境变量（生产轮换管理员密码只需改 env 重新部署）。
  * 未设置则不创建（默认无管理员；部署时通过环境变量注入初始管理员）。
  */
 async function ensureAdmin(db) {
@@ -71,7 +72,11 @@ async function ensureAdmin(db) {
   const pass = process.env.XC_ADMIN_PASSWORD;
   if (!pass) return;
   const exists = await db.prepare('SELECT id FROM users WHERE username = ?').get(name);
-  if (!exists) {
+  if (exists) {
+    await db.prepare('UPDATE users SET password_hash = ?, nickname = ?, role = ? WHERE username = ?')
+      .run(hashPassword(pass), '管理员', 'admin', name);
+    console.log('   [auth] 管理员密码已按环境变量更新: ' + name);
+  } else {
     await db.prepare('INSERT INTO users (username, password_hash, nickname, role) VALUES (?,?,?,?)')
       .run(name, hashPassword(pass), '管理员', 'admin');
     console.log('   [auth] 管理员账号已创建: ' + name);
