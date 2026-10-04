@@ -1,90 +1,91 @@
-# 新传研背 · 新传考研背诵学习工具
+# 新传研背
 
-> 一款面向新传考研学子的 **AI 辅助背诵 + 考试训练 App**，支持 **Windows / 手机（iOS、安卓）/ 网页** 三端使用，注册登录、数据云同步，换设备不丢进度。
+新传考研背诵学习工具。Windows 桌面（Electron）+ 手机（PWA）+ 网页三端，注册登录后数据云同步，换设备不丢进度。
 
----
+在线体验（不用装，浏览器打开就能用）：
 
-## 🌐 在线体验（无需安装，点开即用）
+- 学生端：https://app-three-orpin-61.vercel.app
+- 管理后台：https://admin-web-ruby-nu.vercel.app
+- 后端 API：https://server-lilac-nu.vercel.app/api
 
-| 入口 | 地址 | 说明 |
-|---|---|---|
-| 📱 **学生端（手机/电脑浏览器直接打开）** | **[https://app-three-orpin-61.vercel.app](https://app-three-orpin-61.vercel.app)** | 注册一个账号即可使用全部功能，收藏/笔记/掌握度云同步 |
-| 🛠️ **管理后台（网页版）** | **[https://admin-web-ruby-nu.vercel.app](https://admin-web-ruby-nu.vercel.app)** | 题库管理 / 用户管理 / 数据统计（演示账号请向作者索取） |
+## 下载
 
-> 💡 学生端注册一个账号即可使用全部功能；后端 API：`https://server-lilac-nu.vercel.app/api`（JWT 鉴权 + Turso 云数据库）。
-
----
-
-## 🚀 直接下载（点击即可下载安装）
-
-| 平台 | 下载 | 说明 |
-|---|---|---|
-| 🪟 Windows | **[⬇️ 下载 Windows 安装包](https://github.com/zyangpm/xinchuanyanbei-/releases/latest)** | 双击安装，桌面出图标，约 75 MB |
-| 📱 安卓 | **[⬇️ 下载安卓 APK](https://github.com/zyangpm/xinchuanyanbei-/releases/latest)** | 下载后直接安装（需允许"未知来源"） |
-| 🍎 iPhone | **[📖 iOS 使用教程](docs/IOS.md)** | 苹果限制，无法直接装安装包；按教程两步搞定，体验与 App 一致 |
-
-> 💡 下载页面打不开时，点右上角"Releases"，第一个版本里的安装文件就是。
-
----
-
-## ✨ 这个软件是做什么的
-
-**新传考研人的"背 + 练 + 考"一站式工具**，把零散的笔记变成可记忆、可检测的知识体系：
-
-- 📚 **知识库**：名词解释、简答题、论述题、实务题全题型内容，按教材与专题组织
-- 🧠 **分层串记**：知识点拆成"定义 / 特征 / 延伸"逐层记忆，配合 AI 助记
-- ⭐ **收藏与笔记**：随时收藏易忘考点、写自己的理解，云端自动同步
-- 📈 **掌握度追踪**：给每个考点标记"不会 / 模糊 / 认识"，自动统计熟练度
-- 📝 **考试模拟**：真题演练、模拟考试、成绩与错题回顾
-- 👨‍💻 **管理后台**：内容运营、题库管理、用户数据统计（运营者用）
-
-## 📱 界面预览
-
-| 登录页 | 首页 | 知识库 |
-|---|---|---|
-| ![登录](docs/screenshots/login.png) | ![首页](docs/screenshots/home.png) | ![知识库](docs/screenshots/knowledge.png) |
-
-| 背诵详情 | 收藏 |
+| 平台 | 方式 |
 |---|---|
-| ![详情](docs/screenshots/detail.png) | ![收藏](docs/screenshots/collections.png) |
+| Windows | [GitHub Releases 下载安装包](https://github.com/zyangpm/xinchuanyanbei-/releases/latest)（约 75MB，双击安装） |
+| 安卓 | [GitHub Releases 下载 APK](https://github.com/zyangpm/xinchuanyanbei-/releases/latest)（需允许"未知来源"） |
+| iPhone | 不支持直接装安装包。用 Safari 打开学生端 → 分享 → 添加到主屏幕，体验和原生 App 一样。详见 [docs/IOS.md](docs/IOS.md) |
 
----
+> Windows 桌面端已接入自动更新（electron-updater），出新版本打开 App 会提示下载。
 
-## 🛠️ Tech Stack
+## 功能
 
-- **Electron 28** — Windows 桌面端（asar 打包，NSIS 安装包）
-- **PWA** — 手机端，iOS 用 Safari「添加到主屏幕」即原生体验，无需 App Store
-- **纯静态前端** — 原生 HTML/CSS/JS，无框架、无构建链，直接部署
-- **Node.js 后端** — 原生 http（无 Express），路由 / 鉴权 / 数据访问分层
-- **Turso** — 云端 SQLite；本地用 `node:sqlite`，同一套 SQL 零改动切换
-- **JWT + scrypt** — 登录鉴权，密码哈希加盐存储
-- **云同步** — 收藏 / 笔记 / 掌握度 / 考试历史，增量拉取 + 后写覆盖
-- **Vercel** — 三端托管（学生端 / 管理端 / 后端 Serverless）
-- **Turbo** — Monorepo 管理
+- 知识库：名词解释 / 简答题 / 论述题 / 实务题，按教材和专题组织
+- 背诵：知识点拆成"定义 / 特征 / 延伸"分层记
+- 收藏 + 笔记：记易忘考点，云端同步
+- 掌握度：标记"不会 / 模糊 / 认识"，统计熟练度
+- 考试：真题演练、模拟考、成绩和错题回顾
+- 管理后台：题库管理、内容审核发布、用户管理、数据统计
+- 管理端 AI 生成：接真实 DeepSeek（管理员在 AI 生成页填自己的 API Key 即可用，Key 只存浏览器本地）
 
-> 开发环境：Windows + Node 22。管理后台的「AI 内容生成」已接入**真实 DeepSeek**（管理员在 AI 生成页配置自己的 API Key 后即可调用真实模型生成内容），全部核心功能均为真实链路。
+## 技术栈
 
-## 📱 iOS 怎么用
+- Electron 28（Windows 桌面，NSIS 打包）
+- PWA（手机端，iOS 用 Safari 添加到主屏幕）
+- 原生 HTML/CSS/JS，没上框架，没构建链
+- Node.js 后端：原生 `http` 模块，没上 Express，路由/鉴权/数据访问分层
+- 数据库：云端 Turso（SQLite 兼容）；本地开发用 `node:sqlite`，同一套 SQL 切来切去
+- JWT + scrypt 登录鉴权
+- Vercel 托管（学生端 / 管理端 / 后端 Serverless 三个项目）
+- Turborepo 管理 monorepo
 
-iPhone 不能直接装安装包，用 PWA 方式，30 秒搞定，体验和原生 App 一样（桌面图标 / 全屏 / 云同步）：
+> 开发环境：Windows + Node 22。只在这个环境测过，macOS/Linux 没打包验证。
 
-1. iPhone 自带 **Safari** 打开学生端网址
-2. 点底部**分享按钮** → **添加到主屏幕** → **添加**
-3. 桌面出现「新传研背」图标，点开即用
-
-详见 [iOS 使用教程](docs/IOS.md)。
-
-## 🧩 产品文档
-
-- [产品需求文档 PRD](docs/PRD.md) —— 产品定位、目标用户、功能需求、页面流程
-
-## 🔧 本地开发（开发者）
+## 本地开发
 
 ```bash
-npm install          # 安装依赖
-node apps/server/src/server.js   # 启动后端（默认 3000 端口）
-npm -w apps/mobile run start     # 启动学生端
-# 管理后台：npm -w apps/admin run start
+npm install
+node apps/server/src/server.js   # 后端，默认 3000 端口
+npm -w apps/mobile run start     # 学生端
+npm -w apps/admin run start      # 管理后台
 ```
 
-仓库结构：`apps/mobile` 学生端 ｜ `apps/admin` 管理后台 ｜ `apps/server` 后端 ｜ `packages/content` 题库数据源
+后端需要这些环境变量（不配也能跑，用本地 SQLite + 自动生成密钥）：
+
+| 变量 | 用途 |
+|---|---|
+| `XC_DB` | `turso` 或留空（本地 SQLite） |
+| `XC_TURSO_URL` / `XC_TURSO_TOKEN` | 云端 Turso 连接 |
+| `XC_JWT_SECRET` | 生产环境必须显式配置，否则 Serverless 冷启动会随机生成导致掉线 |
+| `XC_ADMIN_USERNAME` / `XC_ADMIN_PASSWORD` | 管理后台账号密码 |
+| `XC_ALLOWED_ORIGINS` | CORS 白名单（逗号分隔），不配默认放行本地开发 |
+
+## 目录结构
+
+```
+apps/
+  mobile/   学生端（Electron + PWA 同一份前端）
+  admin/    管理后台
+  server/   后端（src/ 业务代码，api/ Vercel Serverless 入口）
+packages/
+  content/  题库数据源
+scripts/
+  admin-web/ 管理后台网页版部署目录
+```
+
+## 部署
+
+Vercel 上是三个独立项目：
+
+1. `apps/server` → API（根目录配 `apps/server`，函数入口在 `api/`）
+2. `apps/mobile/app` → 学生端静态站
+3. `scripts/admin-web` → 管理后台静态站
+
+部署前把上面环境变量在 Vercel 项目里配好（`XC_DB=turso` + Turso 连接 + 固定 `XC_JWT_SECRET` + 管理员账号密码）。
+
+## 已知限制
+
+- 桌面端自动更新依赖 GitHub Releases，发布新版本后用户打开 App 才检查到
+- 管理端 AI 生成的内容草稿存在浏览器 localStorage（审核发布后进数据库）
+- 限流是内存级演示（Vercel 多实例各自计数），用户量大了要换共享存储
+- 无密码找回
